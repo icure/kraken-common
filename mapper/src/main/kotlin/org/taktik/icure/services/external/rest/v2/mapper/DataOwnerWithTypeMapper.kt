@@ -2,14 +2,8 @@ package org.taktik.icure.services.external.rest.v2.mapper
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
-import org.mapstruct.PassOnParameter
-import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.DataOwnerWithType
-import org.taktik.icure.entities.Patient
 import org.taktik.icure.services.external.rest.v2.dto.DataOwnerWithTypeDto
-import org.taktik.icure.services.external.rest.v2.dto.PatientDto
 
 @Mapper(
 	componentModel = "spring",

@@ -32,6 +32,7 @@ import org.taktik.icure.services.external.rest.v1.mapper.base.PropertyStubMapper
 interface DeviceMapper {
 	@Mappings(
 		Mapping(target = "dataOwnerGroups", ignore = true),
+		Mapping(target = "groupLinkType", ignore = true),
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),

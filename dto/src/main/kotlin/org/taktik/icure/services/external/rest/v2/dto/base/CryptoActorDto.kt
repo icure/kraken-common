@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.AlwaysDecrypted
 import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.HandledByMapper
 import org.taktik.icure.services.external.rest.v2.dto.PropertyStubDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEntryKeyStringDto
@@ -77,21 +78,54 @@ interface CryptoActorDto : VersionableDto<String> {
 		description = "The id of the parent data owner. When using hierarchical data owners permissions a data owner is allowed to access data shared with their parent",
 	)
 	@Deprecated("Use dataOwnerGroups with a DataOwnerGroupLinkTypeDto.parent link instead")
+	@HandledByMapper
 	@CardinalMetadataProperty
-	@ActiveField
 	val parentId: String?
 
-	@get:Schema(
-		description =
-		"The links to the data owners representing the organizations, administrative units or loose groups of healthcare parties this " +
-			"crypto actor belongs to. Those data owners usually have public keys and associated private keys as they are legitimate " +
-			"targets for SecureDelegations. Membership is transitive, whatever the link type: if this actor is linked to a group A " +
-			"and A is itself linked to a group B, then this actor also belongs to B, so resolving the complete set of groups " +
-			"requires following those links recursively.",
-	)
+	/**
+	 * The links to the data owners representing the organizations, administrative units or other loose groups of
+	 * healthcare parties this crypto actor belongs to.
+	 * There are different types of links, which have different implication on access control and requirements for
+	 * sharing data among all members of the group.
+	 *
+	 * This list should be considered as unordered, and it may not contain two links pointing to the same data owner,
+	 * regardless of type.
+	 *
+	 * # Membership propagation
+	 *
+	 * All links are transitive, whatever their type: every directly linked group is a group of the actor, and the groups
+	 * of a group are also groups of the actor (applied recursively). An actor is therefore a member of every group
+	 * reachable through a path of links.
+	 *
+	 * For example with `hcp -parent-> department -simple-> building -simple-> campus`: the groups of `hcp` are
+	 * `department`, `building` and `campus`.
+	 *
+	 * There may however be restrictions in place on how propagation when the link type changes: propagation from a
+	 * parent link to a simple link is allowed, but the opposite is not.
+	 * A group membership such as `hcp -parent-> department -simple-> building -parent-> campus` is not allowed: while
+	 * the relationships of `building` are technically valid the full membership for `department` or `hcp` is invalid,
+	 * and a user associated with a data owner that has invalid membership is not allowed to login.
+	 *
+	 * # Why groups instead of direct sharing with members
+	 *
+	 * By using groups of data owners instead of directly sharing data with each data owner in a group you gain two
+	 * major advantages:
+	 * - Reduced size of metadata on entities
+	 * - Possibility of dynamically adding peoples to a group without having to update all the entities that they should
+	 *   be able to access
+	 *
+	 * In a full-scale system where data is massively shared between groups of users using data owner groups is the
+	 * only realistic choice available.
+	 */
 	@ActiveField
 	@CardinalMetadataProperty
 	val dataOwnerGroups: List<DataOwnerGroupLinkDto>
+
+	@get:Schema(
+		description = "The type any incoming link pointing at this data owner must have. Always null unless explicitly " +
+			"set at creation; once set (or once relied upon while null) it can never be changed.",
+	)
+	@ActiveField val groupLinkType: DataOwnerGroupLinkTypeDto?
 
 	@get:Schema(
 		description = "A set of PropertyStub associated to this CryptoActor, that you can use to support the implementation of custom crypto strategies. Note that this properties are publicly visible to all users and must not contain any sensitive data.",

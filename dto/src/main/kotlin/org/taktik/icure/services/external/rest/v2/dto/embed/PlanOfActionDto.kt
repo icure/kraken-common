@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto.embed
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import com.icure.cardinal.entities.RawJson
@@ -32,7 +31,6 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionDto")
 data class PlanOfActionDto(
 	override val id: String,
 	override val created: Long? = null,

@@ -10,8 +10,19 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
+
+/**
+ * The value of a row of the `by_data_owner_public_keys` view: every public key of the healthcare party the row is
+ * for, mapped to the numeric code of the algorithm it must be used with.
+ *
+ * The codes are resolved by `RsaEncryptionAlgorithm.fromViewCode`; they are not an enum here so that the dao layer
+ * deserializes exactly what the view emits, and an unknown code fails where it is interpreted rather than while
+ * reading the row.
+ */
+data class DataOwnerPublicKeysViewValue(
+	val pubkeys: Map<String, Int> = emptyMap(),
+)
 
 interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 	fun listHealthcarePartiesByPublic(datastoreInformation: IDatastoreInformation, public: Boolean): Flow<HealthcareParty>
@@ -151,15 +162,62 @@ interface HealthcarePartyDAO : ConflictDAO<HealthcareParty> {
 
 	/**
 	 * Retrieves the ids of the healthcare parties directly linked to the data owner group with the provided id,
-	 * together with the type of the link. The legacy [HealthcareParty.parentId] is reported as a
-	 * [DataOwnerGroupLinkType.parent] link; a healthcare party referencing the group both through the legacy
-	 * parentId and a [HealthcareParty.dataOwnerGroups] link is emitted once, as a parent link.
+	 * through the legacy [HealthcareParty.parentId] or a [HealthcareParty.dataOwnerGroups] link (a healthcare party
+	 * referencing the group both ways is emitted once). The type of these links is not reported here: it is
+	 * intrinsic to the group itself, not to each individual link, see
+	 * [org.taktik.icure.entities.base.CryptoActor.effectiveGroupLinkType].
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify the group and CouchDB instance.
 	 * @param dataOwnerGroupId the id of the data owner representing the group.
-	 * @return a [Flow] of ([HealthcareParty.id], [DataOwnerGroupLinkType]) pairs.
+	 * @return a [Flow] of [HealthcareParty.id]s.
 	 */
 	fun listHealthcarePartiesIdsByDataOwnerGroupId(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerGroupId: String
-	): Flow<Pair<String, DataOwnerGroupLinkType>>
+	): Flow<String>
+
+	/**
+	 * Retrieves at most [limit] healthcare parties directly linked to any of the data owner groups with the
+	 * provided ids, through the legacy [HealthcareParty.parentId] or a [HealthcareParty.dataOwnerGroups] link.
+	 * The results are not deduplicated: a healthcare party linked to several of [dataOwnerGroupIds] is returned
+	 * once per group it is linked to (but only once for a group it references both ways).
+	 *
+	 * The rows are [org.taktik.couchdb.ViewRowNoDoc] with the id of a group as key, the id of the linked
+	 * healthcare party as id, and that healthcare party's own [HealthcareParty.groupLinkType] as value (null if
+	 * it relies on the default for its data owner type).
+	 *
+	 * The groups are visited in the order of [dataOwnerGroupIds]. [startDocumentId] applies only to the first
+	 * entry of [dataOwnerGroupIds], since it is the only group that may have been partially returned by a
+	 * previous page.
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify the group and CouchDB instance.
+	 * @param dataOwnerGroupIds the ids of the data owners representing the groups, without duplicates.
+	 * @param startDocumentId the id of the first healthcare party to return, for the first of [dataOwnerGroupIds].
+	 * @param limit the maximum number of rows to return.
+	 * @return a [Flow] of [ViewQueryResultEvent].
+	 * @throws IllegalArgumentException if [dataOwnerGroupIds] is empty or has duplicates, or if [limit] is not positive.
+	 */
+	fun findDataOwnersLinkedToGroups(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerGroupIds: List<String>,
+		startDocumentId: String?,
+		limit: Int
+	): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Retrieves the public keys of the healthcare parties with the provided ids, with the encryption algorithm
+	 * each key must be used with, without loading the healthcare parties themselves.
+	 *
+	 * The rows are [org.taktik.couchdb.ViewRowNoDoc] with the id of a healthcare party as both key and id, and a
+	 * [DataOwnerPublicKeysViewValue] holding all of its keys as value: **one row per healthcare party**, not one
+	 * per key. A healthcare party with no key at all, or that doesn't exist, produces no row. The healthcare
+	 * parties are visited in the order of [dataOwnerIds].
+	 *
+	 * @param datastoreInformation an instance of [IDatastoreInformation] to identify the group and CouchDB instance.
+	 * @param dataOwnerIds the ids of the healthcare parties.
+	 * @return a [Flow] of [ViewQueryResultEvent].
+	 */
+	fun listHealthcarePartiesPublicKeys(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerIds: List<String>
+	): Flow<ViewQueryResultEvent>
 }

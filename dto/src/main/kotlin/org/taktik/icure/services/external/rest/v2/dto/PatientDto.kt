@@ -391,6 +391,7 @@ data class PatientDto(
 	/** The links to the data owners representing the groups this patient belongs to. */
 	@ActiveField
 	override val dataOwnerGroups: List<Nothing> = emptyList(),
+	override val groupLinkType: Nothing? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,

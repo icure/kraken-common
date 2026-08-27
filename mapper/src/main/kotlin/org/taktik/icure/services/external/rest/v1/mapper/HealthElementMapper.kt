@@ -27,6 +27,8 @@ interface HealthElementMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", ignore = true),
 		Mapping(target = "customisedModelVersion", ignore = true),
+		Mapping(target = "qualifiedLinks", ignore = true),
+		Mapping(target = "asserters", ignore = true),
 	)
 	fun map(healthElementDto: HealthElementDto): HealthElement
 

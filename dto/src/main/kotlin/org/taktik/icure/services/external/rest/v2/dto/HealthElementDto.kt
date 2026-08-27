@@ -17,8 +17,8 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
@@ -34,6 +34,8 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementAsserterDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementQualifiedLinkDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.LateralityDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.PlanOfActionDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
@@ -51,7 +53,6 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 @Schema(
 	description = """This entity is a root level object. It represents a healthcare element. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.HealthElementDto")
 data class HealthElementDto(
 	/** The Id of the healthcare element. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the healthcare element. We encourage using either a v4 UUID or a HL7 Id.") override val id: String,
@@ -117,6 +118,15 @@ data class HealthElementDto(
 	@param:Schema(description = "List of episodes of occurrences of the healthcare element.") @ActiveField val episodes: List<EpisodeDto> = emptyList(),
 	/** List of care team members assigned for the healthcare element. */
 	@param:Schema(description = "List of care team members assigned for the healthcare element.") @ActiveField val careTeam: List<CareTeamMemberDto> = emptyList(),
+	/** Directed links towards related healthcare elements. Links should be created in a single direction: the reverse link can be found through a view. This field is not encrypted. */
+	@param:Schema(description = "Directed links towards related healthcare elements. Links should be created in a single direction: the reverse link can be found through a view. This field is not encrypted.") @ActiveField val qualifiedLinks: List<HealthElementQualifiedLinkDto> = emptyList(),
+
+	/** The parties asserting that the patient has this healthcare element, i.e. on whose word the healthcare element is held to be true. This field is encrypted. */
+	@field:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@param:Schema(description = "The parties asserting that the patient has this healthcare element, i.e. on whose word the healthcare element is held to be true. This field is encrypted.")
+	@ActiveField
+	val asserters: List<HealthElementAsserterDto> = emptyList(),
+
 	/** The secret patient key, encrypted in the patient's own AES key. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The patient id encrypted in the delegates' AES keys. */

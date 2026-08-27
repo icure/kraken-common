@@ -13,6 +13,7 @@ import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asynclogic.CalendarItemTypeLogic
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItemType
@@ -24,13 +25,18 @@ import org.taktik.icure.validation.aspect.Fixer
 
 open class CalendarItemTypeLogicImpl(
 	private val calendarItemTypeDAO: CalendarItemTypeDAO,
+	protected val cardinalVersionConfig: CardinalVersionConfig,
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 	filters: Filters,
 	merger: Merger<CalendarItemType>
 ) : GenericLogicImpl<CalendarItemType, CalendarItemTypeDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<CalendarItemType> by ConflictResolutionLogicImpl(calendarItemTypeDAO, merger, datastoreInstanceProvider),
-	CalendarItemTypeLogic {
+	CalendarItemTypeLogic
+{
+
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+
 	override fun getAllCalendarItemTypes(offset: PaginationOffset<Nothing>): Flow<PaginationElement> = flow {
 		val datastore = getInstanceAndGroup()
 		emitAll(

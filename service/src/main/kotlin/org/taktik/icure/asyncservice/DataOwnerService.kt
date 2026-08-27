@@ -2,8 +2,12 @@ package org.taktik.icure.asyncservice
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.icure.entities.CryptoActorStubWithType
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.DataOwnerWithType
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
+import org.taktik.icure.entities.requests.DataOwnerPublicKeys
+import org.taktik.icure.entities.requests.LinkedDataOwner
+import org.taktik.icure.pagination.MultiKeyPaginationElement
 
 interface DataOwnerService {
 	/**
@@ -41,20 +45,48 @@ interface DataOwnerService {
 	 */
 	suspend fun modifyCryptoActor(modifiedCryptoActor: CryptoActorStubWithType): CryptoActorStubWithType
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType>
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType>
 
 	/**
-	 * Get the group hierarchies of the data owner with the provided id as a tree of ids rooted at the data owner
-	 * itself (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation rules).
-	 * The parents of each node are the data owners it is directly linked to through the legacy parentId or a
-	 * dataOwnerGroups link; a data owner reachable through multiple paths appears once per path.
+	 * Get the type and group hierarchies of the data owner with the provided id as a tree of ids rooted at the data
+	 * owner itself (see [org.taktik.icure.entities.base.DataOwnerGroupLinkType] for the membership propagation
+	 * rules). The parents of each node are the data owners it is directly linked to through the legacy parentId or a
+	 * dataOwnerGroups link, together with the type of that link; a data owner reachable through multiple paths
+	 * appears once per path.
 	 * Any data owner is allowed to call this method.
 	 * @param dataOwnerId a data owner id.
 	 * @return the id hierarchy tree rooted at the data owner with the provided id.
 	 */
-	suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy
+	suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo
+
+	/**
+	 * Get the data owners that declare a direct link to any of the data owner groups with the provided ids,
+	 * together with the group link type of each of them. Any data owner is allowed to call this method.
+	 *
+	 * See [org.taktik.icure.asynclogic.DataOwnerLogic.findDataOwnersLinkedToGroups] for the semantics: this is
+	 * not transitive, a page may hold fewer rows than [limit] because of the deduplication of data owners linked
+	 * to several of [dataOwnerGroupIds], and the logic may use a lower limit than requested.
+	 */
+	fun findDataOwnersLinkedToGroups(
+		dataOwnerGroupIds: List<String>,
+		dataOwnerType: DataOwnerType,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<MultiKeyPaginationElement<LinkedDataOwner, String>>
+
+	/**
+	 * Get the public keys of the data owners with the provided ids, each with the encryption algorithm it must be
+	 * used with. Any data owner is allowed to call this method. Ignores missing data owners, and data owners
+	 * without any public key.
+	 *
+	 * @throws IllegalArgumentException if there are too many [dataOwnerIds].
+	 */
+	fun getDataOwnersPublicKeys(
+		dataOwnerIds: List<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<DataOwnerPublicKeys>
 }

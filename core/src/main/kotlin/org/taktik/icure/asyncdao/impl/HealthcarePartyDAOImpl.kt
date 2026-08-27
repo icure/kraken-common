@@ -23,7 +23,9 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
+import org.taktik.icure.asyncdao.DataOwnerPublicKeysViewValue
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.cache.ConfiguredCacheProvider
@@ -35,9 +37,9 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitize
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.HealthcareParty
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.utils.main
+import org.taktik.icure.utils.multiKeyPaginatedViewQuery
 import org.taktik.icure.utils.queryView
 
 @Repository("healthcarePartyDAO")
@@ -331,9 +333,7 @@ internal class HealthcarePartyDAOImpl(
 		}
 	}
 
-	// Emits one row per parent group of the hcp: the legacy parentId plus the dataOwnerGroups links of type 'parent'
-	// (other link types do not define a parent-child relation, see DataOwnerGroupLinkType), deduplicated by id.
-	@View(name = "by_parent", map = "classpath:js/healthcareparty/By_parent.js")
+	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -370,13 +370,62 @@ internal class HealthcarePartyDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		emitAll(
-			client.queryView<String, DataOwnerGroupLinkType>(
+			// The view emits the linked healthcare party's own groupLinkType as value, so it can't be queried as
+			// a no-value view: that would deserialize the value as Nothing.
+			client.queryView<String, String?>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
 					legacyView = "by_data_owner_group".main(),
 					configurationView = "by_data_owner_group",
 				).key(dataOwnerGroupId).includeDocs(false),
-			).mapNotNull { it.value?.let { v -> it.id to v } },
+			).map { it.id },
+		)
+	}
+
+	override fun findDataOwnersLinkedToGroups(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerGroupIds: List<String>,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(
+			multiKeyPaginatedViewQuery(
+				keys = dataOwnerGroupIds,
+				keysDescription = "data owner group ids",
+				startDocumentId = startDocumentId,
+				limit = limit,
+				viewQuery = {
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_data_owner_group".main(),
+						configurationView = "by_data_owner_group",
+					).includeDocs(false)
+						.reduce(false)
+						.descending(false)
+				},
+			) { query ->
+				client.queryView<String, String?>(query)
+			},
+		)
+	}
+
+	@View(name = "by_data_owner_public_keys", map = "classpath:js/healthcareparty/By_data_owner_public_keys.js")
+	override fun listHealthcarePartiesPublicKeys(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerIds: List<String>,
+	): Flow<ViewQueryResultEvent> = flow {
+		if (dataOwnerIds.isEmpty()) return@flow
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+
+		emitAll(
+			client.queryView<String, DataOwnerPublicKeysViewValue>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_data_owner_public_keys".main(),
+					configurationView = "by_data_owner_public_keys",
+				).keys(dataOwnerIds).includeDocs(false).reduce(false),
+			),
 		)
 	}
 

@@ -17,6 +17,10 @@ data class ExchangeDataDto(
 	val delegator: String,
 	@param:Schema(description = """ID of a data owner which can use this exchange data to access data shared with him by [delegator].""")
 	val delegate: String,
+	@param:Schema(description = """If the delegate is a data owner group, this is the id of a member in the group that is the recipient of this piece of the exchange data.""")
+	val recipient: String? = null,
+	@param:Schema(description = """If this is a piece of exchange data for a simple-type group then this is a uuid shared between all the pieces of exchange data for that group.""")
+	val exchangeDataGroupId: String? = null,
 	@param:Schema(
 		description = """Aes key to use for sharing data from the delegator to the delegate, encrypted with the public keys of both
 delegate and delegator. This key should never be sent decrypted to the server, as it allows to read medical data.""",
@@ -49,7 +53,10 @@ securityMetadataKey = sha256Hex(accessControlKey)
 		description = """Signature to ensure the key data has not been tampered with by third parties (any actor without access to the
 keypair of the delegator/delegate): when creating new exchange data the delegator will create a new hmac key and
 sign it with his own private key.
-This field will contain the signature by fingerprint of the public key to use for verification.""",
+This field will contain the signature by fingerprint of the public key to use for verification.
+If empty this exchange data has been permanently invalidated: it can still be used to decrypt and modify existing
+data, but it will never be used to encrypt new data. For exchange data of a simple-type group only the piece where
+the recipient is the delegator has this signature, and therefore carries the invalidation state of the group.""",
 	)
 	val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
 	@param:Schema(

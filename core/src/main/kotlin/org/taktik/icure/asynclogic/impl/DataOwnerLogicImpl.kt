@@ -3,12 +3,16 @@ package org.taktik.icure.asynclogic.impl
 import com.fasterxml.jackson.databind.JsonMappingException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.entity.Versionable
+import org.taktik.icure.asyncdao.DataOwnerPublicKeysViewValue
 import org.taktik.icure.asyncdao.DeviceDAO
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.PatientDAO
@@ -23,13 +27,22 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.CryptoActor
-import org.taktik.icure.entities.base.DataOwnerIdWithHierarchy
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType.Companion.defaultGroupLinkType
+import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 import org.taktik.icure.entities.base.asCryptoActorStub
+import org.taktik.icure.entities.requests.DataOwnerPublicKeys
+import org.taktik.icure.entities.requests.LinkedDataOwner
+import org.taktik.icure.entities.requests.PublicKeyInfo
+import org.taktik.icure.entities.requests.RsaEncryptionAlgorithm
+import org.taktik.icure.entities.requests.publicKeysWithAlgorithm
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.DeserializationTypeException
 import org.taktik.icure.exceptions.IllegalEntityException
 import org.taktik.icure.exceptions.NotFoundRequestException
-import org.taktik.icure.security.resolveHcpHierarchyIds
+import org.taktik.icure.pagination.MultiKeyPaginationElement
+import org.taktik.icure.pagination.toMultiKeyPaginatedFlow
+import org.taktik.icure.security.resolveHcpHierarchyInfo
 import org.taktik.icure.utils.PeekChannel
 
 open class DataOwnerLogicImpl(
@@ -40,6 +53,14 @@ open class DataOwnerLogicImpl(
 ) : DataOwnerLogic {
 	companion object {
 		private const val MAX_HIERARCHY_DEPTH = 5
+
+		/**
+		 * The maximum number of rows a page of [findDataOwnersLinkedToGroups] may hold, and the maximum number of
+		 * ids [getDataOwnersPublicKeys] accepts. The page size is a logic-layer decision, so a caller-provided
+		 * limit above this is capped; the bulk get has no cursor to resume from, so an oversized request fails
+		 * rather than returning a silently incomplete answer.
+		 */
+		const val MAX_DATA_OWNER_GROUP_QUERY_SIZE = 1000
 	}
 
 	override suspend fun getCryptoActorStub(dataOwnerId: String): CryptoActorStubWithType? = getDataOwner(dataOwnerId)?.retrieveStub()
@@ -55,13 +76,140 @@ open class DataOwnerLogicImpl(
 		dataOwnerIds: Collection<String>,
 		dataOwnerType: DataOwnerType,
 	): Flow<CryptoActorStub> = flow {
-		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		emitAll(doGetCryptoActorStubsWithType(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerIds, dataOwnerType))
+	}
+
+	protected fun doGetCryptoActorStubsWithType(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerIds: Collection<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<CryptoActorStub> = flow {
 		when (dataOwnerType) {
-			DataOwnerType.HCP -> hcpDao.getEntities(datastoreInfo, dataOwnerIds)
-			DataOwnerType.DEVICE -> deviceDao.getEntities(datastoreInfo, dataOwnerIds)
-			DataOwnerType.PATIENT -> patientDao.getEntities(datastoreInfo, dataOwnerIds)
+			DataOwnerType.HCP -> hcpDao.getEntities(datastoreInformation, dataOwnerIds)
+			DataOwnerType.DEVICE -> deviceDao.getEntities(datastoreInformation, dataOwnerIds)
+			DataOwnerType.PATIENT -> patientDao.getEntities(datastoreInformation, dataOwnerIds)
 		}.collect { if (it.deletionDate == null) emit(it.retrieveStub()) }
 	}
+
+	override fun findDataOwnersLinkedToGroups(
+		dataOwnerGroupIds: List<String>,
+		dataOwnerType: DataOwnerType,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<MultiKeyPaginationElement<LinkedDataOwner, String>> = flow {
+		emitAll(
+			doFindDataOwnersLinkedToGroups(
+				datastoreInstanceProvider.getInstanceAndGroup(),
+				dataOwnerGroupIds,
+				dataOwnerType,
+				startDocumentId,
+				limit,
+			),
+		)
+	}
+
+	protected fun doFindDataOwnersLinkedToGroups(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerGroupIds: List<String>,
+		dataOwnerType: DataOwnerType,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<MultiKeyPaginationElement<LinkedDataOwner, String>> = flow {
+		require(dataOwnerGroupIds.isNotEmpty()) {
+			"At least one data owner group id should be provided."
+		}
+		require(dataOwnerGroupIds.distinct().size == dataOwnerGroupIds.size) {
+			"The data owner group ids should not contain duplicates."
+		}
+		require(limit > 0) {
+			"The limit should be positive."
+		}
+		/*
+		 * Only healthcare parties can currently be the target of a group link: the default effective type of
+		 * patients and devices is notAllowed, and groupLinkType can never be changed after creation, so nothing can
+		 * ever be linked to them. The answer is empty without any database access.
+		 */
+		if (dataOwnerType != DataOwnerType.HCP) return@flow
+		val cappedLimit = limit.coerceAtMost(MAX_DATA_OWNER_GROUP_QUERY_SIZE)
+		val defaultLinkType = dataOwnerType.defaultGroupLinkType()
+		val emittedIds = mutableSetOf<String>()
+		emitAll(
+			hcpDao
+				.findDataOwnersLinkedToGroups(datastoreInformation, dataOwnerGroupIds, startDocumentId, cappedLimit + 1)
+				.toMultiKeyPaginatedFlow(
+					pageSize = cappedLimit,
+					keys = dataOwnerGroupIds,
+					// by_data_owner_group is keyed by the id of the group the emitting data owner is linked to.
+					keyOfRow = { checkNotNull(it.key as String?) { "The rows of by_data_owner_group always have a key." } },
+				) { row ->
+					/*
+					 * A data owner linked to several of the queried groups has one row per group: dropping all but the
+					 * first shortens the page rather than triggering a second query to refill it.
+					 */
+					if (emittedIds.add(row.id)) {
+						val linkType = (row.value as String?)?.let { DataOwnerGroupLinkType.valueOf(it) }
+						// Normalized to null when it is the default for the type, so it doesn't have to be serialized
+						// for the data owners that don't deviate from it.
+						LinkedDataOwner(row.id, linkType.takeIf { it != defaultLinkType })
+					} else {
+						null
+					}
+				},
+		)
+	}
+
+	override fun getDataOwnersPublicKeys(
+		dataOwnerIds: List<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<DataOwnerPublicKeys> = flow {
+		emitAll(
+			doGetDataOwnersPublicKeys(datastoreInstanceProvider.getInstanceAndGroup(), dataOwnerIds, dataOwnerType),
+		)
+	}
+
+	protected fun doGetDataOwnersPublicKeys(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerIds: List<String>,
+		dataOwnerType: DataOwnerType,
+	): Flow<DataOwnerPublicKeys> = flow {
+		require(dataOwnerIds.size <= MAX_DATA_OWNER_GROUP_QUERY_SIZE) {
+			"Can't get the public keys of more than $MAX_DATA_OWNER_GROUP_QUERY_SIZE data owners at once, got ${dataOwnerIds.size}."
+		}
+		val distinctIds = dataOwnerIds.distinct()
+		if (distinctIds.isEmpty()) return@flow
+		when (dataOwnerType) {
+			DataOwnerType.HCP -> emitAll(healthcarePartiesPublicKeys(datastoreInformation, distinctIds))
+			/*
+			 * Patients and devices are never group targets, so there is no bulk use case worth a dedicated view for
+			 * them: their keys are extracted from the crypto actor stubs instead.
+			 */
+			DataOwnerType.PATIENT, DataOwnerType.DEVICE -> emitAll(
+				doGetCryptoActorStubsWithType(datastoreInformation, distinctIds, dataOwnerType)
+					.map { DataOwnerPublicKeys(it.id, it.publicKeysWithAlgorithm()) }
+					.filter { it.publicKeys.isNotEmpty() },
+			)
+		}
+	}
+
+	/**
+	 * Resolves the algorithm codes of the by_data_owner_public_keys view rows, one row per healthcare party, into
+	 * the [RsaEncryptionAlgorithm] each key must be used with.
+	 */
+	private fun healthcarePartiesPublicKeys(
+		datastoreInformation: IDatastoreInformation,
+		dataOwnerIds: List<String>,
+	): Flow<DataOwnerPublicKeys> = hcpDao
+		.listHealthcarePartiesPublicKeys(datastoreInformation, dataOwnerIds)
+		.filterIsInstance<ViewRowNoDoc<String, DataOwnerPublicKeysViewValue>>()
+		.map { row ->
+			val value = checkNotNull(row.value) { "The rows of by_data_owner_public_keys always have a value." }
+			DataOwnerPublicKeys(
+				row.id,
+				value.pubkeys.map { (publicKey, algorithmCode) ->
+					PublicKeyInfo(publicKey, RsaEncryptionAlgorithm.fromViewCode(algorithmCode))
+				},
+			)
+		}
 
 	override suspend fun getDataOwner(dataOwnerId: String): DataOwnerWithType? = doGetDataOwner(dataOwnerId, likelyType = null)
 
@@ -142,7 +290,7 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	override fun getCryptoActorHierarchy(dataOwnerId: String): Flow<DataOwnerWithType> = flow {
 		var nextId: String? = dataOwnerId
 		var nextLikelyType: DataOwnerType? = null
@@ -165,20 +313,20 @@ open class DataOwnerLogicImpl(
 		}
 	}
 
-	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchiesIds instead")
+	@Deprecated("Only follows the legacy linear parentId chain, use getCryptoActorHierarchyInfo instead")
 	@Suppress("DEPRECATION")
 	override fun getCryptoActorHierarchyStub(dataOwnerId: String): Flow<CryptoActorStubWithType> = getCryptoActorHierarchy(dataOwnerId).map { it.retrieveStub() }
 
-	override suspend fun getCryptoActorHierarchiesIds(dataOwnerId: String): DataOwnerIdWithHierarchy {
+	override suspend fun getCryptoActorHierarchyInfo(dataOwnerId: String): DataOwnerHierarchyInfo {
 		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
 		val self = doGetDataOwner(dataOwnerId, likelyType = null, preloadedDatastoreInfo = datastoreInfo)
 			?: throw IllegalEntityException("Can't find data owner $dataOwnerId")
 		return when (self) {
-			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyIds(self.dataOwner) { ids ->
+			is DataOwnerWithType.HcpDataOwner -> resolveHcpHierarchyInfo(self.dataOwner) { ids ->
 				hcpDao.getEntities(datastoreInfo, ids.toList()).toList()
 			}
 			// Patients and devices have no dataOwnerGroups: only the data owner itself is part of its hierarchies
-			else -> DataOwnerIdWithHierarchy(self.id, emptyList())
+			else -> DataOwnerHierarchyInfo(self.id, self.type, emptyList())
 		}
 	}
 
@@ -284,12 +432,22 @@ open class DataOwnerLogicImpl(
 		if (original.rev != modified.stub.rev) {
 			throw ConflictRequestException("Outdated revision for entity with id ${original.id}")
 		}
-		require(modified.stub.parentId == original.parentId) {
-			"You can't use this method to change the parent id of a crypto actor"
+		// Compare the normalized (parentId folded into dataOwnerGroups) link sets rather than each field
+		// individually: parentId and dataOwnerGroups are just two different wire representations of the same
+		// underlying links, and which one carries a given link can differ across SDK versions (e.g. a cardinal
+		// 3+ reader is served the legacy parentId folded into dataOwnerGroups, with parentId reported as null).
+		// Comparing fields one-to-one would wrongly reject a client echoing back an unchanged link set in a
+		// different shape than it was originally stored in.
+		require(
+			CryptoActor.normalizedDataOwnerGroupLinks(modified.stub.dataOwnerGroups, modified.stub.parentId) ==
+				CryptoActor.normalizedDataOwnerGroupLinks(original.dataOwnerGroups, original.parentId)
+		) {
+			"You can't use this method to change the parent id or data owner group links of a crypto actor"
 		}
-		// An empty list is tolerated as "not provided": the v1 CryptoActorStubDto has no dataOwnerGroups
-		require(modified.stub.dataOwnerGroups.isEmpty() || modified.stub.dataOwnerGroups == original.dataOwnerGroups) {
-			"You can't use this method to change the data owner groups of a crypto actor"
+		// null is tolerated as "not provided" for the same reason; groupLinkType is a logic/correctness invariant
+		// (not access-control), so unlike dataOwnerGroups/parentId there is no permission that can ever bypass this.
+		require(modified.stub.groupLinkType == null || modified.stub.groupLinkType == original.groupLinkType) {
+			"You can't use this method to change the groupLinkType of a crypto actor"
 		}
 		val saved =
 			checkNotNull(save(updateOriginalWithCryptoActorStubContent(original, modified.stub))) {

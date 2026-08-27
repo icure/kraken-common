@@ -23,8 +23,14 @@ import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
+import org.springframework.stereotype.Service
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.DataOwnerGroupLink
+import org.taktik.icure.services.external.rest.v1.mapper.HealthcarePartyMapper
+import org.taktik.icure.services.external.rest.v1.mapper.base.CryptoActorMappingHelper
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
+import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
@@ -35,18 +41,60 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.FlatRateTarificat
 import org.taktik.icure.services.external.rest.v2.mapper.embed.HealthcarePartyHistoryStatusV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.PersonNameV2Mapper
 
+interface HealthcarePartyV2Mapper {
+	suspend fun map(healthcarePartyDto: HealthcarePartyDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthcareParty
+	suspend fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
+}
+
+@Service
+internal class HealthcarePartyV2MapperImpl(
+	private val precomputedLinksMapper: HealthcarePartyMapperWithPrecomputedLinks,
+	private val cardinalVersionConfig: CardinalVersionConfig,
+	private val dataOwnerGroupLinkV2Mapper: DataOwnerGroupLinkV2Mapper,
+) : HealthcarePartyV2Mapper {
+	override suspend fun map(
+		healthcarePartyDto: HealthcarePartyDto,
+		mapperExtensionsValidationContext: MapperExtensionsValidationContext
+	): HealthcareParty {
+		// Dumb 1:1 copy: whether a link is admin-type or not is now intrinsic to its target, not declared here, so
+		// there is nothing to fold/collapse on the way in. Validation and storage-shape normalization happen at the
+		// logic layer.
+		return precomputedLinksMapper.map(
+			healthcarePartyDto,
+			healthcarePartyDto.parentId,
+			healthcarePartyDto.dataOwnerGroups.map(dataOwnerGroupLinkV2Mapper::map),
+			mapperExtensionsValidationContext,
+		)
+	}
+
+	override suspend fun map(healthcareParty: HealthcareParty): HealthcarePartyDto {
+		val (parentId, dataOwnerGroups) = CryptoActorMappingHelper.mapParentIdAndDataOwnerGroupLinks(
+			healthcareParty,
+			dataOwnerGroupLinkV2Mapper,
+			cardinalVersionConfig,
+		)
+		return precomputedLinksMapper.map(healthcareParty, parentId, dataOwnerGroups)
+	}
+}
+
 @Mapper(
 	componentModel = "spring",
 	uses = [DataOwnerGroupLinkV2Mapper::class, IdentifierV2Mapper::class, HealthcarePartyHistoryStatusV2Mapper::class, FinancialInstitutionInformationV2Mapper::class, AddressV2Mapper::class, CodeStubV2Mapper::class, FlatRateTarificationV2Mapper::class, PersonNameV2Mapper::class, PropertyStubV2Mapper::class],
 	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
 )
-interface HealthcarePartyV2Mapper {
+internal interface HealthcarePartyMapperWithPrecomputedLinks {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "parentId", expression = """kotlin(parentId)"""),
+		Mapping(target = "dataOwnerGroups", expression = """kotlin(dataOwnerGroups)"""),
 		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(healthcarePartyDto.extensions))"),
 	)
-	fun map(healthcarePartyDto: HealthcarePartyDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthcareParty
-	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto
+	fun map(healthcarePartyDto: HealthcarePartyDto, parentId: String?, dataOwnerGroups: List<DataOwnerGroupLink>, mapperExtensionsValidationContext: MapperExtensionsValidationContext): HealthcareParty
+	@Mappings(
+		Mapping(target = "parentId", expression = """kotlin(parentId)"""),
+		Mapping(target = "dataOwnerGroups", expression = """kotlin(dataOwnerGroups)"""),
+	)
+	fun map(healthcareParty: HealthcareParty, parentId: String?, dataOwnerGroups: List<DataOwnerGroupLinkDto>): HealthcarePartyDto
 }

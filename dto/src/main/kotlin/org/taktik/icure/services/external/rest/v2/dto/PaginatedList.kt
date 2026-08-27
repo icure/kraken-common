@@ -36,4 +36,9 @@ data class PaginatedList<T>(
 	@ActiveField val rows: List<T> = emptyList(),
 	/** The key-document ID pair to use for fetching the next page of results, or null if this is the last page. */
 	@ActiveField val nextKeyPair: PaginatedDocumentKeyIdPair? = null,
+	/**
+	 * If not null the page was aborted by this error after some rows were already returned: [rows] is valid but
+	 * incomplete, and there is no [nextKeyPair] to resume from.
+	 */
+	@ActiveField val error: PaginationErrorDto? = null,
 ) : Serializable

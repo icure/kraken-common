@@ -17,7 +17,6 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.CardinalMetadataProperty
@@ -38,14 +37,15 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.FilterBeforeSdkVersion
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
 	description = """This entity is a root level object. It represents a Document. It is serialized in JSON and saved in the underlying CouchDB database.""",
 )
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.DocumentDto")
 /**
  * Represents a document entity stored in CouchDB. Documents can have main and secondary data attachments,
  * and support various storage backends (CouchDB attachments, object storage).
@@ -134,7 +134,10 @@ data class DocumentDto(
 	@ActiveField
 	val otherUtis: Set<String> = emptySet(),
 	@CardinalMetadataProperty
-	@FilterBeforeSdkVersion("2.4.0")
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("2.4.0", ActiveField::class),
+	)
 	val mainAttachmentStoredDataSize: Long? = null,
 	@CardinalMetadataProperty
 	@ActiveField

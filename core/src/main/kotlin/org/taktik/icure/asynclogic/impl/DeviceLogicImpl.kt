@@ -12,7 +12,9 @@ import org.taktik.icure.asynclogic.DeviceLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.Device
+import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.mergers.Merger
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -25,27 +27,45 @@ open class DeviceLogicImpl(
 ) : GenericLogicImpl<Device, DeviceDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<Device> by ConflictResolutionLogicImpl(deviceDAO, merger, datastoreInstanceProvider),
 	DeviceLogic {
+	/**
+	 * Reused by group-explicit write paths such as `DeviceCloudLogicImpl`, which extends this class.
+	 */
+	protected val groupLinksHelper = object : CryptoActorLogicHelper<Device, DeviceDAO>(deviceDAO) {
+		override val dataOwnerType = DataOwnerType.DEVICE
+		override fun Device.copyWithLinks(parentId: String?, dataOwnerGroups: List<DataOwnerGroupLink>): Device =
+			copy(parentId = parentId, dataOwnerGroups = dataOwnerGroups)
+	}
 
 	override suspend fun createDevice(device: Device) = fix(device, isCreate = true) { fixedDevice ->
-		createEntity(fixedDevice)
+		val datastoreInformation = getInstanceAndGroup()
+		createEntity(groupLinksHelper.validateAndNormalizeOwnGroupLinks(fixedDevice, null, datastoreInformation))
 	}
 
 	override fun createDevices(devices: List<Device>): Flow<Device> = flow {
+		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
 			createEntities(
 				devices.map { device -> fix(device, isCreate = true) }
-				
+					.map { groupLinksHelper.validateAndNormalizeOwnGroupLinks(it, null, datastoreInformation) },
 			),
 		)
 	}
 
 	override suspend fun modifyDevice(device: Device) = fix(device, isCreate = false) {
-		modifyEntity(it)
+		val datastoreInformation = getInstanceAndGroup()
+		val original = deviceDAO.get(datastoreInformation, it.id)
+		modifyEntity(groupLinksHelper.validateAndNormalizeOwnGroupLinks(it, original, datastoreInformation))
 	}
 
 	override fun modifyDevices(devices: List<Device>): Flow<Device> = flow {
+		val datastoreInformation = getInstanceAndGroup()
 		emitAll(
-			modifyEntities(devices.map { device -> fix(device, isCreate = false) }),
+			modifyEntities(
+				devices.map { device -> fix(device, isCreate = false) }.map {
+					val original = deviceDAO.get(datastoreInformation, it.id)
+					groupLinksHelper.validateAndNormalizeOwnGroupLinks(it, original, datastoreInformation)
+				},
+			),
 		)
 	}
 

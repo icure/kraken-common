@@ -17,10 +17,11 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.DeprecatedAfter
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
@@ -34,7 +35,6 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
  * or any other type of insurance organization that covers healthcare costs.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonFilter("org.taktik.icure.services.external.rest.v2.dto.InsuranceDto")
 data class InsuranceDto(
 	/** The unique identifier of the insurance. */
 	override val id: String,
@@ -55,16 +55,20 @@ data class InsuranceDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	/** Whether this is a private insurance. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@DeprecatedAfter("2.9.0")
+	@SerializationPolicy(
+		Since("2.9.0", Omit::class),
+	)
 	val privateInsurance: Boolean = false,
 	/** Whether this insurance covers hospitalisation. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@DeprecatedAfter("2.9.0")
-	val hospitalisationInsurance: Boolean = false,
+	@SerializationPolicy(
+		Since("2.9.0", Omit::class),
+	)	val hospitalisationInsurance: Boolean = false,
 	/** Whether this insurance covers ambulatory care. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
-	@DeprecatedAfter("2.9.0")
-	val ambulatoryInsurance: Boolean = false,
+	@SerializationPolicy(
+		Since("2.9.0", Omit::class),
+	)	val ambulatoryInsurance: Boolean = false,
 	/** The insurance code. */
 	@ActiveField val code: String? = null,
 	/** The agreement number for the insurance. */

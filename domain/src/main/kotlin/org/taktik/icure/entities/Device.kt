@@ -28,6 +28,7 @@ import org.taktik.icure.entities.base.DataOwner
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.DataOwnerGroupLink
+import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.base.PropertyStub
@@ -105,6 +106,7 @@ data class Device(
 
 	override val parentId: String? = null,
 	override val dataOwnerGroups: List<DataOwnerGroupLink> = emptyList(),
+	override val groupLinkType: DataOwnerGroupLinkType? = null,
 	val picture: ByteArray? = null,
 
 	override val properties: Set<PropertyStub> = emptySet(),
@@ -143,7 +145,7 @@ data class Device(
 	Extendable {
 
 	init {
-		CryptoActor.requireNoDuplicateDataOwnerGroupLinks(dataOwnerGroups)
+		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups)
 	}
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

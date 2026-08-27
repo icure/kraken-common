@@ -1,8 +1,8 @@
 package org.taktik.icure.asynclogic.impl.filter.hcparty
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -20,14 +20,22 @@ class HealthcarePartyByDataOwnerGroupIdFilter(
 	override val entity get() = healthcarePartyDAO.entityClass
 	override val views = listOf("by_data_owner_group")
 
+	/**
+	 * All direct children of [HealthcarePartyByDataOwnerGroupIdFilter.dataOwnerGroupId], membership-only — no
+	 * restriction on the group's own effective link type. An earlier iteration of this filter also supported
+	 * restricting by the group's effective type, but that required an extra DAO fetch of the group itself on every
+	 * call for a filter of doubtful usefulness, so it was dropped.
+	 */
 	override fun resolve(
 		filter: HealthcarePartyByDataOwnerGroupIdFilter,
 		context: Filters,
 		datastoreInformation: IDatastoreInformation,
-	): Flow<String> = healthcarePartyDAO.listHealthcarePartiesIdsByDataOwnerGroupId(
-		datastoreInformation = datastoreInformation,
-		dataOwnerGroupId = filter.dataOwnerGroupId,
-	).filter { (_, linkType) ->
-		filter.linkType == null || filter.linkType == linkType
-	}.map { (hcpId, _) -> hcpId }
+	): Flow<String> = flow {
+		emitAll(
+			healthcarePartyDAO.listHealthcarePartiesIdsByDataOwnerGroupId(
+				datastoreInformation = datastoreInformation,
+				dataOwnerGroupId = filter.dataOwnerGroupId,
+			),
+		)
+	}
 }
