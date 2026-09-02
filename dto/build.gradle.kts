@@ -1,5 +1,3 @@
-import com.google.devtools.ksp.gradle.KspAATask
-
 plugins {
     id("com.icure.kotlin-library-conventions")
 
