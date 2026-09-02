@@ -76,7 +76,7 @@ data class HealthElementAsserterDto(
 	 * party (its kind, its profession, ...) can be carried as [codes], so that a client can qualify an external
 	 * asserter without the server pretending to know what it points at.
 	 */
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	data class ExternalAsserterIdentifier(
 		/**
@@ -88,6 +88,6 @@ data class HealthElementAsserterDto(
 		 * Codes qualifying the external party, as stated by the system the [identifier] comes from: for instance the
 		 * kind of party or its profession. Empty by default, and omitted from the JSON when empty.
 		 */
-		@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val codes: Set<CodeStubDto> = emptySet(),
+		@ActiveField val codes: Set<CodeStubDto> = emptySet(),
 	) : Serializable
 }

@@ -91,10 +91,10 @@ data class HealthElementAsserter(
 	 * @property codes Codes qualifying the external party, as stated by the system the [identifier] comes from: for
 	 * instance the kind of party or its profession. Empty by default, and omitted from the JSON when empty.
 	 */
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	data class ExternalAsserterIdentifier(
 		val identifier: Identifier,
-		@field:JsonInclude(JsonInclude.Include.NON_EMPTY) val codes: Set<CodeStub> = emptySet(),
+		val codes: Set<CodeStub> = emptySet(),
 	) : Serializable
 }
