@@ -13,4 +13,7 @@ interface HealthElementAsserterV2Mapper {
 
 	fun map(localAsserterIdentifierDto: HealthElementAsserterDto.LocalAsserterIdentifier): HealthElementAsserter.LocalAsserterIdentifier
 	fun map(localAsserterIdentifier: HealthElementAsserter.LocalAsserterIdentifier): HealthElementAsserterDto.LocalAsserterIdentifier
+
+	fun map(externalAsserterIdentifierDto: HealthElementAsserterDto.ExternalAsserterIdentifier): HealthElementAsserter.ExternalAsserterIdentifier
+	fun map(externalAsserterIdentifier: HealthElementAsserter.ExternalAsserterIdentifier): HealthElementAsserterDto.ExternalAsserterIdentifier
 }
