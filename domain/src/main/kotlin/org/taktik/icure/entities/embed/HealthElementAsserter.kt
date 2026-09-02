@@ -2,6 +2,7 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.entities.base.CodeStub
 import java.io.Serializable
 
 /**
@@ -17,8 +18,8 @@ import java.io.Serializable
  * - [localAsserterIdentifier] names a party stored in this iCure instance: an id, plus the [AsserterType] saying which
  *   kind of record that id points at;
  * - [externalAsserterIdentifier] names a party that has no record here, through a business [Identifier] issued by
- *   another system. There is deliberately no [AsserterType] on this branch: the kind of a record we do not store is
- *   not knowable to us.
+ *   another system, optionally qualified by codes. There is deliberately no [AsserterType] on this branch: the kind of
+ *   a record we do not store is not knowable to us.
  *
  * The exactly-one rule is enforced in `init`, on the entity rather than on the DTO: construction fails on both-null and
  * on both-set, whichever path builds the instance - mapping a DTO, a service path, a `copy`. On a write that surfaces
@@ -40,13 +41,14 @@ import java.io.Serializable
  * @property localAsserterIdentifier The asserting party, as a reference to a record stored in this instance. Null when
  * the party is named by [externalAsserterIdentifier].
  * @property externalAsserterIdentifier The asserting party, as a business identifier from a system that is not this
- * one. Null when the party is named by [localAsserterIdentifier]. Carries no [AsserterType].
+ * one, optionally qualified by codes. Null when the party is named by [localAsserterIdentifier]. Carries no
+ * [AsserterType].
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementAsserter(
 	val localAsserterIdentifier: LocalAsserterIdentifier? = null,
-	val externalAsserterIdentifier: Identifier? = null,
+	val externalAsserterIdentifier: ExternalAsserterIdentifier? = null,
 ) : Serializable {
 	init {
 		require((localAsserterIdentifier == null) != (externalAsserterIdentifier == null)) {
@@ -72,5 +74,27 @@ data class HealthElementAsserter(
 	data class LocalAsserterIdentifier(
 		val id: String,
 		val type: AsserterType,
+	) : Serializable
+
+	/**
+	 * The party making the assertion, when it has no record in this iCure instance.
+	 *
+	 * The party is named by a business [identifier] issued by another system: a national registry number, an entry in
+	 * the sending hospital's directory, and so on. Because the record lives elsewhere there is no [AsserterType] here -
+	 * the kind of a record we do not store is not knowable to us. What the issuing system does say about the party (its
+	 * kind, its profession, ...) can be carried as [codes], so that a client can qualify an external asserter without
+	 * the server pretending to know what it points at.
+	 *
+	 * @property identifier The business identifier of the party in the system that issued it. [Identifier.system] names
+	 * that issuing system and [Identifier.value] is the party's identifier within it; together they are what makes the
+	 * party resolvable.
+	 * @property codes Codes qualifying the external party, as stated by the system the [identifier] comes from: for
+	 * instance the kind of party or its profession. Empty by default, and omitted from the JSON when empty.
+	 */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	data class ExternalAsserterIdentifier(
+		val identifier: Identifier,
+		@field:JsonInclude(JsonInclude.Include.NON_EMPTY) val codes: Set<CodeStub> = emptySet(),
 	) : Serializable
 }
