@@ -162,6 +162,14 @@ class DataOwnerController(
 		dataOwnerHierarchyInfoMapper.map(dataOwnerService.getCryptoActorHierarchyInfo(currentDataOwnerOr404()))
 	}
 
+	@GetMapping("/hierarchies/info/of")
+	fun getDataOwnerHierarchyInfoOf(
+		@RequestParam(required = true)
+		dataOwnerId: String
+	): Mono<DataOwnerHierarchyInfoDto> = mono {
+		dataOwnerHierarchyInfoMapper.map(dataOwnerService.getCryptoActorHierarchyInfo(dataOwnerId))
+	}
+
 	@Operation(
 		summary = "Get the data owners directly linked to any of the provided data owner groups",
 		description =
