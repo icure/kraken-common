@@ -132,4 +132,107 @@ interface DataOwnerLogic {
 		dataOwnerIds: List<String>,
 		dataOwnerType: DataOwnerType,
 	): Flow<DataOwnerPublicKeys>
+
+	/**
+	 * Add data owners to a data owner group.
+	 * The data owners must all be of the same type (as indicated by [dataOwnerType]).
+	 * The data owner group (indicated by [dataOwnerGroupId]) must exist, or this method will fail; if any of the data
+	 * owners in [newMembersIds] does not exist, or they can't be updated (for example if there are too many concurrent
+	 * changes to that data owner) or can't be added to the group (because of restrictions on group link type), they
+	 * will be ignored.
+	 * The result contains the ids of all the data owners that were successfully added, or that were already members of
+	 * the group.
+	 * No guarantee on order of returned elements.
+	 *
+	 * Only the links a data owner declares itself are considered: a data owner that is already a member of
+	 * [dataOwnerGroupId] transitively, through another group it is linked to, has no link of its own to it and is
+	 * therefore linked to it directly, exactly like any other new member.
+	 *
+	 * Soft-deleted data owners are not ignored: they are updated and returned like any other member. A soft-deleted
+	 * data owner can be undeleted at any moment, and it should then have the group membership it was given in the
+	 * meantime.
+	 *
+	 * # Interruption and retry
+	 *
+	 * This method is idempotent: adding a data owner that is already a member is a no-op that still reports the data
+	 * owner as added. If a call terminates early — the caller cancels it, or the process dies part-way through the
+	 * updates — some of the members may have been added and the result gives no indication of which: calling the
+	 * method again with the same input picks up exactly the work that is left, and repeating it eventually adds every
+	 * member that can be added.
+	 */
+	fun addDataOwnersToGroup(
+		dataOwnerType: DataOwnerType,
+		dataOwnerGroupId: String,
+		newMembersIds: List<String>
+	): Flow<String>
+
+	/**
+	 * Remove data owners from a data owner group.
+	 * The data owners must all be of the same type (as indicated by [dataOwnerType]).
+	 * The data owner group (indicated by [dataOwnerGroupId]) must exist, or this method will fail; if any of the data
+	 * owners in [membersToRemoveIds] does not exist, or they can't be updated (for example if there are too many
+	 * concurrent changes to that data owner), they will be ignored.
+	 * The result contains the ids of all the data owners that were successfully removed, or that were already not
+	 * members of the group.
+	 *
+	 * If [invalidateSharedExchangeDataIfNeeded] is true (recommended), before returning this method will check if there
+	 * is exchange data that should be invalidated for encryption as a result of the removal of [membersToRemoveIds]
+	 * from [dataOwnerGroupId]:
+	 * 1. Invalidation is performed only if [dataOwnerGroupId] represents a simple-type group. If [dataOwnerGroupId]
+	 *    represents a parent-type group then no invalidation will be performed (invalidation must be performed at the
+	 *    level of the group keypair, not at the level of the exchange data).
+	 * 2. The exchange data considered for invalidation is all exchange data where [dataOwnerGroupId] is one of the
+	 *    members. If the data owner group itself has links to other groups, then also exchange data where one of those
+	 *    groups is a member will be considered, transitively (following only simple-type links, the only kind a
+	 *    simple-type group may declare).
+	 * 3. Of the removed members, only the ones this removal actually cut off from the group whose exchange data is
+	 *    being considered are taken into account, and that is decided for each of the groups of step 2 separately. A
+	 *    data owner that is still a member of that group once the links it declared itself are gone — because it
+	 *    belongs to another group that is itself a member of it — keeps its access to that exchange data
+	 *    legitimately, so nothing of it is invalidated on its behalf: that would only force the exchange data of
+	 *    everyone else to be recreated for nothing. This covers a member that declared several paths to a group and
+	 *    lost only one, a member that was only ever linked to it transitively and therefore had nothing to lose, and
+	 *    a member that lost [dataOwnerGroupId] but belongs to one of the groups above it in its own right. If no
+	 *    member is left for any of the groups of step 2, no exchange data is invalidated at all.
+	 * 4. If any of the members cut off from one of the groups of step 2 is itself a simple-type data owner-group then
+	 *    all the exchange data of that group is invalidated; otherwise only its exchange data where there is at least
+	 *    a piece for a recipient that is one of the members cut off from it
+	 *
+	 * Only the links a data owner declares itself are considered and removed: a data owner that is a member of
+	 * [dataOwnerGroupId] transitively, through another group it is linked to, has no link of its own to remove, so it
+	 * is treated — and reported — as removed while it keeps that transitive membership. A transitive membership can
+	 * only be changed where the link that creates it is declared: by removing the data owner from the intermediate
+	 * group, or by removing the intermediate group from [dataOwnerGroupId]. Such a data owner is reported as removed,
+	 * but the invalidation above does not treat it as one (step 3): it is still a member, so the exchange data it can
+	 * decrypt is left usable for encryption.
+	 *
+	 * Soft-deleted data owners are not ignored: they are updated and returned like any other member, and their
+	 * exchange data pieces are considered for invalidation. A soft-deleted data owner can be undeleted at any moment,
+	 * so leaving it in a group it was removed from, or leaving the exchange data it can decrypt usable for
+	 * encryption, would be unsafe.
+	 *
+	 * # Interruption and retry
+	 *
+	 * This method is idempotent: removing a data owner that is not a member is a no-op that still reports the data
+	 * owner as removed, and invalidating exchange data that is already invalidated is a no-op as well.
+	 *
+	 * The members are updated first and the exchange data is invalidated after, so a call that terminates early —
+	 * the caller cancels it, some members could not be updated, or the invalidation itself fails, which is reported
+	 * as an error after the members have already been removed — can leave members removed while the exchange data
+	 * they can still decrypt is usable for encryption. Calling the method again with the same input picks up exactly
+	 * the work that is left, and repeating it eventually removes every member that can be removed and invalidates
+	 * everything that has to be invalidated; a caller that gets an error, or that does not receive every id it asked
+	 * for, should retry until it does.
+	 *
+	 * The retry must use the same input, and not only the members missing from the result: a member that an
+	 * interrupted call already removed is no longer a member of the group, so it still counts as cut off for the
+	 * invalidation (which is why it is part of the result), and dropping it from the input would drop the exchange
+	 * data that has a piece for it from the invalidation, leaving that exchange data usable for encryption.
+	 */
+	fun removeDataOwnersFromGroup(
+		dataOwnerType: DataOwnerType,
+		dataOwnerGroupId: String,
+		membersToRemoveIds: List<String>,
+		invalidateSharedExchangeDataIfNeeded: Boolean
+	): Flow<String>
 }

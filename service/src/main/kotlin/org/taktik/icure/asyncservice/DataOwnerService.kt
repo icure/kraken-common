@@ -89,4 +89,17 @@ interface DataOwnerService {
 		dataOwnerIds: List<String>,
 		dataOwnerType: DataOwnerType,
 	): Flow<DataOwnerPublicKeys>
+
+	fun addDataOwnersToGroup(
+		dataOwnerType: DataOwnerType,
+		dataOwnerGroupId: String,
+		newMembersIds: List<String>
+	): Flow<String>
+
+	fun removeDataOwnersFromGroup(
+		dataOwnerType: DataOwnerType,
+		dataOwnerGroupId: String,
+		membersToRemoveIds: List<String>,
+		invalidateSharedExchangeDataIfNeeded: Boolean
+	): Flow<String>
 }

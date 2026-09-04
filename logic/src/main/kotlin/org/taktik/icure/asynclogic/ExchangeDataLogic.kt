@@ -245,4 +245,14 @@ interface ExchangeDataLogic {
 		delegate: String,
 		piecesByRecipient: Map<String, ExchangeDataPieceCreationRequest>
 	): Flow<ExchangeData>
+
+	/**
+	 * Find the ids, or for exchange data groups the exchange data group id, of exchange data that involves the
+	 * participant.
+	 */
+	fun findMainExchangeDataIdsByParticipant(
+		participantId: String,
+		startDocumentId: String?,
+		limit: Int?,
+	): Flow<PaginationElement>
 }

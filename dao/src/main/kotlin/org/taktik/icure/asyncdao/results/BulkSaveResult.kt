@@ -13,7 +13,11 @@ sealed interface BulkSaveResult<out T> {
 	 */
 	fun entityOrThrow(): T
 
+	val isSuccess: Boolean
+
 	data class Success<T>(val entity: T) : BulkSaveResult<T> {
+		override val isSuccess: Boolean get() = true
+
 		override fun entityOrThrow(): T = entity
 	}
 
@@ -23,6 +27,8 @@ sealed interface BulkSaveResult<out T> {
 		val message: String,
 		val entityId: String,
 	) : BulkSaveResult<Nothing> {
+		override val isSuccess: Boolean get() = false
+
 		override fun entityOrThrow(): Nothing = when (code) {
 			409 -> throw ConflictRequestException(message)
 			// 403 means kraken has wrong credentials, not that user provided wrong credentials: also mapped as IllegalState

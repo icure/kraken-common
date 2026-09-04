@@ -36,4 +36,38 @@ data class DataOwnerHierarchyInfo(
 		val linkType: DataOwnerGroupLinkType,
 		val transitiveLinks: List<HierarchyNode> = emptyList(),
 	)
+
+	/**
+	 * Flattens this hierarchy tree into a deduplicated set of ids containing the data owner's own [id] plus the
+	 * ids of all groups linked to it.
+	 * A path is only followed while every link type it goes through is in [filterLinkTypes] (or unconditionally if
+	 * [filterLinkTypes] is null); traversal stops as soon as it meets a link whose type is not in
+	 * [filterLinkTypes], and does not resume even if a link further down the same path would have matched again. A
+	 * group reachable through several paths appears only once, and its own links are traversed only once, the
+	 * first time it is reached.
+	 */
+	fun flattened(filterLinkTypes: Set<DataOwnerGroupLinkType>? = null): Set<String> =
+		traverseNodes { filterLinkTypes == null || it.linkType in filterLinkTypes }
+			.mapTo(mutableSetOf(id)) { it.linkedGroupId }
+
+
+	/**
+	 * Lazily traverses the nodes of this hierarchy tree breadth-first, following only the links accepted by
+	 * [followLink]: as soon as a link is rejected, the node it points to is not emitted and its own links are not
+	 * followed, even if a link further down that same path would have been accepted.
+	 * The links of a group reachable through several paths are followed only once, the first time the group is
+	 * reached, but the group itself is emitted once per path, so callers that need distinct ids must deduplicate
+	 * the emitted nodes.
+	 */
+	private fun traverseNodes(followLink: (HierarchyNode) -> Boolean = { true }): Sequence<HierarchyNode> = sequence {
+		val traversed = mutableSetOf(id)
+		val remainingNodes = links.filterTo(ArrayDeque(), followLink)
+		while (remainingNodes.isNotEmpty()) {
+			val node = remainingNodes.removeFirst()
+			yield(node)
+			if (traversed.add(node.linkedGroupId)) {
+				node.transitiveLinks.filterTo(remainingNodes, followLink)
+			}
+		}
+	}
 }
