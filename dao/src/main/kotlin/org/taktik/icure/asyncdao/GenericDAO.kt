@@ -5,8 +5,13 @@
 package org.taktik.icure.asyncdao
 
 import io.icure.asyncjacksonhttpclient.exception.TimeoutException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.withContext
 import org.taktik.couchdb.Client
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
@@ -21,6 +26,7 @@ import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 // We also need those for compile-time constants in annotations.
 const val DATA_OWNER_PARTITION = "DataOwner"
@@ -355,4 +361,79 @@ suspend fun <T> GenericDAO<T>.getEntityWithExpectedRev(
 		throw ConflictRequestException("Revision does not match for entity with id $id")
 	}
 	return retrieved
+}
+
+/**
+ * Retrieves entities with ids in [idsToUpdate], updates them by applying [doUpdate] and saves them to the database.
+ * Entities that do not exist (not returned by bulk get) are ignored, all other entities are passed to the doUpdate
+ * method to get the updated version. [doUpdate] may return null, in which case it is interpreted as "this entity is
+ * good as is and does not need update".
+ * Any failure to update (regardless of whether it is a conflict or other), will be tried up to [maxTries] before
+ * giving up.
+ * The result includes all the entities that were updated (entities that were ignored because non-existing or because
+ * doUpdate returned null are not included); retried failures are not included.
+ *
+ * The update is performed in chunk of [maxChunkSize], and retries are performed on a "global" basis (not per-chunk):
+ * after update has been attempted on each of the entities from [idsToUpdate] a random delay in [delayBeforeRetryMs] is
+ * applied (if not null), then the entities to be retried are split again in chunks and the retry is performed.
+ * A chunk where [doUpdate] returned null for every entity is not saved at all, and costs no additional request.
+ *
+ * [doUpdate] is applied once per attempt on each entity that is being (re)tried, on the entity as it is stored at
+ * that moment, so it must be free of side effects that don't tolerate being repeated: an entity that failed to save
+ * is passed to it again by the next attempt, after being retrieved again.
+ *
+ * Saving a chunk is [NonCancellable]: a bulk save that started is never interrupted half-way. This does not extend
+ * to the operation as a whole, which can still stop between two chunks or two attempts, leaving some of
+ * [idsToUpdate] updated and some not; callers must therefore be able to re-run the whole operation to complete it.
+ */
+fun <T : Identifiable<String>> GenericDAO<T>.updateRetrying(
+	datastoreInformation: IDatastoreInformation,
+	idsToUpdate: Set<String>,
+	maxChunkSize: Int = 200,
+	maxTries: Int = 3,
+	delayBeforeRetryMs: LongRange? = 3000L..5000L,
+	doUpdate: (T) -> T?,
+): Flow<BulkSaveResult<T>> = flow {
+	check(maxTries >= 1) { "Max tries must be at least 1" } // Check to get 500 instead of 400 to the user if we do mistake
+	var toRetry = mutableListOf<String>()
+	var toTry: Collection<String> = idsToUpdate
+	var remainingTries = maxTries
+	while (toTry.isNotEmpty() && remainingTries > 0) {
+		remainingTries--
+		toTry.chunked(maxChunkSize).forEach { chunk ->
+			val toUpdate = getEntities(
+				datastoreInformation,
+				chunk
+			).mapNotNull {
+				doUpdate(it)
+			}.toList()
+			if (toUpdate.isNotEmpty()) {
+				val chunkResults = ArrayList<BulkSaveResult<T>>(chunk.size)
+				withContext(NonCancellable) {
+					saveBulk(
+						datastoreInformation,
+						toUpdate
+					).collect {
+						when (it) {
+							is BulkSaveResult.Failure -> if (remainingTries > 0) toRetry.add(it.entityId) else chunkResults.add(
+								it
+							)
+
+							is BulkSaveResult.Success -> chunkResults.add(it)
+						}
+					}
+				}
+				chunkResults.forEach {
+					emit(it)
+				}
+			}
+		}
+		if (remainingTries > 0) {
+			toTry = toRetry
+			if (toTry.isNotEmpty()) {
+				toRetry = mutableListOf()
+				if (delayBeforeRetryMs != null) delay(delayBeforeRetryMs.random().milliseconds)
+			}
+		}
+	}
 }

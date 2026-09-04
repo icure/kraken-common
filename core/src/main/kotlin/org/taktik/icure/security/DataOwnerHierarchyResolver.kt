@@ -1,7 +1,9 @@
 package org.taktik.icure.security
 
+import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.HealthcareParty
+import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.DataOwnerHierarchyInfo
 import org.taktik.icure.entities.base.effectiveGroupLinkType
@@ -56,12 +58,24 @@ suspend fun resolveHcpAncestors(
 	childHcp: HealthcareParty,
 	minAcceptedType: DataOwnerGroupLinkType? = null,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
-): List<HealthcareParty> {
-	val loadedById = mutableMapOf(childHcp.id to childHcp)
-	val expandedIds = mutableSetOf(childHcp.id)
-	var frontier = listOf(childHcp)
+): List<HealthcareParty> = resolveDataOwnerAncestors(
+	childDataOwner = childHcp,
+	minAcceptedType = minAcceptedType,
+	dataOwnerType = DataOwnerType.HCP,
+	loadHealthcareParties = loadHealthcareParties,
+)
+
+suspend fun <T> resolveDataOwnerAncestors(
+	childDataOwner: T,
+	minAcceptedType: DataOwnerGroupLinkType? = null,
+	dataOwnerType: DataOwnerType,
+	loadHealthcareParties: suspend (Set<String>) -> Collection<T>,
+): List<T> where T : CryptoActor, T : Identifiable<String> {
+	val loadedById = mutableMapOf(childDataOwner.id to childDataOwner)
+	val expandedIds = mutableSetOf(childDataOwner.id)
+	var frontier = listOf(childDataOwner)
 	while (frontier.isNotEmpty()) {
-		val links = frontier.flatMap { it.declaredGroupLinkIds(childHcp) }
+		val links = frontier.flatMap { it.declaredGroupLinkIds(childDataOwner) }
 		val idsToLoad = links.toSet() - loadedById.keys
 		if (idsToLoad.isNotEmpty()) {
 			loadHealthcareParties(idsToLoad).forEach { loadedById[it.id] = it }
@@ -69,21 +83,26 @@ suspend fun resolveHcpAncestors(
 		frontier = links.filter { expandedIds.add(it) }.mapNotNull { loadedById[it] }
 		if (expandedIds.size - 1 > MAX_HCP_ANCESTORS) {
 			throw IllegalEntityException(
-				"Too many ancestor groups for healthcare party ${childHcp.id}: exceeds the maximum of $MAX_HCP_ANCESTORS",
+				"Too many ancestor groups for healthcare party ${childDataOwner.id}: exceeds the maximum of $MAX_HCP_ANCESTORS",
 			)
 		}
 	}
 
-	val ancestors = LinkedHashMap<String, HealthcareParty>()
-	fun visit(of: HealthcareParty, pathIds: Set<String>, lastLinkType: DataOwnerGroupLinkType?) {
-		of.groupLinksWithEffectiveType(childHcp, loadedById, minAcceptedType).forEach { (linkType, groupId) ->
+	val ancestors = LinkedHashMap<String, T>()
+	fun visit(of: T, pathIds: Set<String>, lastLinkType: DataOwnerGroupLinkType?) {
+		of.groupLinksWithEffectiveType(
+			childDataOwner = childDataOwner,
+			loadedById = loadedById,
+			minAcceptedType = minAcceptedType,
+			dataOwnerType = dataOwnerType
+		).forEach { (linkType, groupId) ->
 			when {
 				groupId == of.id -> {} // tolerated for compatibility with the legacy parentId handling
 				groupId in pathIds -> throw IllegalEntityException(
-					"Circular reference in the hcp hierarchy starting from ${childHcp.id} detected.",
+					"Circular reference in the hcp hierarchy starting from ${childDataOwner.id} detected.",
 				)
 				lastLinkType != null && !linkType.canTransitivelyFollow(lastLinkType) -> throw IllegalEntityException(
-					"Ambiguous transitive data owner group link in the hcp hierarchy starting from ${childHcp.id}: " +
+					"Ambiguous transitive data owner group link in the hcp hierarchy starting from ${childDataOwner.id}: " +
 						"a $linkType link (strength ${linkType.strength}) follows a $lastLinkType link " +
 						"(strength ${lastLinkType.strength}) on the path to $groupId.",
 				)
@@ -95,7 +114,7 @@ suspend fun resolveHcpAncestors(
 			}
 		}
 	}
-	visit(childHcp, setOf(childHcp.id), null)
+	visit(childDataOwner, setOf(childDataOwner.id), null)
 	return ancestors.values.toList()
 }
 
@@ -171,12 +190,30 @@ suspend fun resolveHcpHierarchyInfo(
 	childHcp: HealthcareParty,
 	minAcceptedType: DataOwnerGroupLinkType? = null,
 	loadHealthcareParties: suspend (Set<String>) -> Collection<HealthcareParty>,
-): DataOwnerHierarchyInfo {
+): DataOwnerHierarchyInfo =
+	resolveDataOwnerHierarchyInfo(
+		childDataOwner = childHcp,
+		minAcceptedType = minAcceptedType,
+		dataOwnerType = DataOwnerType.HCP,
+		loadParents = loadHealthcareParties,
+	)
+
+suspend fun <T> resolveDataOwnerHierarchyInfo(
+	childDataOwner: T,
+	minAcceptedType: DataOwnerGroupLinkType? = null,
+	dataOwnerType: DataOwnerType,
+	loadParents: suspend (Set<String>) -> Collection<T>,
+): DataOwnerHierarchyInfo  where T : CryptoActor, T : Identifiable<String>  {
 	// Loads all the ancestors and validates the links (no cycle: the recursion below terminates)
-	val ancestorsById = resolveHcpAncestors(childHcp, minAcceptedType, loadHealthcareParties).associateBy { it.id }
-	fun nodesOf(hcp: HealthcareParty): List<DataOwnerHierarchyInfo.HierarchyNode> = hcp
-		.groupLinksWithEffectiveType(childHcp, ancestorsById, minAcceptedType)
-		.filter { (_, groupId) -> groupId != hcp.id }
+	val ancestorsById = resolveDataOwnerAncestors(
+		childDataOwner = childDataOwner,
+		minAcceptedType = minAcceptedType,
+		loadHealthcareParties = loadParents,
+		dataOwnerType = dataOwnerType
+	).associateBy { it.id }
+	fun nodesOf(dataOwner: T): List<DataOwnerHierarchyInfo.HierarchyNode> = dataOwner
+		.groupLinksWithEffectiveType(childDataOwner, ancestorsById, minAcceptedType, dataOwnerType)
+		.filter { (_, groupId) -> groupId != dataOwner.id }
 		.mapNotNull { (linkType, groupId) ->
 			ancestorsById[groupId]?.let { group ->
 				DataOwnerHierarchyInfo.HierarchyNode(
@@ -186,7 +223,97 @@ suspend fun resolveHcpHierarchyInfo(
 				)
 			}
 		}
-	return DataOwnerHierarchyInfo(id = childHcp.id, dataOwnerType = DataOwnerType.HCP, links = nodesOf(childHcp))
+	return DataOwnerHierarchyInfo(id = childDataOwner.id, dataOwnerType = dataOwnerType, links = nodesOf(childDataOwner))
+}
+
+/**
+ * Which of the data owners with id in [dataOwnerIds] are members of the data owner group with id
+ * [dataOwnerGroupId], directly or transitively.
+ *
+ * This answers only that question, for a whole batch at once, and is deliberately cheaper than resolving the
+ * hierarchy of each of them with [resolveDataOwnerAncestors] and looking for [dataOwnerGroupId] in the result:
+ *
+ * - a data owner of the batch is done as soon as any of the groups it belongs to declares a link to
+ *   [dataOwnerGroupId]. Whatever is above that group, and whatever else it is linked to, is never followed for it.
+ * - the whole batch is traversed together, one bulk load per level, and every data owner is loaded at most once
+ *   however many members of the batch it stands above: asking whether A and B belong to D, when both are only
+ *   linked to C, loads and follows C once.
+ *
+ * Membership is pure reachability here: a link makes its declarer a member of its target whatever the link's type,
+ * and so does every link of that target, recursively. The type of a link decides which *rights* a membership grants
+ * (see [resolveDataOwnerAncestors]), not whether there is one, so contrary to that method there is no restriction
+ * on how the type may change along a path, and no [minAcceptedType] to filter by. A circular reference is not an
+ * error either, just a path that leads nowhere new — the answer to a yes/no question can't be made ambiguous by
+ * how a data owner is reached, only by whether it is.
+ *
+ * [dataOwnerGroupId] is never reported as a member of itself, and a data owner that cannot be loaded is a dead end:
+ * it declares no link, so no one is a member of [dataOwnerGroupId] through it.
+ *
+ * The data owners are read as they are stored, so a caller that has just changed some links sees the effect of that
+ * change, and a link declared directly by a data owner of the batch counts exactly like a transitive one.
+ *
+ * @param dataOwnerIds the ids of the data owners whose membership is checked.
+ * @param dataOwnerGroupId the id of the data owner representing the group the membership is checked against.
+ * @param loadDataOwners loads the data owners with the provided ids, omitting the ids that do not match any
+ * existing data owner.
+ * @return the subset of [dataOwnerIds] that is a member of [dataOwnerGroupId].
+ * @throws IllegalEntityException if a `dataOwnerGroups` entry with a blank id is found, or if answering requires
+ * loading more than [MAX_HCP_ANCESTORS] data owners per entry of [dataOwnerIds] — the same safety limit
+ * [resolveDataOwnerAncestors] puts on a single hierarchy, scaled to the size of the batch since the batch shares
+ * one traversal.
+ */
+suspend fun <T> filterDataOwnersMembersOf(
+	dataOwnerIds: Set<String>,
+	dataOwnerGroupId: String,
+	loadDataOwners: suspend (Set<String>) -> Collection<T>,
+): Set<String> where T : CryptoActor, T : Identifiable<String> {
+	val stillSearching = (dataOwnerIds - dataOwnerGroupId).toMutableSet()
+	if (stillSearching.isEmpty()) return emptySet()
+	val members = mutableSetOf<String>()
+	val loadedById = mutableMapOf<String, T>()
+	val requestedIds = mutableSetOf<String>()
+	/*
+	 * The data owners whose links still have to be followed, each with the members of the batch that reached it and
+	 * are still looking for the group, plus, for every data owner ever reached, the members of the batch it has
+	 * already been followed for. Following a data owner at most once per member of the batch is what makes a shared
+	 * ancestor cost one load and one expansion however many members stand below it, and what keeps a circular
+	 * reference from looping forever.
+	 */
+	var frontier: Map<String, Set<String>> = stillSearching.associateWith { setOf(it) }
+	val followedFor = stillSearching.associateWithTo(mutableMapOf()) { mutableSetOf(it) }
+	while (frontier.isNotEmpty() && stillSearching.isNotEmpty()) {
+		val idsToLoad = frontier.keys - requestedIds
+		if (idsToLoad.isNotEmpty()) {
+			requestedIds += idsToLoad
+			if (requestedIds.size > MAX_HCP_ANCESTORS * dataOwnerIds.size) {
+				throw IllegalEntityException(
+					"Too many data owners to follow to check the membership of ${dataOwnerIds.size} data owners to $dataOwnerGroupId:" +
+						" exceeds the maximum of $MAX_HCP_ANCESTORS per checked data owner",
+				)
+			}
+			loadDataOwners(idsToLoad).forEach { loadedById[it.id] = it }
+		}
+		val nextFrontier = mutableMapOf<String, MutableSet<String>>()
+		frontier.forEach { (followedId, reachedBy) ->
+			val followed = loadedById[followedId] ?: return@forEach
+			val searchingBelow = reachedBy.filterTo(mutableSetOf()) { it in stillSearching }
+			if (searchingBelow.isEmpty()) return@forEach
+			val links = followed.declaredGroupLinkIds(followed)
+			if (dataOwnerGroupId in links) {
+				members += searchingBelow
+				stillSearching -= searchingBelow
+			} else {
+				links.forEach { linkedId ->
+					val alreadyFollowedFor = followedFor.getOrPut(linkedId) { mutableSetOf() }
+					searchingBelow.forEach {
+						if (alreadyFollowedFor.add(it)) nextFrontier.getOrPut(linkedId) { mutableSetOf() } += it
+					}
+				}
+			}
+		}
+		frontier = nextFrontier
+	}
+	return members
 }
 
 /**
@@ -200,10 +327,10 @@ suspend fun resolveHcpHierarchyInfo(
  *
  * @throws IllegalEntityException if any [HealthcareParty.dataOwnerGroups] entry has a blank id.
  */
-private fun HealthcareParty.declaredGroupLinkIds(childHcp: HealthcareParty): List<String> =
+private fun <T> T.declaredGroupLinkIds(childDataOwner: T): List<String> where T : CryptoActor, T : Identifiable<String> =
 	(listOfNotNull(parentId?.takeIf { it.isNotBlank() }) + dataOwnerGroups.map { it.dataOwnerId }.onEach { groupId ->
 		if (groupId.isBlank()) {
-			throw IllegalEntityException("Blank group id for healthcare party ${childHcp.id}")
+			throw IllegalEntityException("Blank group id for healthcare party ${childDataOwner.id}")
 		}
 	}).distinct()
 
@@ -214,12 +341,13 @@ private fun HealthcareParty.declaredGroupLinkIds(childHcp: HealthcareParty): Lis
  * loaded) are skipped, matching the "links to healthcare parties that cannot be loaded are ignored" tolerance.
  * Restricted to links whose target's effective type [isAtLeast] [minAcceptedType], if it is not null.
  */
-private fun HealthcareParty.groupLinksWithEffectiveType(
-	childHcp: HealthcareParty,
-	loadedById: Map<String, HealthcareParty>,
+private fun <T> T.groupLinksWithEffectiveType(
+	childDataOwner: T,
+	loadedById: Map<String, T>,
 	minAcceptedType: DataOwnerGroupLinkType?,
-): List<Pair<DataOwnerGroupLinkType, String>> = declaredGroupLinkIds(childHcp)
-	.mapNotNull { groupId -> loadedById[groupId]?.let { target -> target.effectiveGroupLinkType(DataOwnerType.HCP) to groupId } }
+	dataOwnerType: DataOwnerType,
+): List<Pair<DataOwnerGroupLinkType, String>> where T : CryptoActor, T : Identifiable<String> = declaredGroupLinkIds(childDataOwner)
+	.mapNotNull { groupId -> loadedById[groupId]?.let { target -> target.effectiveGroupLinkType(dataOwnerType) to groupId } }
 	.filter { (linkType, _) -> linkType.isAtLeast(minAcceptedType) }
 
 /**

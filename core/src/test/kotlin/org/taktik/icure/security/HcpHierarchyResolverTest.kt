@@ -29,6 +29,17 @@ private suspend fun resolveTree(child: HealthcareParty, vararg others: Healthcar
 	return resolveHcpHierarchyInfo(child) { ids -> ids.mapNotNull { othersById[it] } }
 }
 
+private class MembershipCheck(vararg hcps: HealthcareParty) {
+	private val hcpsById = hcps.associateBy { it.id }
+	val loadedIds = mutableListOf<String>()
+
+	suspend fun membersOf(dataOwnerGroupId: String, vararg dataOwnerIds: String): Set<String> =
+		filterDataOwnersMembersOf(dataOwnerIds.toSet(), dataOwnerGroupId) { ids ->
+			loadedIds.addAll(ids)
+			ids.mapNotNull { hcpsById[it] }
+		}
+}
+
 private fun root(id: String, vararg links: DataOwnerHierarchyInfo.HierarchyNode) =
 	DataOwnerHierarchyInfo(id, DataOwnerType.HCP, links.toList())
 
@@ -337,5 +348,113 @@ class HcpHierarchyResolverTest : StringSpec({
 			ids.mapNotNull { othersById[it] }
 		}
 		loadedIds.sorted() shouldBe listOf("b", "c", "d")
+	}
+
+	"the membership check should find the group through any path, at any depth" {
+		// a -> b -> clinic, c -> clinic, d -> e (nowhere near the clinic), f does not exist
+		val check = MembershipCheck(
+			hcp("a", parentId = "b"),
+			hcp("b", groups = listOf(groupLink("clinic"))),
+			hcp("c", groups = listOf(groupLink("clinic"), groupLink("other"))),
+			hcp("d", parentId = "e"),
+			hcp("e"),
+			hcp("clinic"),
+			hcp("other"),
+		)
+		check.membersOf("clinic", "a", "c", "d", "f") shouldBe setOf("a", "c")
+	}
+
+	"the membership check should stop at the group instead of resolving the rest of the hierarchy" {
+		// a -> clinic -> region -> country: nothing above the clinic has to be loaded to answer for a.
+		val check = MembershipCheck(
+			hcp("a", groups = listOf(groupLink("clinic"))),
+			hcp("clinic", parentId = "region"),
+			hcp("region", parentId = "country"),
+			hcp("country"),
+		)
+		check.membersOf("clinic", "a") shouldBe setOf("a")
+		check.loadedIds shouldBe listOf("a")
+	}
+
+	"a data owner shared by several checked data owners should be loaded and followed once, and never reported itself" {
+		// a -> c, b -> c -> clinic: c answers for both a and b, and is loaded once. c is the data owner that
+		// declares the link to the clinic, but the result only ever holds ids that were checked, never the ones
+		// walked through to answer for them.
+		val check = MembershipCheck(
+			hcp("a", groups = listOf(groupLink("c"))),
+			hcp("b", groups = listOf(groupLink("c"))),
+			hcp("c", groups = listOf(groupLink("clinic"))),
+			hcp("clinic"),
+		)
+		check.membersOf("clinic", "a", "b") shouldBe setOf("a", "b")
+		check.loadedIds.sorted() shouldBe listOf("a", "b", "c")
+	}
+
+	"a data owner that is both checked and walked through should be reported, and only once" {
+		// a -> c and c -> clinic, with both a and c checked: c answers for itself and for a.
+		val check = MembershipCheck(
+			hcp("a", groups = listOf(groupLink("c"))),
+			hcp("c", groups = listOf(groupLink("clinic"))),
+			hcp("clinic"),
+		)
+		check.membersOf("clinic", "a", "c") shouldBe setOf("a", "c")
+		check.loadedIds.sorted() shouldBe listOf("a", "c")
+	}
+
+	"a data owner reached again at a deeper level should be followed for the newcomer, but not loaded again" {
+		// b reaches shared at the first level and a only at the second: shared has to be followed for a as well,
+		// or a would be wrongly reported as not being a member.
+		val check = MembershipCheck(
+			hcp("a", groups = listOf(groupLink("intermediate"))),
+			hcp("b", groups = listOf(groupLink("shared"))),
+			hcp("intermediate", groups = listOf(groupLink("shared"))),
+			hcp("shared", groups = listOf(groupLink("clinic"))),
+			hcp("clinic"),
+		)
+		check.membersOf("clinic", "a", "b") shouldBe setOf("a", "b")
+		check.loadedIds.sorted() shouldBe listOf("a", "b", "intermediate", "shared")
+	}
+
+	"the membership check should tolerate what makes a full resolution fail: cycles, self references and ambiguous link types" {
+		// a -> b -> a is a cycle that leads nowhere, and c reaches the clinic through a simple group that is
+		// itself linked to a parent-type one, which resolveHcpAncestors rejects as ambiguous.
+		val check = MembershipCheck(
+			hcp("a", parentId = "b"),
+			hcp("b", parentId = "a"),
+			hcp("c", groups = listOf(groupLink("c"), groupLink("simpleGroup"))),
+			hcp("simpleGroup", groups = listOf(groupLink("clinic")), groupLinkType = DataOwnerGroupLinkType.simple),
+			hcp("clinic", groupLinkType = DataOwnerGroupLinkType.parent),
+		)
+		check.membersOf("clinic", "a", "c") shouldBe setOf("c")
+	}
+
+	"the membership check should never report the group itself, or a data owner with no link at all" {
+		MembershipCheck(hcp("clinic"), hcp("a")).membersOf("clinic", "clinic", "a") shouldBe emptySet()
+		// Not even when a path leads from the group back to itself: a group is not a member of itself, so it is
+		// dropped from the checked data owners before the walk starts.
+		val cyclic = MembershipCheck(
+			hcp("clinic", groups = listOf(groupLink("region"))),
+			hcp("region", groups = listOf(groupLink("clinic"))),
+			hcp("a", groups = listOf(groupLink("region"))),
+		)
+		cyclic.membersOf("clinic", "clinic") shouldBe emptySet()
+		cyclic.loadedIds shouldBe emptyList()
+		cyclic.membersOf("clinic", "clinic", "a") shouldBe setOf("a")
+	}
+
+	"the membership check of an empty batch should not load anything" {
+		val check = MembershipCheck(hcp("clinic"))
+		check.membersOf("clinic") shouldBe emptySet()
+		check.loadedIds shouldBe emptyList()
+	}
+
+	"the membership check should throw when it has to load more than the maximum (100) data owners per checked data owner" {
+		// One checked data owner at the bottom of a chain of 101 data owners that never reaches the group.
+		val chain = linearChain(101)
+		shouldThrow<IllegalEntityException> {
+			MembershipCheck(*chain.toTypedArray()).membersOf("nowhere", "h0")
+		}
+		// The limit is per checked data owner, so the same chain is affordable for a batch of two.
+		MembershipCheck(*chain.toTypedArray()).membersOf("nowhere", "h0", "h1") shouldBe emptySet()
 	}
 })

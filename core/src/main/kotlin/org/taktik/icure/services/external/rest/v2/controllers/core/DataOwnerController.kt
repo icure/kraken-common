@@ -212,6 +212,75 @@ class DataOwnerController(
 		.getDataOwnersPublicKeys(dataOwnerIds.ids, dataOwnerType.toDataOwnerType())
 		.map { dataOwnerPublicKeysMapper.map(it) }
 		.injectReactorContext()
+
+	@Operation(
+		summary = "Add data owners to a data owner group",
+		description =
+		"Links each of the provided data owners to the data owner group with the provided id. The group must " +
+			"exist, be of the provided type and be a valid group target, or the request fails. A member that " +
+			"does not exist or is not of that type, that can't be updated because there are too many concurrent " +
+			"changes to it, or that may not link to the group because of its own group link type is ignored " +
+			"instead. The result holds the ids of the data owners that are members of the group " +
+			"as a result of this request, including those that already were before it: a caller that doesn't " +
+			"get back every id it asked for can safely repeat the request, with the same body, until it does.",
+	)
+	@PostMapping("/dataOwnerGroup/{dataOwnerGroupId}/members/add")
+	fun addDataOwnersToGroup(
+		@Parameter(description = "The id of the data owner representing the group")
+		@PathVariable
+		dataOwnerGroupId: String,
+		@Parameter(description = "The type of the group and of the data owners to add to it")
+		@RequestParam(required = true)
+		dataOwnerType: String,
+		@RequestBody newMembersIds: ListOfIdsDto,
+	): Flux<String> = dataOwnerService
+		.addDataOwnersToGroup(dataOwnerType.toDataOwnerType(), dataOwnerGroupId, newMembersIds.ids)
+		.injectReactorContext()
+
+	@Operation(
+		summary = "Remove data owners from a data owner group",
+		description =
+		"Removes the link of each of the provided data owners to the data owner group with the provided id. The " +
+			"group must exist, be of the provided type and be a valid group target, or the request fails. A " +
+			"member that does not exist or is not of that type, or that can't be updated because there are too " +
+			"many concurrent changes to it, is ignored instead. Only the links declared " +
+			"by the members themselves are removed: a member that is also part of the group through another " +
+			"group it belongs to keeps that membership. The result holds the ids of the data owners that are " +
+			"not members of the group as a result of this request, including those that already weren't before " +
+			"it.\n\n" +
+			"Unless invalidateSharedExchangeDataIfNeeded is explicitly set to false, the exchange data that the " +
+			"removed members lost their entitlement to is invalidated for encryption before returning, which is " +
+			"what actually revokes their access to the data shared with the group from that point on. A member " +
+			"that keeps its access legitimately - because it is still part of the group, or of a group above it, " +
+			"through another group it belongs to - leaves that exchange data untouched. The invalidation happens " +
+			"after the members have been updated, so a request that fails may have removed members without " +
+			"having invalidated anything: a caller that gets an error, or that doesn't get back every id it " +
+			"asked for, should repeat the request with the same body - the same body, and not only the missing " +
+			"ids, since a member that was already removed still counts for the invalidation.",
+	)
+	@PostMapping("/dataOwnerGroup/{dataOwnerGroupId}/members/remove")
+	fun removeDataOwnersFromGroup(
+		@Parameter(description = "The id of the data owner representing the group")
+		@PathVariable
+		dataOwnerGroupId: String,
+		@Parameter(description = "The type of the group and of the data owners to remove from it")
+		@RequestParam(required = true)
+		dataOwnerType: String,
+		@Parameter(
+			description = "Whether to invalidate for encryption the exchange data that the removed members can " +
+				"still decrypt. Defaults to true, and should only be set to false if the invalidation is going " +
+				"to be performed in another way.",
+		)
+		@RequestParam(required = false)
+		invalidateSharedExchangeDataIfNeeded: Boolean?,
+		@RequestBody membersToRemoveIds: ListOfIdsDto,
+	): Flux<String> = dataOwnerService
+		.removeDataOwnersFromGroup(
+			dataOwnerType.toDataOwnerType(),
+			dataOwnerGroupId,
+			membersToRemoveIds.ids,
+			invalidateSharedExchangeDataIfNeeded ?: true,
+		).injectReactorContext()
 }
 
 /**
