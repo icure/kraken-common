@@ -17,6 +17,8 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.dao.KeyComponent
+import org.taktik.icure.entities.dao.RangeQueryParameters
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -329,6 +331,61 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 		startKey: ExternalFilterKey?,
 		endKey: ExternalFilterKey?,
 	): Flow<String>
+
+	/**
+	 * Queries a custom views by keys, with support for pagination.
+	 *
+	 * - [keyComponents] is a List of size N where each element of the list represents all the possible values for the
+	 * Xth component. The method automatically computes all the possible keys as the cross-products of these values.
+	 * The order of the element in the list (and in the nested lists) MUST be preserved across pagination queries for them
+	 * to work properly with [startKey].
+	 * - [startKey] the start key for paginated queries, it must be of size N. If not null, it will skip the generation
+	 * of the permutations of [keyComponents] until the start key is generated (that's why the [keyComponents]
+	 * must be preserved acoss queries).
+	 *
+	 * Paginated queries are handled as follows:
+	 * - first, if [startKey] is not null, a range query with start_key = end_key = [startKey] and start_doc_id = [startDocumentId]
+	 * is executed to retrieve all the elements missed for that key in the previous page.
+	 * - then, if [limit] is not reached, a second query with all the keys generated after [startKey] is executed.
+	 */
+	fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		keyComponents: List<List<KeyComponent<*>>>,
+		startKey: List<KeyComponent<*>>?,
+		startDocumentId: String?,
+		limit: Int
+	): Flow<ViewQueryResultEvent>
+
+	/**
+	 * Queries a custom view for multiple ranged keys, with support for pagination.
+	 *
+	 * - [nonRangeKeyComponents] is a List of size N that represents the first Nth elements of the key that are NOT to be
+	 * queried by range. Each element of the list represents all the possible values for the Xth component. The method
+	 * automatically computes all the possible keys as the cross-products of these values. The order of the element in
+	 * the list (and in the nested lists) MUST be preserved across pagination queries for them to work properly with [startKey].
+	 * - [startKey] the start key for paginated queries, it must be of size N + 1. If not null, it will skip the generation
+	 * of the permutations of [nonRangeKeyComponents] until the start key is generated (that's why the [nonRangeKeyComponents]
+	 * must be preserved acoss queries).
+	 * - [range] the start value and end value for the last component of the key.
+	 *
+	 * Paginated queries are handled as follows:
+	 * - The first N components of the keys are generated from [nonRangeKeyComponents]. If a [startKey] is passed, all
+	 * the keys that are generated until [startKey] is reached are skipped.
+	 * - A first range query is executed, with start_key = [startKey] and end_key = <first_generated> + [range].endKey and
+	 * start_doc_id = [startDocumentId].
+	 * - If the first query emits less than [limit], other range queries are executed with the other keys remaining and
+	 * the full range specified by [range].
+	 */
+	fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		nonRangeKeyComponents: List<List<KeyComponent<*>>>,
+		range: RangeQueryParameters,
+		startKey: List<KeyComponent<*>>?,
+		startDocumentId: String?,
+		limit: Int
+	): Flow<ViewQueryResultEvent>
 }
 
 suspend fun <T> GenericDAO<T>.getEntitiesWithExpectedRev(

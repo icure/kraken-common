@@ -4,6 +4,7 @@
 
 package org.taktik.icure.asyncdao.impl
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
@@ -56,7 +57,10 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.db.crossProductKeysAfterStart
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.dao.KeyComponent
+import org.taktik.icure.entities.dao.RangeQueryParameters
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -741,6 +745,106 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			.filterIsInstance<ViewRowNoDoc<*, *>>()
 			.map { it.id }
 		)
+	}
+
+	override fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		keyComponents: List<List<KeyComponent<*>>>,
+		startKey: List<KeyComponent<*>>?,
+		startDocumentId: String?,
+		limit: Int
+	): Flow<ViewQueryResultEvent> = flow {
+		require(
+			startKey == null || startKey.size == keyComponents.size
+		) { "The startKey does not have the same size as the query keys" }
+		val keys = crossProductKeysAfterStart(
+			multiQueryComponents = keyComponents,
+			startKey = startKey,
+		).map { components ->
+			ComplexKey.of(
+				*components.map { it.value }.toTypedArray()
+			)
+		}.toList()
+
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		var realLimit = limit
+		if (startKey != null) {
+			val resumedQuery = queryProvider.createConfigQuery(
+				datastore = datastoreInformation,
+				configurationView = viewName,
+			).includeDocs(false)
+				.startKey(keys.first())
+				.endKey(keys.first())
+				.startDocId(startDocumentId)
+				.limit(realLimit)
+
+			emitAll(
+				client
+					.queryView<ComplexKey, JsonNode>(resumedQuery)
+					.onEach { realLimit-- }
+			)
+		}
+		if (realLimit > 0) {
+			val query = queryProvider.createConfigQuery(
+				datastore = datastoreInformation,
+				configurationView = viewName,
+			).includeDocs(false)
+				.keys(
+					if (startKey != null) {
+						keys.drop(1)
+					} else {
+						keys
+					}
+				)
+				.limit(realLimit)
+			emitAll(client.queryView<ComplexKey, JsonNode>(query))
+		}
+	}
+
+	override fun listEntitiesIdInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		viewName: String,
+		nonRangeKeyComponents: List<List<KeyComponent<*>>>,
+		range: RangeQueryParameters,
+		startKey: List<KeyComponent<*>>?,
+		startDocumentId: String?,
+		limit: Int
+	): Flow<ViewQueryResultEvent> = flow {
+		require(
+			startKey == null ||
+				startKey.size == nonRangeKeyComponents.size + 1
+		) { "The startKey does not have the same size as the query keys plus the range" }
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		var realLimit = limit
+		crossProductKeysAfterStart(
+			multiQueryComponents = nonRangeKeyComponents,
+			startKey = startKey,
+		).takeWhile {
+			realLimit > 0
+		}.forEachIndexed { index, components ->
+			val componentsValue = components.map { it.value }.toTypedArray()
+			val start = if (startKey != null && index == 0) {
+				ComplexKey.of(componentsValue, startKey.last().value)
+			} else {
+				ComplexKey.of(*componentsValue, range.startKey.value)
+			}
+			val end = ComplexKey.of(*componentsValue, range.endKey.value)
+			val query = queryProvider.createConfigQuery(
+				datastore = datastoreInformation,
+				configurationView = viewName,
+			).includeDocs(false)
+				.startKey(start)
+				.endKey(end)
+				.startDocId(startDocumentId.takeIf { startKey != null && index == 0 })
+				.limit(realLimit)
+			emitAll(
+				client
+					.queryView<ComplexKey, JsonNode>(query)
+					.onEach { realLimit-- }
+			)
+		}
+
 	}
 
 	protected suspend fun warmup(datastoreInformation: IDatastoreInformation, view: Pair<String, String?>) {
