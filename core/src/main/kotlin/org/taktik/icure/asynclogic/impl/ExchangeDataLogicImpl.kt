@@ -3,14 +3,11 @@ package org.taktik.icure.asynclogic.impl
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.EntityInfoDAO
 import org.taktik.icure.asyncdao.ExchangeDataDAO
@@ -37,6 +34,7 @@ import org.taktik.icure.pagination.toPaginatedFlow
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.Hasher
 import org.taktik.icure.validation.DataOwnerProvider
+import kotlin.collections.toSet
 
 open class ExchangeDataLogicImpl(
 	private val exchangeDataDAO: ExchangeDataDAO,
@@ -54,13 +52,13 @@ open class ExchangeDataLogicImpl(
 		 * type and keypair filters rather than refilled, so a minimum is what bounds how many requests a caller can be
 		 * forced into to exhaust the search.
 		 */
-		const val MIN_COUNTERPARTS_PAGE_SIZE = 100
+		const val MIN_LIGHT_QUERY_PAGE_SIZE = 100
 
 		/**
 		 * Largest page a caller of [findNonGroupPieceCounterparts] may ask for, and the page size it uses when the
 		 * caller asks for none.
 		 */
-		const val MAX_COUNTERPARTS_PAGE_SIZE = 1000
+		const val MAX_LIGHT_QUERY_PAGE_SIZE = 1000
 	}
 
 	// Using values + when ensures we get compilation errors if we add more types and forget to update this.
@@ -205,9 +203,9 @@ open class ExchangeDataLogicImpl(
 		limit: Int?,
 	): Flow<PaginationElement> = flow {
 		require(counterpartsTypes.isNotEmpty()) { "At least one counterpart type should be provided." }
-		val pageSize = limit ?: MAX_COUNTERPARTS_PAGE_SIZE
-		require(pageSize in MIN_COUNTERPARTS_PAGE_SIZE..MAX_COUNTERPARTS_PAGE_SIZE) {
-			"The limit should be between $MIN_COUNTERPARTS_PAGE_SIZE and $MAX_COUNTERPARTS_PAGE_SIZE."
+		val pageSize = limit ?: MAX_LIGHT_QUERY_PAGE_SIZE
+		require(pageSize in MIN_LIGHT_QUERY_PAGE_SIZE..MAX_LIGHT_QUERY_PAGE_SIZE) {
+			"The limit should be between $MIN_LIGHT_QUERY_PAGE_SIZE and $MAX_LIGHT_QUERY_PAGE_SIZE."
 		}
 		/*
 		 * One request is one database query. The counterparts dropped by the two filters below shorten the page instead
@@ -507,5 +505,25 @@ open class ExchangeDataLogicImpl(
 				toCreate,
 			).filterSuccessfulUpdates()
 		)
+	}
+
+	override fun findMainExchangeDataIdsByParticipant(
+		participantId: String,
+		startDocumentId: String?,
+		limit: Int?,
+	): Flow<PaginationElement> = flow {
+		val pageSize = limit ?: MAX_LIGHT_QUERY_PAGE_SIZE
+		require(pageSize in MIN_LIGHT_QUERY_PAGE_SIZE..MAX_LIGHT_QUERY_PAGE_SIZE) {
+			"The limit should be between $MIN_LIGHT_QUERY_PAGE_SIZE and $MAX_LIGHT_QUERY_PAGE_SIZE."
+		}
+		val datastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+		val rows = exchangeDataDAO
+			.findMainExchangeDataIdsByParticipant(datastoreInformation, participantId, startDocumentId, pageSize + 1)
+			.toList()
+		rows.take(pageSize).forEach { emit(PaginationRowElement(it, null)) }
+
+		if (rows.size > pageSize) {
+			emit(NextPageElement(startKey = null, startKeyDocId = rows.last()))
+		}
 	}
 }

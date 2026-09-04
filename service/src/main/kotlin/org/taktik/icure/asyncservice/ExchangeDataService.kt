@@ -242,4 +242,10 @@ interface ExchangeDataService {
 		delegate: String,
 		piecesByRecipient: Map<String, ExchangeDataPieceCreationRequest>
 	): Flow<ExchangeData>
+
+	fun findMainExchangeDataIdsByParticipant(
+		participantId: String,
+		startDocumentId: String?,
+		limit: Int?,
+	): Flow<PaginationElement>
 }

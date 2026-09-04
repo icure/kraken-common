@@ -324,6 +324,22 @@ class ExchangeDataController(
 			startKey,
 			limit,
 		).asPaginatedFlux()
+
+	@Operation(
+		summary = "Get the exchange data with a specific delegator-delegate pair, for the provided recipients",
+		description =
+			"The recipients are a json array, so include null in it to also get the exchange data that has no recipient, " +
+				"that is the exchange data that is not for a simple-type data owner group. To get the next page, pass the " +
+				"start key of the returned cursor back as the recipients and its start document id as startDocumentId.",
+	)
+	@GetMapping("/mainIds/byParticipant")
+	fun findMainExchangeDataIdsByParticipant(
+		@RequestParam(required = true) participantId: String,
+		@RequestParam(required = false) startDocumentId: String? = null,
+		@RequestParam(required = false) limit: Int? = null,
+	): PaginatedFlux<String> = exchangeDataService
+		.findMainExchangeDataIdsByParticipant(participantId, startDocumentId, limit)
+		.asPaginatedFlux()
 }
 
 /**
