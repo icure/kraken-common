@@ -33,12 +33,6 @@ fun <T> crossProductKeysAfterStart(
 			private val cursor = start.copyOf()
 			private var hasMore = true
 
-			init {
-				if (startKey != null) {
-					hasMore = advance()
-				}
-			}
-
 			override fun hasNext() = hasMore
 
 			override fun next(): List<T> {

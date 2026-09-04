@@ -825,7 +825,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}.forEachIndexed { index, components ->
 			val componentsValue = components.map { it.value }.toTypedArray()
 			val start = if (startKey != null && index == 0) {
-				ComplexKey.of(componentsValue, startKey.last().value)
+				ComplexKey.of(*componentsValue, startKey.last().value)
 			} else {
 				ComplexKey.of(*componentsValue, range.startKey.value)
 			}
