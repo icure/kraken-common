@@ -39,7 +39,11 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.ReceiptService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
+import org.taktik.icure.entities.dao.IdWithValue
 import org.taktik.icure.entities.embed.ReceiptBlobType
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.ReceiptDto
@@ -48,6 +52,8 @@ import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResoluti
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionStrategyDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.dao.IdWithValueDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
@@ -56,9 +62,10 @@ import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResol
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.dao.IdWithValueV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.ReceiptCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ReceiptBulkShareResultV2Mapper
-import org.taktik.icure.services.external.rest.v2.utils.addAttachmentResponseHeader
 import org.taktik.icure.utils.enforceSize
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -81,7 +88,9 @@ class ReceiptController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val receiptCustomFilterV2Mapper: ReceiptCustomFilterV2Mapper,
+	private val idWithValueV2Mapper: IdWithValueV2Mapper
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -362,4 +371,13 @@ class ReceiptController(
 		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
+
+	@PostMapping("/matchByCustom")
+	fun matchReceiptsByCustomFilter(
+		@RequestBody filter: CustomFilterDto,
+	): PaginatedFlux<IdWithValueDto> = receiptService.matchByCustomFilter(
+		filter = receiptCustomFilterV2Mapper.map(filter),
+	).mapElements<IdWithValue, IdWithValueDto> {
+		idWithValueV2Mapper.map(it)
+	}.asPaginatedFlux()
 }

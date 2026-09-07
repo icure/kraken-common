@@ -30,6 +30,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.PatientLogic
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -68,7 +69,9 @@ open class PatientLogicImpl(
 	patientMerger: Merger<Patient>
 ) : EntityWithEncryptionMetadataLogic<Patient, PatientDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Patient> by ConflictResolutionLogicImpl(patientDAO, patientMerger, datastoreInstanceProvider),
-	PatientLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = patientDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	PatientLogic
+{
 	companion object {
 		private val log = LoggerFactory.getLogger(PatientLogicImpl::class.java)
 	}

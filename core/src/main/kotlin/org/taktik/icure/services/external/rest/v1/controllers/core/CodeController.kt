@@ -29,6 +29,7 @@ import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
+import org.taktik.icure.entities.base.Code
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -84,7 +85,7 @@ class CodeController(
 		val typesList = types.split(',').toSet()
 		return codeService
 			.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
-			.mapElements(codeMapper::map)
+			.mapElements<Code, CodeDto>(codeMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -113,7 +114,7 @@ class CodeController(
 
 		return codeService
 			.findCodesBy(region, type, code, version, paginationOffset)
-			.mapElements(codeMapper::map)
+			.mapElements<Code, CodeDto>(codeMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -138,7 +139,7 @@ class CodeController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return codeService
 			.findCodesByQualifiedLinkId(linkType, linkedId, paginationOffset)
-			.mapElements(codeMapper::map)
+			.mapElements<Code, CodeDto>(codeMapper::map)
 			.asPaginatedFlux()
 	}
 

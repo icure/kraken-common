@@ -7,7 +7,6 @@ package org.taktik.icure.asynclogic.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.TotalCount
@@ -16,6 +15,7 @@ import org.taktik.icure.asyncdao.MaintenanceTaskDAO
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MaintenanceTaskLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -35,13 +35,15 @@ open class MaintenanceTaskLogicImpl(
 	datastoreInstanceProvider: DatastoreInstanceProvider,
 	fixer: Fixer,
 ) : EntityWithEncryptionMetadataLogic<MaintenanceTask, MaintenanceTaskDAO>(
-	fixer,
-	sessionLogic,
-	datastoreInstanceProvider,
-	exchangeDataMapLogic,
-	filters,
+	fixer = fixer,
+	sessionLogic = sessionLogic,
+	datastoreInstanceProvider = datastoreInstanceProvider,
+	exchangeDataMapLogic = exchangeDataMapLogic,
+	filters = filters,
 ),
-	MaintenanceTaskLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = maintenanceTaskDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	MaintenanceTaskLogic
+{
 	override fun filter(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<MaintenanceTask>,

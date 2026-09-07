@@ -8,9 +8,10 @@ import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.id.Identifiable
+import org.taktik.icure.asynclogic.base.ProxyDatastoreProvider
 import org.taktik.icure.domain.filter.AbstractFilter
 
-interface EntityPersister<E : Identifiable<String>> {
+interface EntityPersister<E : Identifiable<String>> : ProxyDatastoreProvider {
 
 	suspend fun createEntity(entity: E): E
 

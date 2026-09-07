@@ -28,10 +28,11 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DataOwnerType
+import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
-import org.taktik.icure.pagination.asPaginationElements
 import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.asPaginationElements
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
@@ -123,7 +124,7 @@ class ExchangeDataController(
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataService
 			.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
-			.mapElements(exchangeDataMapper::map)
+			.mapElements<ExchangeData, ExchangeDataDto>(exchangeDataMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -190,7 +191,7 @@ class ExchangeDataController(
 		)
 		return exchangeDataService
 			.findExchangeDataGroupById(exchangeDataGroupId, paginationOffset)
-			.mapElements(exchangeDataMapper::map)
+			.mapElements<ExchangeData, ExchangeDataDto>(exchangeDataMapper::map)
 			.asPaginatedFlux()
 	}
 

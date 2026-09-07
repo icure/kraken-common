@@ -68,7 +68,10 @@ import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionCon
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import org.taktik.icure.entities.dao.IdWithValue
 import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.services.external.rest.v2.dto.dao.IdWithValueDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
@@ -77,9 +80,12 @@ import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResol
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.dao.IdWithValueV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ServiceV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.ContactCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.ServiceCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ContactBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
@@ -120,6 +126,9 @@ class ContactController(
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val contactCustomFilterV2Mapper: ContactCustomFilterV2Mapper,
+	private val serviceCustomFilterV2Mapper: ServiceCustomFilterV2Mapper,
+	private val idWithValueV2Mapper: IdWithValueV2Mapper
 ) {
 	private suspend fun ContactDto.toDomain(): Contact {
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
@@ -714,4 +723,22 @@ class ContactController(
 		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
+
+	@PostMapping("/matchByCustom")
+	fun matchContactsByCustomFilter(
+		@RequestBody filter: CustomFilterDto,
+	): PaginatedFlux<IdWithValueDto> = contactService.matchByCustomFilter(
+		filter = contactCustomFilterV2Mapper.map(filter),
+	).mapElements<IdWithValue, IdWithValueDto> {
+		idWithValueV2Mapper.map(it)
+	}.asPaginatedFlux()
+
+	@PostMapping("/service/matchByCustom")
+	fun matchServicesByCustomFilter(
+		@RequestBody filter: CustomFilterDto,
+	): PaginatedFlux<IdWithValueDto> = contactService.matchServicesByCustomFilter(
+		filter = serviceCustomFilterV2Mapper.map(filter),
+	).mapElements<IdWithValue, IdWithValueDto> {
+		idWithValueV2Mapper.map(it)
+	}.asPaginatedFlux()
 }

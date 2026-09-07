@@ -49,6 +49,37 @@ fun <U : Identifiable<String>> Flow<ViewQueryResultEvent>.toPaginatedFlow(pageSi
 	}
 }
 
+fun <T> Flow<ViewQueryResultEvent>.toPaginatedFlow(
+	pageSize: Int,
+	extractElement: suspend (id: String, row: ViewRow<*, *, *>) -> T?,
+	extractId: (row: ViewRow<*, *, *>) -> String? = { it.id },
+): Flow<PaginationElement> {
+	var emitted = 0
+	val emittedIds = LinkedHashSet<String?>()
+	return filterIsInstance<ViewRow<*, *, *>>().transform { row ->
+		val rowId = extractId(row)
+		if (emitted++ < pageSize && rowId != null && emittedIds.add(rowId)) {
+			extractElement(rowId, row)?.let {
+				emit(
+					PaginationRowElement(
+						element = it,
+						key = row.key,
+					)
+				)
+			}
+		} else {
+			emit(
+				NextPageElement(
+					startKeyDocId = row.id,
+					startKey = row.key,
+				)
+			)
+		}
+	}.takeWhile {
+		emitted <= pageSize + 1
+	}
+}
+
 /**
  * Converts a [Flow] of [U] to a [Flow] of [PaginationElement]. Only the first [pageSize] elements
  * of the original flow will be converted. The [pageSize] + 1 element will be used to
@@ -165,8 +196,7 @@ fun <T, K> Flow<ViewQueryResultEvent>.toMultiKeyPaginatedFlow(
  * @throws IllegalStateException if there is a [PaginationRowElement] that wraps an element which type is different
  * from [SRC].
  */
-//@Suppress("UNCHECKED_CAST")
-fun <SRC : Identifiable<String>, DST> Flow<PaginationElement>.mapElements(mapper: suspend (SRC) -> DST): Flow<PaginationElement> = map {
+fun <SRC, DST> Flow<PaginationElement>.mapElements(mapper: suspend (SRC) -> DST): Flow<PaginationElement> = map {
 	when (it) {
 		is NextPageElement<*>, is AbortedPageElement -> it
 		is PaginationRowElement<*, *> -> {

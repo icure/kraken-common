@@ -11,6 +11,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -22,7 +23,9 @@ import java.nio.ByteBuffer
 
 interface DocumentService :
 	EntityWithSecureDelegationsService<Document>,
-	EntityWithConflictResolutionService<Document> {
+	EntityWithConflictResolutionService<Document>,
+	EntityWithCustomViewsService
+{
 
 	/**
 	 * Creates a new document.

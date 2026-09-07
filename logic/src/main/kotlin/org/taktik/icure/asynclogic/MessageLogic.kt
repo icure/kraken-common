@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -16,7 +17,9 @@ import org.taktik.icure.pagination.PaginationElement
 interface MessageLogic :
 	EntityPersister<Message>,
 	EntityWithSecureDelegationsLogic<Message>,
-	ConflictResolutionLogic<Message> {
+	ConflictResolutionLogic<Message>,
+	CustomFilteringLogic
+{
 
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],

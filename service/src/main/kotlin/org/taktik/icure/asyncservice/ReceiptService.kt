@@ -10,6 +10,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.embed.ReceiptBlobType
@@ -19,7 +20,9 @@ import java.nio.ByteBuffer
 
 interface ReceiptService :
 	EntityWithSecureDelegationsService<Receipt>,
-	EntityWithConflictResolutionService<Receipt> {
+	EntityWithConflictResolutionService<Receipt>,
+	EntityWithCustomViewsService
+{
 
 	suspend fun modifyReceipt(receipt: Receipt): Receipt
 	fun modifyReceipts(receipts: List<Receipt>): Flow<Receipt>

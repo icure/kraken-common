@@ -12,6 +12,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.FormLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -31,7 +32,9 @@ open class FormLogicImpl(
 	formMerger: Merger<Form>,
 ) : EntityWithEncryptionMetadataLogic<Form, FormDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Form> by ConflictResolutionLogicImpl(formDAO, formMerger, datastoreInstanceProvider),
-	FormLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = formDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	FormLogic
+{
 	override suspend fun getForm(id: String) = getEntity(id)
 
 	override fun getForms(selectedIds: Collection<String>) = getEntities(selectedIds)

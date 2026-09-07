@@ -21,6 +21,7 @@ import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -56,6 +57,7 @@ class AccessLogLogicImpl(
 		exchangeDataMapLogic,
 		filters,
 	), ConflictResolutionLogic<AccessLog> by ConflictResolutionLogicImpl(accessLogDAO, merger, datastoreInstanceProvider),
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = accessLogDAO, datastoreInstanceProvider = datastoreInstanceProvider),
 	AccessLogLogic {
 
 	override suspend fun createAccessLog(accessLog: AccessLog) = fix(accessLog, isCreate = true) { fixedAccessLog ->
