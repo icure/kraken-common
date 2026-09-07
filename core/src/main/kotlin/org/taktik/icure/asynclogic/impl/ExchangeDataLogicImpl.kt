@@ -464,8 +464,12 @@ open class ExchangeDataLogicImpl(
 			}
 		}
 		val toCreate = piecesByRecipient.map { (recipient, piece) ->
-			require(recipient == delegator || piece.delegatorSignature.isEmpty()) {
-				"Delegator signature should only be present on the piece of exchange data for the delegator."
+			require(
+				recipient == delegator || (
+					piece.delegatorSignature.isEmpty() && piece.sharedSignature == null
+				)
+			) {
+				"Exchange data delegator signature and shared signature should only be present on the piece of exchange data for the delegator."
 			}
 			/*
 			 * We intentionally allow no delegator signature on the recipient piece; this allows creating exchange data
@@ -481,8 +485,10 @@ open class ExchangeDataLogicImpl(
 			 * there is no `invalidated` flag. A flag could be flipped back by anyone with write access to the database,
 			 * while the signature can only be recreated by an actor holding the private key of the delegator. This
 			 * means the server never needs to (and never does) enforce that invalidated exchange data stays
-			 * invalidated. The shared signature is never the one removed: it protects the whole piece from tampering,
-			 * so removing it would void the integrity guarantee rather than the trust needed for encryption.
+			 * invalidated. The shared signature is never the one removed from the piece that has it: it protects that
+			 * piece from tampering, so removing it would void the integrity guarantee rather than the trust needed
+			 * for encryption. It only exists on the piece of the delegator, for the same reason the delegator
+			 * signature does: that is the only piece the decision to trust the exchange data is taken on.
 			 */
 			ExchangeData(
 				id = if (recipient == delegator) exchangeDataGroupId else Hasher.sha256Alphanumeric("$exchangeDataGroupId|$recipient"),

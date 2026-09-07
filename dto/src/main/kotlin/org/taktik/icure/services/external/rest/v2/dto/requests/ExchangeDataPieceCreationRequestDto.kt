@@ -27,6 +27,10 @@ data class ExchangeDataPieceCreationRequestDto(
 	 * create exchange data that is already permanently invalidated: it will never be used to encrypt new data.
 	 */
 	@ActiveField val delegatorSignature: Map<KeypairFingerprintV2StringDto, Base64StringDto> = emptyMap(),
-	@param:Schema(required = true)
-	@ActiveField val sharedSignature: Base64StringDto,
+	/**
+	 * Must be null except on the piece of exchange data where the recipient is the delegator: this signature is only
+	 * used to decide if the exchange data can be trusted for encryption, and that decision is taken on the delegator
+	 * piece alone.
+	 */
+	@ActiveField val sharedSignature: Base64StringDto? = null,
 )
