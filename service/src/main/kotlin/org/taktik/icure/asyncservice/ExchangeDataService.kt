@@ -6,6 +6,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.ExchangeData
+import org.taktik.icure.entities.requests.BulkExchangeDataPieceCreationRequest
 import org.taktik.icure.entities.requests.ExchangeDataPieceCreationRequest
 import org.taktik.icure.pagination.MultiKeyPaginationElement
 import org.taktik.icure.pagination.PaginationElement
@@ -69,6 +70,17 @@ interface ExchangeDataService {
 	 * @return the updated exchange data, with updated revision number.
 	 */
 	suspend fun modifyExchangeData(exchangeData: ExchangeData): ExchangeData
+
+	/**
+	 * Modifies existing exchange data in bulk, applying the same validation as [modifyExchangeData] to each entity.
+	 * The entities the current user is not allowed to modify, and those whose revision is outdated or that do not
+	 * exist, are ignored, as are conflicting writes: an entity that is not in the result was not modified.
+	 * @param exchangeDatas the updated exchange datas.
+	 * @return the updated exchange datas, with updated revision number, errors have been filtered out.
+	 * @throws IllegalArgumentException if [exchangeDatas] holds more than
+	 * [org.taktik.icure.asynclogic.ExchangeDataLogic.MAX_BULK_SIZE] entities or if any of them has a null revision.
+	 */
+	fun modifyExchangeDatas(exchangeDatas: List<ExchangeData>): Flow<ExchangeData>
 
 	/**
 	 * Get the ids of all delegates in exchange data where the data owner is delegator and all delegators in exchange
@@ -241,6 +253,30 @@ interface ExchangeDataService {
 		delegator: String,
 		delegate: String,
 		piecesByRecipient: Map<String, ExchangeDataPieceCreationRequest>
+	): Flow<ExchangeData>
+
+	/**
+	 * Create pieces of exchange data groups, for any number of groups at once: each request carries its own group id,
+	 * delegator, delegate and recipient, and a group may be created and completed by the same call.
+	 *
+	 * Unlike [createExchangeDataGroupPieces], which is a creation for the caller in every case, adding pieces to a
+	 * group that **already exists** is authorized as a modification of that group: whoever may modify the exchange
+	 * data of the group may add pieces to it, so a member of a simple-type delegate group can create the piece of a
+	 * new member without being the delegator. Creating a group, that is the request that carries its anchor piece,
+	 * still requires the caller to be (or to act for) the delegator.
+	 *
+	 * An exchange data group the current user may not write is dropped with all of its pieces, and the rest of the
+	 * request is created: compare the result against the request to know what was created. The check is per group and
+	 * not per piece, since the anchor of a group authorizes every piece of it.
+	 *
+	 * Note that there is no validation on the delegate of a group actually being a data owner group or on the
+	 * recipients being actually members of that group.
+	 * @throws IllegalArgumentException if [requests] holds more than
+	 * [org.taktik.icure.asynclogic.ExchangeDataLogic.MAX_BULK_SIZE] requests, and for the same reasons as
+	 * [org.taktik.icure.asynclogic.ExchangeDataLogic.bulkCreateExchangeDataGroupPieces].
+	 */
+	fun bulkCreateExchangeDataGroupPieces(
+		requests: List<BulkExchangeDataPieceCreationRequest>
 	): Flow<ExchangeData>
 
 	fun findMainExchangeDataIdsByParticipant(

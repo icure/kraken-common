@@ -36,6 +36,7 @@ import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ExchangeDataDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.requests.BulkExchangeDataPieceCreationRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.ExchangeDataPieceCreationRequestDto
 import org.taktik.icure.services.external.rest.v2.mapper.ExchangeDataV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.ExchangeDataPieceCreationRequestV2Mapper
@@ -85,6 +86,24 @@ class ExchangeDataController(
 	): Mono<ExchangeDataDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		exchangeDataMapper.map(exchangeDataService.modifyExchangeData(exchangeDataMapper.map(exchangeData)))
 	}
+
+	@Operation(
+		summary = "Modifies existing exchange data in bulk",
+		description =
+		"At most 200 exchange data can be modified in a single request. The exchange data the user is not allowed " +
+			"to modify, and those whose rev is outdated, are silently ignored: compare the response against the " +
+			"request to know what was modified.",
+	)
+	@PutMapping("/bulk")
+	fun modifyExchangeDataInBulk(
+		@RequestBody exchangeDatas: List<ExchangeDataDto>,
+	): Flux<ExchangeDataDto> = flow {
+		emitAll(
+			exchangeDataService
+				.modifyExchangeDatas(exchangeDatas.map { exchangeDataMapper.map(it) })
+				.map { exchangeDataMapper.map(it) },
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Get exchange data with a specific id")
 	@GetMapping("/{exchangeDataId}")
@@ -166,6 +185,28 @@ class ExchangeDataController(
 				delegate = delegate,
 				piecesByRecipient = piecesByRecipient.mapValues { exchangeDataPieceCreationRequestMapper.map(it.value) },
 			).map { exchangeDataMapper.map(it) },
+		)
+	}.injectReactorContext()
+
+	@Operation(
+		summary = "Creates the pieces of the exchange data of any number of simple-type data owner groups",
+		description =
+		"Each entry of the body names the exchange data group it belongs to and all of its participants, so a " +
+			"single request can create pieces for several groups. At most 200 pieces can be created in a single " +
+			"request. A group can be created and completed here: the piece where the recipient is the delegator, " +
+			"which anchors the group, must be part of this request if the group does not exist yet, and must not be " +
+			"if it does. Adding pieces to a group that already exists only requires write access to that group, " +
+			"while creating one requires acting for the delegator. The groups the user may not write are silently " +
+			"ignored, with all of their pieces: compare the response against the request to know what was created.",
+	)
+	@PostMapping("/group/pieces/bulk")
+	fun bulkCreateExchangeDataGroupPieces(
+		@RequestBody requests: List<BulkExchangeDataPieceCreationRequestDto>,
+	): Flux<ExchangeDataDto> = flow {
+		emitAll(
+			exchangeDataService
+				.bulkCreateExchangeDataGroupPieces(requests.map { exchangeDataPieceCreationRequestMapper.map(it) })
+				.map { exchangeDataMapper.map(it) },
 		)
 	}.injectReactorContext()
 

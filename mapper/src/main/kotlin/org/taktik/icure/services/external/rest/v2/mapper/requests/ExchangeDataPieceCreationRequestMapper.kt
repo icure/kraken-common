@@ -2,7 +2,9 @@ package org.taktik.icure.services.external.rest.v2.mapper.requests
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.taktik.icure.entities.requests.BulkExchangeDataPieceCreationRequest
 import org.taktik.icure.entities.requests.ExchangeDataPieceCreationRequest
+import org.taktik.icure.services.external.rest.v2.dto.requests.BulkExchangeDataPieceCreationRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.ExchangeDataPieceCreationRequestDto
 
 @Mapper(
@@ -13,4 +15,6 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.ExchangeDataPiece
 interface ExchangeDataPieceCreationRequestV2Mapper {
 	fun map(requestDto: ExchangeDataPieceCreationRequestDto): ExchangeDataPieceCreationRequest
 	fun map(request: ExchangeDataPieceCreationRequest): ExchangeDataPieceCreationRequestDto
+	fun map(requestDto: BulkExchangeDataPieceCreationRequestDto): BulkExchangeDataPieceCreationRequest
+	fun map(request: BulkExchangeDataPieceCreationRequest): BulkExchangeDataPieceCreationRequestDto
 }
