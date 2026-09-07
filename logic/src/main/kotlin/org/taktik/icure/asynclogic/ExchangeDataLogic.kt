@@ -5,11 +5,24 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.DataOwnerType
 import org.taktik.icure.entities.ExchangeData
+import org.taktik.icure.entities.requests.BulkExchangeDataPieceCreationRequest
 import org.taktik.icure.entities.requests.ExchangeDataPieceCreationRequest
 import org.taktik.icure.pagination.MultiKeyPaginationElement
 import org.taktik.icure.pagination.PaginationElement
 
 interface ExchangeDataLogic {
+	companion object {
+		/**
+		 * Maximum number of entities a single bulk modification or bulk creation of group pieces may carry.
+		 *
+		 * These bulk methods read the current version of every entity they are given before writing anything - the
+		 * modifications to validate the change, the creations to find the anchor of each group - so an unbounded request
+		 * would turn into an unbounded read, holding a backend thread for as long as it takes. The limit is enforced by
+		 * both the logic and the service layer, since the service does a read of its own before ever reaching the logic.
+		 */
+		const val MAX_BULK_SIZE = 200
+	}
+
 	// TODO standard entity persister
 
 	/**
@@ -68,6 +81,20 @@ interface ExchangeDataLogic {
 	 * @return the updated exchange data, with updated revision number.
 	 */
 	suspend fun modifyExchangeData(exchangeData: ExchangeData): ExchangeData
+
+	/**
+	 * Modifies existing exchange data in bulk, applying the same validation as [modifyExchangeData] to each entity.
+	 * Conflicting writes are dropped, so an entity that is not in the result was not modified.
+	 * @param exchangeDatas the updated exchange datas.
+	 * @return the updated exchange datas, with updated revision number, errors have been filtered out.
+	 * @throws IllegalArgumentException when the returned flow is collected, if [exchangeDatas] holds more than
+	 * [MAX_BULK_SIZE] entities, if it holds two entities with the same id, or if any of the changes is not allowed.
+	 * @throws org.taktik.icure.exceptions.NotFoundRequestException when the returned flow is collected, if any of the
+	 * entities does not exist.
+	 * @throws org.taktik.icure.exceptions.ConflictRequestException when the returned flow is collected, if the
+	 * revision of any of the entities is outdated.
+	 */
+	fun modifyExchangeDatas(exchangeDatas: List<ExchangeData>): Flow<ExchangeData>
 
 	/**
 	 * Get the ids of all delegates in exchange data where the data owner is delegator and all delegators in exchange
@@ -244,6 +271,27 @@ interface ExchangeDataLogic {
 		delegator: String,
 		delegate: String,
 		piecesByRecipient: Map<String, ExchangeDataPieceCreationRequest>
+	): Flow<ExchangeData>
+
+	/**
+	 * Create pieces of exchange data groups, for any number of groups at once.
+	 *
+	 * Unlike [createExchangeDataGroupPieces] the requests are not tied to a single group: each carries its own
+	 * [BulkExchangeDataPieceCreationRequest.exchangeDataGroupId], [BulkExchangeDataPieceCreationRequest.delegator],
+	 * [BulkExchangeDataPieceCreationRequest.delegate] and [BulkExchangeDataPieceCreationRequest.recipient]. A group
+	 * can be created and completed in the same request: the piece of the delegator, which anchors the group, may
+	 * either already exist in the database or be one of [requests].
+	 *
+	 * Note that there is no validation on the delegate of a group actually being a data owner group or on the
+	 * recipients being actually members of that group.
+	 * @throws IllegalArgumentException when the returned flow is collected, if [requests] is empty, holds more than
+	 * [MAX_BULK_SIZE] requests, holds two requests for the same recipient of the same group, or is not coherent with
+	 * the exchange data groups it adds pieces to.
+	 * @throws org.taktik.icure.exceptions.ConflictRequestException when the returned flow is collected, if a request
+	 * creates the anchor of a group that already exists.
+	 */
+	fun bulkCreateExchangeDataGroupPieces(
+		requests: List<BulkExchangeDataPieceCreationRequest>
 	): Flow<ExchangeData>
 
 	/**

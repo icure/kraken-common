@@ -21,6 +21,7 @@ import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.requests.BulkExchangeDataPieceCreationRequest
 import org.taktik.icure.entities.requests.ExchangeDataPieceCreationRequest
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -129,10 +130,13 @@ open class ExchangeDataLogicImpl(
 	}
 
 	protected suspend fun validateModifyExchangeData(datastoreInfo: IDatastoreInformation, updatedExchangeData: ExchangeData) {
-		val original =
-			exchangeDataDAO.get(datastoreInfo, updatedExchangeData.id) ?: throw NotFoundRequestException(
-				"Can't find exchange data ${updatedExchangeData.id}",
-			)
+		validateModifyExchangeData(updatedExchangeData, exchangeDataDAO.get(datastoreInfo, updatedExchangeData.id))
+	}
+
+	protected fun validateModifyExchangeData(updatedExchangeData: ExchangeData, original: ExchangeData?) {
+		if (original == null) throw NotFoundRequestException(
+			"Can't find exchange data ${updatedExchangeData.id}",
+		)
 		if (original.rev != updatedExchangeData.rev) throw ConflictRequestException("Outdated rev for exchange data")
 		require(updatedExchangeData.delegator == original.delegator && updatedExchangeData.delegate == original.delegate) {
 			"Can't modify delegator or delegate of exchange data"
@@ -151,6 +155,35 @@ open class ExchangeDataLogicImpl(
 		return checkNotNull(exchangeDataDAO.save(datastoreInfo, exchangeData)) {
 			"Exchange data modification returned null"
 		}
+	}
+
+	override fun modifyExchangeDatas(exchangeDatas: List<ExchangeData>): Flow<ExchangeData> = flow {
+		emitAll(doModifyExchangeDatas(datastoreInstanceProvider.getInstanceAndGroup(), exchangeDatas))
+	}
+
+	protected fun doModifyExchangeDatas(
+		datastoreInfo: IDatastoreInformation,
+		exchangeDatas: List<ExchangeData>,
+	): Flow<ExchangeData> = flow {
+		require(exchangeDatas.size <= ExchangeDataLogic.MAX_BULK_SIZE) {
+			"At most ${ExchangeDataLogic.MAX_BULK_SIZE} exchange data can be modified in a single request."
+		}
+		require(exchangeDatas.distinctBy { it.id }.size == exchangeDatas.size) {
+			"The request should not contain two updates for the same exchange data."
+		}
+		// A single bulk get of the current version of all the entities: the same validation as the single-entity
+		// modify, without one read per entity.
+		val originals = exchangeDataDAO
+			.getEntities(datastoreInfo, exchangeDatas.map { it.id })
+			.toList()
+			.associateBy { it.id }
+		exchangeDatas.forEach { validateModifyExchangeData(it, originals[it.id]) }
+		emitAll(
+			exchangeDataDAO.saveBulk(
+				datastoreInfo,
+				exchangeDatas,
+			).filterSuccessfulUpdates()
+		)
 	}
 
 	@Deprecated("Use findNonGroupPieceCounterparts")
@@ -422,18 +455,58 @@ open class ExchangeDataLogicImpl(
 		)
 	}
 
+	override fun bulkCreateExchangeDataGroupPieces(requests: List<BulkExchangeDataPieceCreationRequest>): Flow<ExchangeData> = flow {
+		emitAll(doBulkCreateExchangeDataGroupPieces(datastoreInstanceProvider.getInstanceAndGroup(), requests))
+	}
+
 	protected fun doCreateExchangeDataGroupPieces(
 		datastoreInfo: IDatastoreInformation,
 		exchangeDataGroupId: String,
 		delegator: String,
 		delegate: String,
 		piecesByRecipient: Map<String, ExchangeDataPieceCreationRequest>,
+	): Flow<ExchangeData> = doBulkCreateExchangeDataGroupPieces(
+		datastoreInfo,
+		piecesByRecipient.map { (recipient, request) ->
+			BulkExchangeDataPieceCreationRequest(
+				exchangeKey = request.exchangeKey,
+				accessControlSecret = request.accessControlSecret,
+				sharedSignatureKey = request.sharedSignatureKey,
+				delegatorSignature = request.delegatorSignature,
+				sharedSignature = request.sharedSignature,
+				exchangeDataGroupId = exchangeDataGroupId,
+				delegator = delegator,
+				delegate = delegate,
+				recipient = recipient,
+			)
+		},
+	)
+
+	protected fun doBulkCreateExchangeDataGroupPieces(
+		datastoreInfo: IDatastoreInformation,
+		requests: List<BulkExchangeDataPieceCreationRequest>,
 	): Flow<ExchangeData> = flow {
-		require (piecesByRecipient.isNotEmpty()) {
+		require(requests.isNotEmpty()) {
 			"At least one piece of exchange data should be provided."
 		}
-		// For a group we must have a piece that has the same id has the group: for that group the recipient must be the delegator
-		val existingForGroup = exchangeDataDAO.get(datastoreInfo, exchangeDataGroupId)
+		require(requests.size <= ExchangeDataLogic.MAX_BULK_SIZE) {
+			"At most ${ExchangeDataLogic.MAX_BULK_SIZE} pieces of exchange data can be created in a single request."
+		}
+		val toCreate = requests.map { it.toExchangeData() }
+		require(toCreate.distinctBy { it.id }.size == toCreate.size) {
+			"The request should not contain two pieces for the same recipient of the same exchange data group."
+		}
+		/*
+		 * The anchor of a group - the piece whose recipient is the delegator - has the group id as its own id, so the
+		 * anchors of every group involved are a single bulk get, and there is no view query even when the request
+		 * spans many groups. A group can be created and completed by the same request, so the anchor of a group may
+		 * also be one of the requests rather than an existing entity.
+		 */
+		val existingAnchorsById = exchangeDataDAO
+			.getEntities(datastoreInfo, requests.mapTo(mutableSetOf()) { it.exchangeDataGroupId })
+			.toList()
+			.associateBy { it.id }
+		val requestedAnchorsByGroupId = requests.filter { it.recipient == it.delegator }.associateBy { it.exchangeDataGroupId }
 		/*
 		 * Note: this check is not 100% safe: due to replication and in general concurrency it is possible to have 2
 		 * concurrent requests with the same exchangeDataGroupId but conflicting delegator/delegate that both pass the
@@ -445,64 +518,38 @@ open class ExchangeDataLogicImpl(
 		 * - Good clients may not be able to access corrupt exchange data created by abusing this, but that does not
 		 *   prevent decryption of valid data.
 		 */
-		if (piecesByRecipient.containsKey(delegator)) {
-			// The first request to create pieces should contain an entry for the delegator, future ones should not; therefore the first time there should be no existingForGroup
-			if (existingForGroup != null) throw ConflictRequestException(
-				"There is already some exchange data for the provided exchangeDataGroupId. If you want to create new pieces for an existing group the pieces should not include a recipient entry for the delegator"
-			)
-		} else {
-			requireNotNull(existingForGroup) {
-				"The first request to create pieces should contain an entry for the delegator."
+		requests.forEach { piece ->
+			val existingAnchor = existingAnchorsById[piece.exchangeDataGroupId]
+			if (piece.recipient == piece.delegator) {
+				// The first request to create pieces should contain an entry for the delegator, future ones should not; therefore the first time there should be no existingForGroup
+				if (existingAnchor != null) throw ConflictRequestException(
+					"There is already some exchange data for the provided exchangeDataGroupId. If you want to create new pieces for an existing group the pieces should not include a recipient entry for the delegator"
+				)
+			} else if (existingAnchor != null) {
+				require(
+					existingAnchor.recipient == piece.delegator
+						&& existingAnchor.exchangeDataGroupId == piece.exchangeDataGroupId
+						&& existingAnchor.delegator == piece.delegator
+						&& existingAnchor.delegate == piece.delegate
+				) {
+					"The request does not match the existing exchange data for the provided exchangeDataGroupId."
+				}
+			} else {
+				// The group does not exist yet, so its anchor has to be created by this same request.
+				val requestedAnchor = requireNotNull(requestedAnchorsByGroupId[piece.exchangeDataGroupId]) {
+					"The first request to create pieces should contain an entry for the delegator."
+				}
+				require(requestedAnchor.delegator == piece.delegator && requestedAnchor.delegate == piece.delegate) {
+					"The request does not match the other pieces provided for the same exchangeDataGroupId."
+				}
 			}
 			require(
-				existingForGroup.recipient == delegator
-					&& existingForGroup.exchangeDataGroupId == exchangeDataGroupId
-					&& existingForGroup.delegator == delegator
-					&& existingForGroup.delegate == delegate
-			) {
-				"The request does not match the existing exchange data for the provided exchangeDataGroupId."
-			}
-		}
-		val toCreate = piecesByRecipient.map { (recipient, piece) ->
-			require(
-				recipient == delegator || (
+				piece.recipient == piece.delegator || (
 					piece.delegatorSignature.isEmpty() && piece.sharedSignature == null
 				)
 			) {
 				"Exchange data delegator signature and shared signature should only be present on the piece of exchange data for the delegator."
 			}
-			/*
-			 * We intentionally allow no delegator signature on the recipient piece; this allows creating exchange data
-			 * that will never be used for encryption by the SDK, i.e. exchange data that is already invalidated.
-			 * Sample use case: server-side mass migration of unencrypted data to something encrypted. To encrypt the
-			 * data the server creates exchange data for the main parent HCP of the group, but can't (and shouldn't)
-			 * sign it or decrypt it. The migration process only keeps the aesKey and accessControl secret in volatile
-			 * memory for only the time required to perform the migration then forgets it; once completed the hcp can
-			 * decrypt the migrated data through this exchange data, but the SDK will never trust the exchange data for
-			 * encryption.
-			 *
-			 * Note that the delegator signature is also how existing exchange data is invalidated: it is deleted, and
-			 * there is no `invalidated` flag. A flag could be flipped back by anyone with write access to the database,
-			 * while the signature can only be recreated by an actor holding the private key of the delegator. This
-			 * means the server never needs to (and never does) enforce that invalidated exchange data stays
-			 * invalidated. The shared signature is never the one removed from the piece that has it: it protects that
-			 * piece from tampering, so removing it would void the integrity guarantee rather than the trust needed
-			 * for encryption. It only exists on the piece of the delegator, for the same reason the delegator
-			 * signature does: that is the only piece the decision to trust the exchange data is taken on.
-			 */
-			ExchangeData(
-				id = if (recipient == delegator) exchangeDataGroupId else Hasher.sha256Alphanumeric("$exchangeDataGroupId|$recipient"),
-				rev = null,
-				delegator = delegator,
-				delegate = delegate,
-				recipient = recipient,
-				exchangeDataGroupId = exchangeDataGroupId,
-				exchangeKey = piece.exchangeKey,
-				accessControlSecret = piece.accessControlSecret,
-				sharedSignatureKey = piece.sharedSignatureKey,
-				delegatorSignature = piece.delegatorSignature,
-				sharedSignature = piece.sharedSignature,
-			)
 		}
 
 		emitAll(
@@ -512,6 +559,39 @@ open class ExchangeDataLogicImpl(
 			).filterSuccessfulUpdates()
 		)
 	}
+
+	/*
+	 * We intentionally allow no delegator signature on the recipient piece; this allows creating exchange data
+	 * that will never be used for encryption by the SDK, i.e. exchange data that is already invalidated.
+	 * Sample use case: server-side mass migration of unencrypted data to something encrypted. To encrypt the
+	 * data the server creates exchange data for the main parent HCP of the group, but can't (and shouldn't)
+	 * sign it or decrypt it. The migration process only keeps the aesKey and accessControl secret in volatile
+	 * memory for only the time required to perform the migration then forgets it; once completed the hcp can
+	 * decrypt the migrated data through this exchange data, but the SDK will never trust the exchange data for
+	 * encryption.
+	 *
+	 * Note that the delegator signature is also how existing exchange data is invalidated: it is deleted, and
+	 * there is no `invalidated` flag. A flag could be flipped back by anyone with write access to the database,
+	 * while the signature can only be recreated by an actor holding the private key of the delegator. This
+	 * means the server never needs to (and never does) enforce that invalidated exchange data stays
+	 * invalidated. The shared signature is never the one removed from the piece that has it: it protects that
+	 * piece from tampering, so removing it would void the integrity guarantee rather than the trust needed
+	 * for encryption. It only exists on the piece of the delegator, for the same reason the delegator
+	 * signature does: that is the only piece the decision to trust the exchange data is taken on.
+	 */
+	private fun BulkExchangeDataPieceCreationRequest.toExchangeData() = ExchangeData(
+		id = if (recipient == delegator) exchangeDataGroupId else Hasher.sha256Alphanumeric("$exchangeDataGroupId|$recipient"),
+		rev = null,
+		delegator = delegator,
+		delegate = delegate,
+		recipient = recipient,
+		exchangeDataGroupId = exchangeDataGroupId,
+		exchangeKey = exchangeKey,
+		accessControlSecret = accessControlSecret,
+		sharedSignatureKey = sharedSignatureKey,
+		delegatorSignature = delegatorSignature,
+		sharedSignature = sharedSignature,
+	)
 
 	override fun findMainExchangeDataIdsByParticipant(
 		participantId: String,
