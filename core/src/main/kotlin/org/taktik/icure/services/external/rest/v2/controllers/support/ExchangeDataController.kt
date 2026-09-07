@@ -378,7 +378,7 @@ class ExchangeDataController(
 		@RequestParam(required = true) participantId: String,
 		@RequestParam(required = false) startDocumentId: String? = null,
 		@RequestParam(required = false) limit: Int? = null,
-	): PaginatedFlux<String> = exchangeDataService
+	): PaginatedFlux<FluxString> = exchangeDataService
 		.findMainExchangeDataIdsByParticipant(participantId, startDocumentId, limit)
 		.asPaginatedFlux()
 }
