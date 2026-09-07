@@ -16,5 +16,8 @@ data class ExchangeDataPieceCreationRequest(
 	 * data that is already invalidated: see [ExchangeData.delegatorSignature].
 	 */
 	val delegatorSignature: Map<KeypairFingerprintString, Base64String>,
-	val sharedSignature: Base64String,
+	/**
+	 * Must be null except on the piece where the recipient is the delegator.
+	 */
+	val sharedSignature: Base64String?,
 )

@@ -69,9 +69,11 @@ the exchange data, without voiding the authenticity guarantee.""",
 - The (decrypted) exchange key
 - The (decrypted) access control secret
 - The delegator and delegates being part of the exchange data
-- The public keys used in the exchange data (allows to consider them as verified in a second moment).""",
+- The public keys used in the exchange data (allows to consider them as verified in a second moment).
+For exchange data of a simple-type group this signature is present only on the piece where the recipient is the
+delegator.""",
 	)
-	val sharedSignature: Base64String,
+	val sharedSignature: Base64String? = null,
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {
 	override fun withIdRev(
