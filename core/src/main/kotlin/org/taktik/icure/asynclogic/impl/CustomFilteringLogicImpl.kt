@@ -26,25 +26,10 @@ open class CustomFilteringLogicImpl(
 		filter: AbstractCustomFilter,
 		extractId: (row: ViewRow<*, *, *>) -> String?,
 	): Flow<PaginationElement> = flow {
-		when (filter) {
-			is ByKeysCustomFilter -> dao.listEntitiesIdInCustomView(
-				datastoreInformation = datastoreInformation,
-				viewName = filter.viewName,
-				keyComponents = filter.keyComponents,
-				startKey = filter.startKey,
-				startDocumentId = filter.startDocumentId,
-				limit = filter.limit + 1
-			)
-			is ByRangeCustomFilter -> dao.listEntitiesIdInCustomView(
-				datastoreInformation = datastoreInformation,
-				viewName = filter.viewName,
-				nonRangeKeyComponents = filter.nonRangeKeyComponents,
-				range = filter.range,
-				startKey = filter.startKey,
-				startDocumentId = filter.startDocumentId,
-				limit = filter.limit + 1
-			)
-		}.toPaginatedFlow(
+		dao.listEntitiesIdsInCustomView(
+			datastoreInformation = datastoreInformation,
+			filter = filter,
+		).toPaginatedFlow(
 			pageSize = filter.limit,
 			extractElement = { id, row ->
 				(row.value as? JsonNode)?.let {

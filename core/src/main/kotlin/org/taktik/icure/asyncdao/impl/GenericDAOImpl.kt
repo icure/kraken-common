@@ -61,6 +61,9 @@ import org.taktik.icure.db.crossProductKeysAfterStart
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.dao.KeyComponent
 import org.taktik.icure.entities.dao.RangeQueryParameters
+import org.taktik.icure.entities.filters.AbstractCustomFilter
+import org.taktik.icure.entities.filters.ByKeysCustomFilter
+import org.taktik.icure.entities.filters.ByRangeCustomFilter
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.BulkUpdateConflictException
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -747,7 +750,46 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)
 	}
 
-	override fun listEntitiesIdInCustomView(
+	override fun listEntitiesIdsInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		filter: AbstractCustomFilter
+	): Flow<ViewQueryResultEvent> = when (filter) {
+		is ByKeysCustomFilter -> listEntitiesIdInCustomView(
+			datastoreInformation = datastoreInformation,
+			viewName = filter.viewName,
+			keyComponents = filter.keyComponents,
+			startKey = filter.startKey,
+			startDocumentId = filter.startDocumentId,
+			limit = filter.limit.coerceAtMost(MAX_FILTERABLE_ITEMS) + 1
+		)
+		is ByRangeCustomFilter -> listEntitiesIdInCustomView(
+			datastoreInformation = datastoreInformation,
+			viewName = filter.viewName,
+			nonRangeKeyComponents = filter.nonRangeKeyComponents,
+			range = filter.range,
+			startKey = filter.startKey,
+			startDocumentId = filter.startDocumentId,
+			limit = filter.limit.coerceAtMost(MAX_FILTERABLE_ITEMS) + 1
+		)
+	}
+
+	/**
+	 * Queries a custom views by keys, with support for pagination.
+	 *
+	 * - [keyComponents] is a List of size N where each element of the list represents all the possible values for the
+	 * Xth component. The method automatically computes all the possible keys as the cross-products of these values.
+	 * The order of the element in the list (and in the nested lists) MUST be preserved across pagination queries for them
+	 * to work properly with [startKey].
+	 * - [startKey] the start key for paginated queries, it must be of size N. If not null, it will skip the generation
+	 * of the permutations of [keyComponents] until the start key is generated (that's why the [keyComponents]
+	 * must be preserved acoss queries).
+	 *
+	 * Paginated queries are handled as follows:
+	 * - first, if [startKey] is not null, a range query with start_key = end_key = [startKey] and start_doc_id = [startDocumentId]
+	 * is executed to retrieve all the elements missed for that key in the previous page.
+	 * - then, if [limit] is not reached, a second query with all the keys generated after [startKey] is executed.
+	 */
+	 private fun listEntitiesIdInCustomView(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
 		keyComponents: List<List<KeyComponent<*>>>,
@@ -802,7 +844,27 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 	}
 
-	override fun listEntitiesIdInCustomView(
+	/**
+	 * Queries a custom view for multiple ranged keys, with support for pagination.
+	 *
+	 * - [nonRangeKeyComponents] is a List of size N that represents the first Nth elements of the key that are NOT to be
+	 * queried by range. Each element of the list represents all the possible values for the Xth component. The method
+	 * automatically computes all the possible keys as the cross-products of these values. The order of the element in
+	 * the list (and in the nested lists) MUST be preserved across pagination queries for them to work properly with [startKey].
+	 * - [startKey] the start key for paginated queries, it must be of size N + 1. If not null, it will skip the generation
+	 * of the permutations of [nonRangeKeyComponents] until the start key is generated (that's why the [nonRangeKeyComponents]
+	 * must be preserved acoss queries).
+	 * - [range] the start value and end value for the last component of the key.
+	 *
+	 * Paginated queries are handled as follows:
+	 * - The first N components of the keys are generated from [nonRangeKeyComponents]. If a [startKey] is passed, all
+	 * the keys that are generated until [startKey] is reached are skipped.
+	 * - A first range query is executed, with start_key = [startKey] and end_key = <first_generated> + [range].endKey and
+	 * start_doc_id = [startDocumentId].
+	 * - If the first query emits less than [limit], other range queries are executed with the other keys remaining and
+	 * the full range specified by [range].
+	 */
+	private fun listEntitiesIdInCustomView(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
 		nonRangeKeyComponents: List<List<KeyComponent<*>>>,
