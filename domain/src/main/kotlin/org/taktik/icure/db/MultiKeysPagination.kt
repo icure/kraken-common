@@ -13,6 +13,11 @@ fun <T> crossProductKeysAfterStart(
 	multiQueryComponents: List<List<T>>,
 	startKey: List<T>?
 ): Sequence<List<T>> {
+	require(
+		multiQueryComponents.all {
+			it.toSet().size == it.size
+		}
+	) { "Key components cannot have duplicates" }
 	val n = multiQueryComponents.size
 	if (n == 0 || multiQueryComponents.any { it.isEmpty() }) {
 		return emptySequence()

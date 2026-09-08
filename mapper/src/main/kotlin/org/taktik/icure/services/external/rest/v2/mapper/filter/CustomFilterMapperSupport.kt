@@ -8,8 +8,8 @@ import org.taktik.icure.services.external.rest.v2.mapper.dao.KeyComponentV2Mappe
  * Shared helpers used by the per-entity [org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto]
  * mappers to translate their [KeyComponentDto] collections.
  */
-fun KeyComponentV2Mapper.mapStartKey(startKey: List<KeyComponentDto>?): List<KeyComponent<*>>? =
+fun KeyComponentV2Mapper.mapStartKey(startKey: List<KeyComponentDto>?): List<KeyComponent>? =
 	startKey?.map { map(it) }
 
-fun KeyComponentV2Mapper.mapKeyComponents(keyComponents: List<List<KeyComponentDto>>): List<List<KeyComponent<*>>> =
+fun KeyComponentV2Mapper.mapKeyComponents(keyComponents: List<List<KeyComponentDto>>): List<List<KeyComponent>> =
 	keyComponents.map { row -> row.map { map(it) } }

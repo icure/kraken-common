@@ -1,38 +1,52 @@
 package org.taktik.icure.entities.dao
 
-sealed class KeyComponent<T> : Comparable<KeyComponent<T>> {
-	abstract val value: T?
+sealed class KeyComponent : Comparable<KeyComponent> {
+	abstract val value: Any?
 
-	protected abstract fun compareValue(thisValue: T, otherValue: T): kotlin.Int
-
-	override fun compareTo(other: KeyComponent<T>): kotlin.Int {
-		if (this::class != other::class) {
-			throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
-		}
-		val thisValue = value
-		val otherValue = other.value
-		return when {
-			thisValue != null && otherValue != null -> compareValue(thisValue, otherValue)
-			thisValue == null && otherValue == null -> 0
-			thisValue != null -> 1
+	data class Int(override val value: kotlin.Int?) : KeyComponent() {
+		override fun compareTo(other: KeyComponent): kotlin.Int = when {
+			other !is Int -> throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
+			value != null && other.value != null -> value.compareTo(other.value)
+			value == null && other.value == null -> 0
+			value != null -> 1
 			else -> -1
 		}
 	}
-
-	data class Int(override val value: kotlin.Int?) : KeyComponent<kotlin.Int>() {
-		override fun compareValue(thisValue: kotlin.Int, otherValue: kotlin.Int): kotlin.Int = thisValue.compareTo(otherValue)
+	data class Long(override val value: kotlin.Long?) : KeyComponent() {
+		override fun compareTo(other: KeyComponent): kotlin.Int = when {
+			other !is Long -> throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
+			value != null && other.value != null -> value.compareTo(other.value)
+			value == null && other.value == null -> 0
+			value != null -> 1
+			else -> -1
+		}
 	}
-	data class Float(override val value: kotlin.Float?) : KeyComponent<kotlin.Float>() {
-		override fun compareValue(thisValue: kotlin.Float, otherValue: kotlin.Float): kotlin.Int = thisValue.compareTo(otherValue)
+	data class Double(override val value: kotlin.Double?) : KeyComponent() {
+		override fun compareTo(other: KeyComponent): kotlin.Int = when {
+			other !is Double -> throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
+			value != null && other.value != null -> value.compareTo(other.value)
+			value == null && other.value == null -> 0
+			value != null -> 1
+			else -> -1
+		}
 	}
-	data class Double(override val value: kotlin.Double?) : KeyComponent<kotlin.Double>() {
-		override fun compareValue(thisValue: kotlin.Double, otherValue: kotlin.Double): kotlin.Int = thisValue.compareTo(otherValue)
+	data class Boolean(override val value: kotlin.Boolean?) : KeyComponent() {
+		override fun compareTo(other: KeyComponent): kotlin.Int = when {
+			other !is Boolean -> throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
+			value != null && other.value != null -> value.compareTo(other.value)
+			value == null && other.value == null -> 0
+			value != null -> 1
+			else -> -1
+		}
 	}
-	data class Boolean(override val value: kotlin.Boolean?) : KeyComponent<kotlin.Boolean>() {
-		override fun compareValue(thisValue: kotlin.Boolean, otherValue: kotlin.Boolean): kotlin.Int = thisValue.compareTo(otherValue)
-	}
-	data class String(override val value: kotlin.String?) : KeyComponent<kotlin.String>() {
-		override fun compareValue(thisValue: kotlin.String, otherValue: kotlin.String): kotlin.Int = thisValue.compareTo(otherValue)
+	data class String(override val value: kotlin.String?) : KeyComponent() {
+		override fun compareTo(other: KeyComponent): kotlin.Int = when {
+			other !is String -> throw IllegalStateException("Cannot compare ${this::class.simpleName} with ${other::class.simpleName}")
+			value != null && other.value != null -> value.compareTo(other.value)
+			value == null && other.value == null -> 0
+			value != null -> 1
+			else -> -1
+		}
 	}
 
 }

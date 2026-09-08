@@ -53,12 +53,17 @@ fun <T> Flow<ViewQueryResultEvent>.toPaginatedFlow(
 	pageSize: Int,
 	extractElement: suspend (id: String, row: ViewRow<*, *, *>) -> T?,
 	extractId: (row: ViewRow<*, *, *>) -> String? = { it.id },
+	rowFilter: suspend (row: ViewRow<*, *, *>) -> Boolean = { true },
 ): Flow<PaginationElement> {
 	var emitted = 0
 	val emittedIds = LinkedHashSet<String?>()
 	return filterIsInstance<ViewRow<*, *, *>>().transform { row ->
 		val rowId = extractId(row)
-		if (emitted++ < pageSize && rowId != null && emittedIds.add(rowId)) {
+		if (emitted++ < pageSize &&
+				rowId != null &&
+				rowFilter(row) &&
+				emittedIds.add(rowId)
+		) {
 			extractElement(rowId, row)?.let {
 				emit(
 					PaginationRowElement(

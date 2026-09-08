@@ -760,7 +760,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			keyComponents = filter.keyComponents,
 			startKey = filter.startKey,
 			startDocumentId = filter.startDocumentId,
-			limit = filter.limit.coerceAtMost(MAX_FILTERABLE_ITEMS) + 1
+			limit = filter.queryLimit
 		)
 		is ByRangeCustomFilter -> listEntitiesIdInCustomView(
 			datastoreInformation = datastoreInformation,
@@ -769,7 +769,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			range = filter.range,
 			startKey = filter.startKey,
 			startDocumentId = filter.startDocumentId,
-			limit = filter.limit.coerceAtMost(MAX_FILTERABLE_ITEMS) + 1
+			limit = filter.queryLimit
 		)
 	}
 
@@ -792,8 +792,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 private fun listEntitiesIdInCustomView(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
-		keyComponents: List<List<KeyComponent<*>>>,
-		startKey: List<KeyComponent<*>>?,
+		keyComponents: List<List<KeyComponent>>,
+		startKey: List<KeyComponent>?,
 		startDocumentId: String?,
 		limit: Int
 	): Flow<ViewQueryResultEvent> = flow {
@@ -867,9 +867,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	private fun listEntitiesIdInCustomView(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,
-		nonRangeKeyComponents: List<List<KeyComponent<*>>>,
+		nonRangeKeyComponents: List<List<KeyComponent>>,
 		range: RangeQueryParameters,
-		startKey: List<KeyComponent<*>>?,
+		startKey: List<KeyComponent>?,
 		startDocumentId: String?,
 		limit: Int
 	): Flow<ViewQueryResultEvent> = flow {

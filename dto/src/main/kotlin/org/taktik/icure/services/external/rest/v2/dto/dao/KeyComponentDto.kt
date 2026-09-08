@@ -13,7 +13,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 @JsonSubTypes(
 	value = [
 		JsonSubTypes.Type(value = KeyComponentDto.IntKeyComponentDto::class, name = "int"),
-		JsonSubTypes.Type(value = KeyComponentDto.FloatKeyComponentDto::class, name = "float"),
+		JsonSubTypes.Type(value = KeyComponentDto.LongKeyComponentDto::class, name = "long"),
 		JsonSubTypes.Type(value = KeyComponentDto.DoubleKeyComponentDto::class, name = "double"),
 		JsonSubTypes.Type(value = KeyComponentDto.BooleanKeyComponentDto::class, name = "boolean"),
 		JsonSubTypes.Type(value = KeyComponentDto.StringKeyComponentDto::class, name = "string"),
@@ -29,8 +29,8 @@ sealed interface KeyComponentDto {
 		override val value: Int?,
 	) : KeyComponentDto
 
-	data class FloatKeyComponentDto(
-		override val value: Float?,
+	data class LongKeyComponentDto(
+		override val value: Long?,
 	) : KeyComponentDto
 
 	data class DoubleKeyComponentDto(
