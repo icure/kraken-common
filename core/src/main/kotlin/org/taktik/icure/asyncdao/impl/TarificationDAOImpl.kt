@@ -212,12 +212,12 @@ class TarificationDAOImpl(
 			if (sanitizedLabel == null) ComplexKey.emptyObject() else sanitizedLabel + "\ufff0",
 		)
 		val viewQuery = pagedViewQuery(
-			datastoreInformation,
-			"by_language_label",
-			from,
-			to,
-			pagination.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
-			false,
+			datastoreInformation = datastoreInformation,
+			viewName = "by_language_type_label",
+			startKey = from,
+			endKey = to,
+			pagination = pagination.toPaginationOffset { ComplexKey.of(*it.toTypedArray()) },
+			descending = false,
 		)
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, Int::class.java, Tarification::class.java))
 	}
