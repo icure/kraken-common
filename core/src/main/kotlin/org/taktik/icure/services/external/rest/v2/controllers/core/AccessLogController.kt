@@ -311,7 +311,7 @@ class AccessLogController(
 		accessLogDtos.map(accessLogV2Mapper::map)
 	).map(accessLogV2Mapper::map).injectReactorContext()
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more access logs with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -321,6 +321,19 @@ class AccessLogController(
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
 				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more access logs with one or more data owners but does not return the updated entity.")
+	@PutMapping("/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		emitAll(
+			accessLogService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
