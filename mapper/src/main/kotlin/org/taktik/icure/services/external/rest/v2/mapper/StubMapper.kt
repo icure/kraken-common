@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.mapper
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.Contact
@@ -27,7 +28,10 @@ import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.Invoice
+import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.entities.Message
+import org.taktik.icure.entities.Patient
+import org.taktik.icure.entities.Receipt
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mapper
@@ -43,4 +47,8 @@ interface StubV2Mapper {
 	fun mapToStub(document: Document): IcureStubDto
 	fun mapToStub(classification: Classification): IcureStubDto
 	fun mapToStub(invoice: Invoice): IcureStubDto
+	fun mapToStub(accessLog: AccessLog): IcureStubDto
+	fun mapToStub(maintenanceTask: MaintenanceTask): IcureStubDto
+	fun mapToStub(patient: Patient): IcureStubDto
+	fun mapToStub(receipt: Receipt): IcureStubDto
 }
