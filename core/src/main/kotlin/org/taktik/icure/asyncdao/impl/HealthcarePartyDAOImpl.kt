@@ -410,7 +410,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 	}
 
-	@View(name = "by_data_owner_public_keys", map = "classpath:js/healthcareparty/By_data_owner_public_keys.js")
+	@View(name = "by_data_owner_public_keys", map = "classpath:js/healthcareparty/By_data_owner_public_keys.js", secondaryPartition = MAURICE_PARTITION)
 	override fun listHealthcarePartiesPublicKeys(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerIds: List<String>,
@@ -422,8 +422,8 @@ internal class HealthcarePartyDAOImpl(
 			client.queryView<String, DataOwnerPublicKeysViewValue>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_data_owner_public_keys".main(),
-					configurationView = "by_data_owner_public_keys",
+					viewName = "by_data_owner_public_keys",
+					secondaryPartition = MAURICE_PARTITION
 				).keys(dataOwnerIds).includeDocs(false).reduce(false),
 			),
 		)
