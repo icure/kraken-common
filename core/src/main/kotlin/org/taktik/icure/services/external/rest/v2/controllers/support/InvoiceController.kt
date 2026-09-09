@@ -629,7 +629,7 @@ class InvoiceController(
 		).map(invoiceV2Mapper::map)
 		.injectReactorContext()
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more invoices with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -642,7 +642,7 @@ class InvoiceController(
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 
-	@Operation(description = "Shares one or more contacts with one or more data owners but does not return the updated entity.")
+	@Operation(description = "Shares one or more invoices with one or more data owners but does not return the updated entity.")
 	@PutMapping("/bulkSharedMetadataUpdateMinimal")
 	fun bulkShareMinimal(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
