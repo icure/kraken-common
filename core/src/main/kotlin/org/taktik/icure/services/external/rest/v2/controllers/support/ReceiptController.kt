@@ -324,7 +324,7 @@ class ReceiptController(
 		).map(receiptV2Mapper::map)
 		.injectReactorContext()
 
-	@Operation(description = "Shares one or more Receipts with one or more data owners")
+	@Operation(description = "Shares one or more receipts with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -334,6 +334,19 @@ class ReceiptController(
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
 				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more receipts with one or more data owners but does not return the updated entity.")
+	@PutMapping("/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		emitAll(
+			receiptService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 

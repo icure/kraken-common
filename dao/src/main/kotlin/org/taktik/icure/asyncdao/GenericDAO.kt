@@ -32,13 +32,15 @@ import kotlin.time.Duration.Companion.milliseconds
 const val DATA_OWNER_PARTITION = "DataOwner"
 const val MAURICE_PARTITION = "Maurice"
 const val BEPPE_PARTITION = "Beppe"
+const val TOPIC_BASED_PARTITION = "TopicBased"
 
 enum class Partitions(val partitionName: String) {
 	All(""),
 	Main(""),
 	DataOwner(DATA_OWNER_PARTITION),
 	Maurice(MAURICE_PARTITION),
-	Beppe(BEPPE_PARTITION)
+	Beppe(BEPPE_PARTITION),
+	Topic(TOPIC_BASED_PARTITION)
 	;
 
 	companion object {
