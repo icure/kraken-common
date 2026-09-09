@@ -18,6 +18,7 @@ import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.TarificationDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -230,4 +231,13 @@ class TarificationDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Tarification>(viewQuery).map { it.doc })
 	}
 
+	override suspend fun warmupPartition(
+		datastoreInformation: IDatastoreInformation,
+		partition: Partitions,
+	) {
+		when (partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "conflicts" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
 }

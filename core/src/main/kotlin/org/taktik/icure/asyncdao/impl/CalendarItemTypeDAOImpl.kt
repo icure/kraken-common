@@ -19,6 +19,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -114,4 +115,14 @@ class CalendarItemTypeDAOImpl(
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<CalendarItemType>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override suspend fun warmupPartition(
+		datastoreInformation: IDatastoreInformation,
+		partition: Partitions,
+	) {
+		when (partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "by_agenda_id" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
 }

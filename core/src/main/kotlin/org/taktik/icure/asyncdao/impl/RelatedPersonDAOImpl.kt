@@ -20,6 +20,7 @@ import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.RelatedPersonDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -148,4 +149,14 @@ internal class RelatedPersonDAOImpl(
 
 		emitAll(client.queryView<ComplexKey, Int>(viewQuery).map { it.id })
 	}.distinct()
+
+	override suspend fun warmupPartition(
+		datastoreInformation: IDatastoreInformation,
+		partition: Partitions,
+	) {
+		when (partition) {
+			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner" to DATA_OWNER_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
 }
