@@ -31,6 +31,7 @@ import org.taktik.icure.asyncservice.MaintenanceTaskService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MaintenanceTaskDto
@@ -42,6 +43,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MaintenanceTaskV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
@@ -69,6 +71,7 @@ class MaintenanceTaskController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val objectMapper: ObjectMapper,
 ) {
 	@Operation(summary = "Creates a maintenanceTask")
@@ -144,6 +147,15 @@ class MaintenanceTaskController(
 	): Flux<MaintenanceTaskDto> = maintenanceTaskService
 		.getMaintenanceTasks(ids.ids)
 		.map(maintenanceTaskV2Mapper::map)
+		.injectReactorContext()
+
+	@Operation(summary = "List maintenance task stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findMaintenanceTasksDelegationsStubsByIds(
+		@RequestBody maintenanceTaskIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = maintenanceTaskService
+		.getMaintenanceTasks(maintenanceTaskIds.ids)
+		.map { maintenanceTask -> stubV2Mapper.mapToStub(maintenanceTask) }
 		.injectReactorContext()
 
 	@Operation(summary = "Updates a maintenanceTask")
