@@ -24,6 +24,7 @@ import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.asyncdao.UserDAO
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
@@ -457,4 +458,14 @@ open class UserDAOImpl(
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<User>(datastoreInformation, "conflicts", MAURICE_PARTITION)
+
+	override suspend fun warmupPartition(
+		datastoreInformation: IDatastoreInformation,
+		partition: Partitions,
+	) {
+		when (partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "conflicts" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
 }

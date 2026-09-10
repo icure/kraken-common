@@ -51,6 +51,7 @@ import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
@@ -69,6 +70,7 @@ import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -97,6 +99,7 @@ class DocumentController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
@@ -345,6 +348,15 @@ class DocumentController(
 			.toDto()
 			.injectReactorContext()
 	}
+
+	@Operation(summary = "List document stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findDocumentsDelegationsStubsByIds(
+		@RequestBody documentIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = documentService
+		.getDocuments(documentIds.ids)
+		.map { document -> stubV2Mapper.mapToStub(document) }
+		.injectReactorContext()
 
 	@Operation(summary = "Updates a document")
 	@PutMapping

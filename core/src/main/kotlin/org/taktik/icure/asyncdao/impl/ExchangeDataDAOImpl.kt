@@ -15,6 +15,7 @@ import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
+import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ExchangeDataDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -28,6 +29,7 @@ import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.ExchangeData
 import org.taktik.icure.entities.requests.ExchangeDataCounterpart
 import org.taktik.icure.utils.multiKeyPaginatedViewQuery
+import kotlin.collections.map
 
 @Repository("ExchangeDataDAO")
 @Profile("app")
@@ -107,6 +109,7 @@ class ExchangeDataDAOImpl(
 		filterRecipients = filterRecipients,
 		startDocumentId = startDocumentId,
 		limit = limit,
+		valueType = String::class.java,
 	) { recipient -> ComplexKey.of(dataOwnerId, recipient) }
 
 	@View(
@@ -127,6 +130,7 @@ class ExchangeDataDAOImpl(
 		filterRecipients = filterRecipients,
 		startDocumentId = startDocumentId,
 		limit = limit,
+		valueType = Nothing::class.java,
 	) { recipient -> ComplexKey.of(delegatorId, delegateId, recipient) }
 
 	@View(
@@ -167,6 +171,7 @@ class ExchangeDataDAOImpl(
 		filterRecipients = filterRecipients,
 		startDocumentId = startDocumentId,
 		limit = limit,
+		valueType = Nothing::class.java,
 	) { recipient -> ComplexKey.of(exchangeDataOrGroupId, recipient) }
 
 	@View(
@@ -235,6 +240,7 @@ class ExchangeDataDAOImpl(
 		filterRecipients: List<String?>,
 		startDocumentId: String?,
 		limit: Int,
+		valueType: Class<*>,
 		keyForRecipient: (recipient: String?) -> ComplexKey,
 	): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -254,7 +260,63 @@ class ExchangeDataDAOImpl(
 						.descending(false)
 				},
 			) { query ->
-				client.queryView(query, ComplexKey::class.java, Nothing::class.java, ExchangeData::class.java)
+				client.queryView(query, ComplexKey::class.java, valueType, ExchangeData::class.java)
+			},
+		)
+	}
+
+	@View(
+		name = "main_id_by_participant",
+		map = "classpath:js/exchangedata/Main_id_by_participant_map.js",
+		secondaryPartition = MAURICE_PARTITION,
+	)
+	override fun findMainExchangeDataIdsByParticipant(
+		datastoreInformation: IDatastoreInformation,
+		participantId: String,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<String> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(
+			client.queryViewNoValue<String>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					viewName = "main_id_by_participant",
+					secondaryPartition = MAURICE_PARTITION,
+				).includeDocs(false)
+					.key(participantId)
+					.startDocId(startDocumentId)
+					.limit(limit)
+					.descending(false)
+			).map { it.id }
+		)
+	}
+
+	override fun findMainExchangeDataIdsByParticipantForRecipients(
+		datastoreInformation: IDatastoreInformation,
+		participantId: String,
+		filterRecipients: List<String?>,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(
+			multiKeyPaginatedViewQuery(
+				keys = filterRecipients.map { recipient -> ComplexKey.of(participantId, recipient) },
+				keysDescription = "recipients used to filter the exchange data",
+				startDocumentId = startDocumentId,
+				limit = limit,
+				viewQuery = {
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						viewName = "by_participant_recipient",
+						secondaryPartition = MAURICE_PARTITION,
+					).includeDocs(false)
+						.reduce(false)
+						.descending(false)
+				},
+			) { query ->
+				client.queryView(query, ComplexKey::class.java, String::class.java, Nothing::class.java)
 			},
 		)
 	}

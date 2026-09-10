@@ -153,11 +153,11 @@ data class ExchangeData(
 	 * - The public keys used in the exchange data (allows to consider them as verified in a second moment).
 	 * - The recipient and exchangeDataGroupId (included only if not null)
 	 *
-	 * Note that in case of exchange data to a simple-type group this value only includes the signature for this piece.
-	 *
-	 * This is always present: exchange data is invalidated by removing the [delegatorSignature], never this signature.
+	 * When working with exchange data groups this signature appears only in the delegator piece: since it is only used
+	 * for deciding if exchange data should be valid for encryption there is no use having verification of pieces not
+	 * for the delegator.
 	 */
-	val sharedSignature: Base64String,
+	val sharedSignature: Base64String?,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -171,10 +171,12 @@ data class ExchangeData(
 		require(
 			exchangeKey.isNotEmpty() &&
 				accessControlSecret.isNotEmpty() &&
-				sharedSignatureKey.isNotEmpty() &&
-				sharedSignature.isNotEmpty(),
+				sharedSignatureKey.isNotEmpty(),
 		) {
-			"Access control data should specify values for exchangeKey, accessControlKey and shared signature."
+			"Access control data should specify values for exchangeKey, accessControlKey and shared signature key."
+		}
+		require(sharedSignature == null || sharedSignature.isNotEmpty()) {
+			"The shared signature of exchange data, when present, should not be empty."
 		}
 	}
 

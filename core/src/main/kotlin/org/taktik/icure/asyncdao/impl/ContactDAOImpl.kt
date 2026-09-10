@@ -1690,7 +1690,7 @@ class ContactDAOImpl(
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)
 			Partitions.Maurice -> warmup(datastoreInformation, "service_by_linked_id" to MAURICE_PARTITION)
-			Partitions.Beppe -> warmup(datastoreInformation, "by_service_latest" to MAURICE_PARTITION)
+			Partitions.Beppe -> warmup(datastoreInformation, "service_by_data_owner_patient_tag_prefix" to BEPPE_PARTITION)
 			else -> super.warmupPartition(datastoreInformation, partition)
 		}
 	}

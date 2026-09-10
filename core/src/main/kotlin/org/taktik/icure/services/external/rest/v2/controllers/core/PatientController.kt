@@ -56,6 +56,7 @@ import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
@@ -78,6 +79,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringD
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -118,6 +120,7 @@ class PatientController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val paginationConfig: SharedPaginationConfig,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
@@ -633,6 +636,15 @@ class PatientController(
 	fun getPatients(
 		@RequestBody patientIds: ListOfIdsDto,
 	): Flux<PatientDto> = patientService.getPatients(patientIds.ids).toDto().injectReactorContext()
+
+	@Operation(summary = "List patient stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findPatientsDelegationsStubsByIds(
+		@RequestBody patientIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = patientService
+		.getPatients(patientIds.ids)
+		.map { patient -> stubV2Mapper.mapToStub(patient) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get patient", description = "It gets patient administrative data.")
 	@GetMapping("/{patientId}")

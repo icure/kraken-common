@@ -46,7 +46,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HealthElementAsserter(
 	val localAsserterIdentifier: LocalAsserterIdentifier? = null,
-	val externalAsserterIdentifier: Identifier? = null,
+	val externalAsserterIdentifier: ExternalAsserterIdentifier? = null,
 ) : Serializable {
 	init {
 		require((localAsserterIdentifier == null) != (externalAsserterIdentifier == null)) {
@@ -72,5 +72,24 @@ data class HealthElementAsserter(
 	data class LocalAsserterIdentifier(
 		val id: String,
 		val type: AsserterType,
+	) : Serializable
+
+	/**
+	 * The party making the assertion, when it has no record in this iCure instance.
+	 *
+	 * The party is named by a business [identifier] issued by another system: a national registry number, an entry in
+	 * the sending hospital's directory, and so on. Because the record lives elsewhere there is no [AsserterType] here -
+	 * the kind of a record we do not store is not knowable to us. The wrapper around the [Identifier] mirrors
+	 * [LocalAsserterIdentifier] on the other branch, and is where anything specific to an external asserter would go:
+	 * [Identifier] itself is shared by every `identifiers` field in the model and cannot carry it.
+	 *
+	 * @property identifier The business identifier of the party in the system that issued it. [Identifier.system] names
+	 * that issuing system and [Identifier.value] is the party's identifier within it; together they are what makes the
+	 * party resolvable.
+	 */
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	data class ExternalAsserterIdentifier(
+		val identifier: Identifier,
 	) : Serializable
 }

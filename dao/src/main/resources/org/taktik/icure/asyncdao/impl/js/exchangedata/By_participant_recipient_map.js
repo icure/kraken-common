@@ -6,7 +6,7 @@ map = function(doc) {
 		// that it still produces exactly one row per participant and is matched only by a filter on the null recipient.
 		var recipient = doc.recipient == null ? null : doc.recipient
 		for (var i = 0; i < participants.length; i++) {
-			emit([participants[i], recipient], null)
+			emit([participants[i], recipient], doc.recipient == null || doc.recipient == doc.delegator ? null : doc.exchangeDataGroupId)
 		}
 	}
 }

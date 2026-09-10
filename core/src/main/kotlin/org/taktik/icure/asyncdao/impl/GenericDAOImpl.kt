@@ -759,6 +759,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				warmupPartition(datastoreInformation, Partitions.DataOwner)
 				warmupPartition(datastoreInformation, Partitions.Maurice)
 				warmupPartition(datastoreInformation, Partitions.Beppe)
+				warmupPartition(datastoreInformation, Partitions.Topic)
 			}
 			Partitions.Main -> getEntityIds(datastoreInformation, 1).firstOrNull()
 			else -> {}

@@ -98,11 +98,14 @@ the exchange data, without voiding the authenticity guarantee.""",
 - The (decrypted) exchange key
 - The (decrypted) access control secret
 - The delegator and delegates being part of the exchange data
-- The public keys used in the exchange data (allows to consider them as verified in a second moment).""",
-		required = true,
+- The public keys used in the exchange data (allows to consider them as verified in a second moment).
+- The recipient and exchangeDataGroupId (included only if not null)
+For exchange data of a simple-type group this signature is present only on the piece where the recipient is the
+delegator: it is only used to decide if the exchange data can be trusted for encryption, and that decision is
+taken on the delegator piece alone.""",
 	)
-	/** Base64 signature of the exchange data to ensure it was not tampered by third parties. */
-	@ActiveField val sharedSignature: Base64StringDto,
+	/** Base64 signature of the exchange data to ensure it was not tampered by third parties; null on the group pieces that are not for the delegator. */
+	@ActiveField val sharedSignature: Base64StringDto? = null,
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 ) : StoredDocumentDto {

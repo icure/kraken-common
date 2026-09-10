@@ -40,6 +40,7 @@ import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
@@ -63,6 +64,7 @@ import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -96,6 +98,7 @@ class MessageController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
@@ -238,6 +241,15 @@ class MessageController(
 		require(messageIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return messageService.getMessages(messageIds.ids).toDto().injectReactorContext()
 	}
+
+	@Operation(summary = "List message stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findMessagesDelegationsStubsByIds(
+		@RequestBody messageIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = messageService
+		.getMessages(messageIds.ids)
+		.map { message -> stubV2Mapper.mapToStub(message) }
+		.injectReactorContext()
 
 	@Operation(summary = "Get all messages for current HC Party and provided transportGuids")
 	@PostMapping("/byTransportGuid/list")
@@ -450,7 +462,7 @@ class MessageController(
 		}
 	}.injectReactorContext()
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more messages with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -460,6 +472,19 @@ class MessageController(
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
 				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more messages with one or more data owners but does not return the updated entity.")
+	@PutMapping("/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		emitAll(
+			messageService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 

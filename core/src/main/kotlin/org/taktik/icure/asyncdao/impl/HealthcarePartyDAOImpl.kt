@@ -28,6 +28,7 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DataOwnerPublicKeysViewValue
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
+import org.taktik.icure.asyncdao.Partitions
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -62,6 +63,14 @@ internal class HealthcarePartyDAOImpl(
 	queryProvider = queryProvider
 ),
 	HealthcarePartyDAO {
+
+	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
+		when (partition) {
+			Partitions.Maurice -> warmup(datastoreInformation, "by_public" to MAURICE_PARTITION)
+			else -> super.warmupPartition(datastoreInformation, partition)
+		}
+	}
+
 	@View(name = "by_public", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.public ? true : false, null)}", secondaryPartition = MAURICE_PARTITION)
 	override fun listHealthcarePartiesByPublic(
 		datastoreInformation: IDatastoreInformation,
@@ -410,7 +419,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 	}
 
-	@View(name = "by_data_owner_public_keys", map = "classpath:js/healthcareparty/By_data_owner_public_keys.js")
+	@View(name = "by_data_owner_public_keys", map = "classpath:js/healthcareparty/By_data_owner_public_keys.js", secondaryPartition = MAURICE_PARTITION)
 	override fun listHealthcarePartiesPublicKeys(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerIds: List<String>,
@@ -422,8 +431,8 @@ internal class HealthcarePartyDAOImpl(
 			client.queryView<String, DataOwnerPublicKeysViewValue>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_data_owner_public_keys".main(),
-					configurationView = "by_data_owner_public_keys",
+					viewName = "by_data_owner_public_keys",
+					secondaryPartition = MAURICE_PARTITION
 				).keys(dataOwnerIds).includeDocs(false).reduce(false),
 			),
 		)

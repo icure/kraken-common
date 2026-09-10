@@ -7,7 +7,7 @@ import org.taktik.icure.entities.utils.KeypairFingerprintString
 /**
  * Request to create a piece of exchange data, for a certain recipient of a simple-type data owner group.
  */
-data class ExchangeDataPieceCreationRequest(
+data class BulkExchangeDataPieceCreationRequest(
 	val exchangeKey: Map<KeypairFingerprintString, Base64String>,
 	val accessControlSecret: Map<KeypairFingerprintString, Base64String>,
 	val sharedSignatureKey: Map<KeypairFingerprintString, Base64String>,
@@ -20,4 +20,8 @@ data class ExchangeDataPieceCreationRequest(
 	 * Must be null except on the piece where the recipient is the delegator.
 	 */
 	val sharedSignature: Base64String?,
+	val exchangeDataGroupId: String,
+	val delegator: String,
+	val delegate: String,
+	val recipient: String
 )
