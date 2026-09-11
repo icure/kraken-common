@@ -52,6 +52,7 @@ import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asyncdao.results.toBulkSaveResultFailure
+import org.taktik.icure.cache.EntityCache
 import org.taktik.icure.cache.EntityCacheChainLink
 import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.dao.QueryProvider
@@ -87,7 +88,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	override val entityClass: Class<T>,
 	override val couchDbDispatcher: CouchDbDispatcher,
 	protected val idGenerator: IDGenerator,
-	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
+	protected open val cacheChain: EntityCache<String, T>? = null,
 	protected val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig,
 	protected val queryProvider: QueryProvider

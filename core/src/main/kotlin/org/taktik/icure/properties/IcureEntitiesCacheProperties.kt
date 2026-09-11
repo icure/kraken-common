@@ -11,7 +11,6 @@ import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.entities.Contact
-import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Device
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.DocumentTemplate
@@ -83,7 +82,6 @@ final data class IcureEntitiesCacheProperties(
 	var timeTable: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var recoveryData: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	var secureDelegationKeyMap: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
-	var customEntity: EntityConfiguration = EntityConfiguration(DEFAULT_CACHE_TTL_SECONDS, CacheType.REQUEST),
 	// When adding also add to allConfigurationsByClassName
 ) {
 	data class EntityConfiguration(
@@ -155,7 +153,6 @@ final data class IcureEntitiesCacheProperties(
 			TimeTable::class.java.name to timeTable,
 			RecoveryData::class.java.name to recoveryData,
 			SecureDelegationKeyMap::class.java.name to secureDelegationKeyMap,
-			CustomEntityBase::class.java.name to customEntity,
 		)
 	}
 
