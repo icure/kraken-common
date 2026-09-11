@@ -15,6 +15,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.RelatedPersonLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -26,7 +27,7 @@ import org.taktik.icure.mergers.Merger
 import org.taktik.icure.utils.aggregateResults
 import org.taktik.icure.utils.mergeUniqueIdsForSearchKeys
 import org.taktik.icure.validation.aspect.Fixer
-import java.util.TreeSet
+import java.util.*
 
 open class RelatedPersonLogicImpl(
 	filters: Filters,
@@ -37,14 +38,16 @@ open class RelatedPersonLogicImpl(
 	fixer: Fixer,
 	relatedPersonMerger: Merger<RelatedPerson>,
 ) : EntityWithEncryptionMetadataLogic<RelatedPerson, RelatedPersonDAO>(
-	fixer,
-	sessionLogic,
-	datastoreInstanceProvider,
-	exchangeDataMapLogic,
-	filters,
+	fixer = fixer,
+	sessionLogic = sessionLogic,
+	datastoreInstanceProvider = datastoreInstanceProvider,
+	exchangeDataMapLogic = exchangeDataMapLogic,
+	filters = filters,
 ),
 	ConflictResolutionLogic<RelatedPerson> by ConflictResolutionLogicImpl(relatedPersonDAO, relatedPersonMerger, datastoreInstanceProvider),
-	RelatedPersonLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = relatedPersonDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	RelatedPersonLogic
+{
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: RelatedPerson,
 		updatedMetadata: SecurityMetadata,

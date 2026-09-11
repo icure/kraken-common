@@ -35,6 +35,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DocumentTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.DocumentTemplate
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
@@ -155,7 +156,7 @@ class DocumentTemplateController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return documentTemplateService
 			.getAllDocumentTemplates(offset)
-			.mapElements(documentTemplateV2Mapper::map)
+			.mapElements<DocumentTemplate, DocumentTemplateDto>(documentTemplateV2Mapper::map)
 			.asPaginatedFlux()
 	}
 

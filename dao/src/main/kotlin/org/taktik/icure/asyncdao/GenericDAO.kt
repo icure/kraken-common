@@ -22,6 +22,7 @@ import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asyncdao.results.BulkSaveResult
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.filters.AbstractCustomFilter
 import org.taktik.icure.entities.utils.ExternalFilterKey
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -337,6 +338,11 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 		startKey: ExternalFilterKey?,
 		endKey: ExternalFilterKey?,
 	): Flow<String>
+
+	fun listEntitiesIdsInCustomView(
+		datastoreInformation: IDatastoreInformation,
+		filter: AbstractCustomFilter
+	): Flow<ViewQueryResultEvent>
 }
 
 suspend fun <T> GenericDAO<T>.getEntitiesWithExpectedRev(

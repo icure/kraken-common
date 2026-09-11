@@ -83,3 +83,15 @@ dependencies {
 if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
 	apply(plugin = "generate-jackson-filters-conventions")
 }
+
+// The Spring Boot plugin above is applied for its dependency management and the kotlin-spring conveniences, not to
+// package an application: this module is a library and has no main class. The plugin still registers `bootJar` and
+// makes `assemble` depend on it, so a plain `build` would fail on "Main class name has not been configured".
+// The executable jar is built by the application module (cloud-core), which sets its own mainClass.
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+	enabled = false
+}
+
+tasks.named<Jar>("jar") {
+	enabled = true
+}

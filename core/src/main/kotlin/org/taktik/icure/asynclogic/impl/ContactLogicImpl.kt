@@ -3,6 +3,8 @@
  */
 package org.taktik.icure.asynclogic.impl
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.icure.cardinal.customviews.SERVICE_ID_VALUE_KEY
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -20,6 +22,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ContactLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -31,6 +34,7 @@ import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.entities.filters.AbstractCustomFilter
 import org.taktik.icure.entities.pimpWithContactInformation
 import org.taktik.icure.mergers.Merger
 import org.taktik.icure.pagination.PaginationElement
@@ -50,7 +54,9 @@ open class ContactLogicImpl(
 	contactMerger: Merger<Contact>,
 ) : EntityWithEncryptionMetadataLogic<Contact, ContactDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Contact> by ConflictResolutionLogicImpl(contactDAO, contactMerger, datastoreInstanceProvider),
-	ContactLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = contactDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	ContactLogic
+{
 	override suspend fun getContact(id: String) = getEntity(id)
 
 	override fun getContacts(selectedIds: Collection<String>) = getEntities(selectedIds)
@@ -359,6 +365,32 @@ open class ContactLogicImpl(
 					endOpeningDate,
 					offset.limitIncludingKey(),
 				).toPaginatedFlow<Contact>(offset.limit),
+		)
+	}
+
+	protected fun doMatchServicesByCustomFilter(
+		datastoreInformation: IDatastoreInformation,
+		filter: AbstractCustomFilter
+	): Flow<PaginationElement> = doMatchEntitiesByCustomFilterWithIdExtractor(
+		datastoreInformation = datastoreInformation,
+		filter = filter,
+		extractId = { row ->
+			(row.value as? JsonNode)?.let { node ->
+				if (node.isObject) {
+					node.get(SERVICE_ID_VALUE_KEY)?.textValue()
+				} else {
+					node.textValue()
+				}
+			}
+		}
+	)
+
+	override fun matchServicesByCustomFilter(filter: AbstractCustomFilter): Flow<PaginationElement> = flow {
+		emitAll(
+			doMatchServicesByCustomFilter(
+				datastoreInformation = getInstanceAndGroup(),
+				filter = filter,
+			)
 		)
 	}
 }

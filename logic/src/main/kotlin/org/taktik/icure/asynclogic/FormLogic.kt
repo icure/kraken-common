@@ -5,6 +5,7 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
@@ -12,7 +13,9 @@ import org.taktik.icure.entities.embed.Delegation
 interface FormLogic :
 	EntityPersister<Form>,
 	EntityWithSecureDelegationsLogic<Form>,
-	ConflictResolutionLogic<Form> {
+	ConflictResolutionLogic<Form>,
+	CustomFilteringLogic
+{
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
 

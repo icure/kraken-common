@@ -14,6 +14,7 @@ import org.taktik.icure.asynclogic.CalendarItemLogic
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.config.CardinalVersionConfig
@@ -48,6 +49,7 @@ open class CalendarItemLogicImpl(
 		exchangeDataMapLogic,
 		filters,
 	), CalendarItemLogic,
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = calendarItemDAO, datastoreInstanceProvider = datastoreInstanceProvider),
 	ConflictResolutionLogic<CalendarItem> by ConflictResolutionLogicImpl(calendarItemDAO, merger, datastoreInstanceProvider)
 {
 

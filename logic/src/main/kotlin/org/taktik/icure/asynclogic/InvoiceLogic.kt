@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -20,7 +21,9 @@ import org.taktik.icure.pagination.PaginationElement
 interface InvoiceLogic :
 	EntityPersister<Invoice>,
 	EntityWithSecureDelegationsLogic<Invoice>,
-	ConflictResolutionLogic<Invoice> {
+	ConflictResolutionLogic<Invoice>,
+	CustomFilteringLogic
+{
 	suspend fun createInvoice(invoice: Invoice): Invoice
 
 	suspend fun getInvoice(invoiceId: String): Invoice?

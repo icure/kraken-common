@@ -25,6 +25,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.KeywordService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Keyword
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -82,7 +83,9 @@ class KeywordController(
 		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
 	): PaginatedFlux<KeywordDto> {
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
-		return keywordService.getAllKeywords(offset).mapElements(keywordV2Mapper::map).asPaginatedFlux()
+		return keywordService.getAllKeywords(offset)
+			.mapElements<Keyword, KeywordDto>(keywordV2Mapper::map)
+			.asPaginatedFlux()
 	}
 
 	@Operation(summary = "Delete keywords.", description = "Response is a set containing the ID's of deleted keywords.")

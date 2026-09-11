@@ -16,6 +16,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.HealthElementLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -45,7 +46,9 @@ open class HealthElementLogicImpl(
 	filters,
 ),
 	ConflictResolutionLogic<HealthElement> by ConflictResolutionLogicImpl(healthElementDAO, healthElementMerger, datastoreInstanceProvider),
-	HealthElementLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = healthElementDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	HealthElementLogic
+{
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: HealthElement,
 		updatedMetadata: SecurityMetadata,

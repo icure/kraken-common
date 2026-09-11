@@ -11,6 +11,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -19,13 +20,16 @@ import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.entities.filters.AbstractCustomFilter
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
 interface ContactService :
 	EntityWithSecureDelegationsService<Contact>,
-	EntityWithConflictResolutionService<Contact> {
+	EntityWithConflictResolutionService<Contact>,
+	EntityWithCustomViewsService
+{
 
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
@@ -213,4 +217,6 @@ interface ContactService :
 	 * rights to access their data.
 	 */
 	fun matchServicesBy(filter: AbstractFilter<Service>): Flow<String>
+
+	fun matchServicesByCustomFilter(filter: AbstractCustomFilter): Flow<PaginationElement>
 }

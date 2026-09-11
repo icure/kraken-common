@@ -7,6 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.Sorting
@@ -21,7 +22,9 @@ import java.time.Instant
 interface PatientLogic :
 	EntityPersister<Patient>,
 	EntityWithSecureDelegationsLogic<Patient>,
-	ConflictResolutionLogic<Patient> {
+	ConflictResolutionLogic<Patient>,
+	CustomFilteringLogic
+{
 
 	companion object {
 		@Suppress("EnumEntryName")

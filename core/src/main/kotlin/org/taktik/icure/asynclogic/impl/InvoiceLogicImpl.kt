@@ -23,6 +23,7 @@ import org.taktik.icure.asynclogic.InsuranceLogic
 import org.taktik.icure.asynclogic.InvoiceLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -67,7 +68,9 @@ open class InvoiceLogicImpl(
 	invoiceMerger: Merger<Invoice>,
 ) : EntityWithEncryptionMetadataLogic<Invoice, InvoiceDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Invoice> by ConflictResolutionLogicImpl(invoiceDAO, invoiceMerger, datastoreInstanceProvider),
-	InvoiceLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = invoiceDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	InvoiceLogic
+{
 	override suspend fun createInvoice(invoice: Invoice) = fix(invoice, isCreate = true) { fixedInvoice ->
 		checkValidityForCreation(fixedInvoice)
 		val datastoreInformation = getInstanceAndGroup()
