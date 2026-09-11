@@ -41,6 +41,7 @@ import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.dao.IdWithValue
 import org.taktik.icure.entities.embed.ReceiptBlobType
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -58,6 +59,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdate
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.ReceiptV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -85,6 +87,7 @@ class ReceiptController(
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
@@ -285,6 +288,15 @@ class ReceiptController(
 		@RequestBody receiptIds: ListOfIdsDto,
 	): Flux<ReceiptDto> = receiptService.getReceipts(receiptIds.ids).map(receiptV2Mapper::map).injectReactorContext()
 
+	@Operation(summary = "List receipt stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findReceiptsDelegationsStubsByIds(
+		@RequestBody receiptIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = receiptService
+		.getReceipts(receiptIds.ids)
+		.map { receipt -> stubV2Mapper.mapToStub(receipt) }
+		.injectReactorContext()
+
 	@Operation(summary = "Get a Receipt")
 	@GetMapping("/byRef/{ref}")
 	fun listByReference(
@@ -321,7 +333,7 @@ class ReceiptController(
 		).map(receiptV2Mapper::map)
 		.injectReactorContext()
 
-	@Operation(description = "Shares one or more Receipts with one or more data owners")
+	@Operation(description = "Shares one or more receipts with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -331,6 +343,19 @@ class ReceiptController(
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
 				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more receipts with one or more data owners but does not return the updated entity.")
+	@PutMapping("/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		emitAll(
+			receiptService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 

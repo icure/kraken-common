@@ -464,7 +464,7 @@ class CalendarItemController(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more calendar items with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,

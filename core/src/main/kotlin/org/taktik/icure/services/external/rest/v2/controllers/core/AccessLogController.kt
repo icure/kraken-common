@@ -39,6 +39,7 @@ import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.AccessLogDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
@@ -61,6 +62,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.AccessLogV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -92,6 +94,7 @@ class AccessLogController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
@@ -316,6 +319,15 @@ class AccessLogController(
 			.injectReactorContext()
 	}
 
+	@Operation(summary = "List access log stubs found by ids.")
+	@PostMapping("/delegations")
+	fun findAccessLogsDelegationsStubsByIds(
+		@RequestBody accessLogIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = accessLogService
+		.getAccessLogs(accessLogIds.ids)
+		.map { accessLog -> stubV2Mapper.mapToStub(accessLog) }
+		.injectReactorContext()
+
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listAccessLogIdsByDataOwnerPatientDate instead")
 	@Operation(summary = "List access logs found by Healthcare Party and secret foreign key elementIds.")
@@ -344,7 +356,7 @@ class AccessLogController(
 		emitAll(accessLogService.modifyAccessLogs(accessLogDtos.toDomain()).toDto())
 	}.injectReactorContext()
 
-	@Operation(description = "Shares one or more patients with one or more data owners")
+	@Operation(description = "Shares one or more access logs with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
 	fun bulkShare(
 		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
@@ -354,6 +366,19 @@ class AccessLogController(
 				.bulkShareOrUpdateMetadata(
 					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
 				).map { bulkShareResultV2Mapper.map(it) },
+		)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more access logs with one or more data owners but does not return the updated entity.")
+	@PutMapping("/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = flow {
+		emitAll(
+			accessLogService
+				.bulkShareOrUpdateMetadata(
+					entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+				).map { bulkShareResultV2Mapper.map(it).minimal() },
 		)
 	}.injectCachedReactorContext(reactorCacheInjector, 50)
 

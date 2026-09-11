@@ -208,4 +208,30 @@ interface ExchangeDataDAO : GenericDAO<ExchangeData> {
 		startCounterpartId: String?,
 		limit: Int,
 	): Flow<ExchangeDataCounterpart>
+
+	/**
+	 * Find the ids, or for exchange data groups the exchange data group id, of exchange data that involves the
+	 * participant.
+	 */
+	fun findMainExchangeDataIdsByParticipant(
+		datastoreInformation: IDatastoreInformation,
+		participantId: String,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<String>
+
+	/**
+	 * Find the ids, or for exchange data groups the exchange data group id, of exchange data that involves the
+	 * participant.
+	 * The value is either the exchangeDataGroupId, or null, for main pieces of exchange data or non-group exchange
+	 * data.
+	 * The key is [participantId, recipient]
+	 */
+	fun findMainExchangeDataIdsByParticipantForRecipients(
+		datastoreInformation: IDatastoreInformation,
+		participantId: String,
+		filterRecipients: List<String?>,
+		startDocumentId: String?,
+		limit: Int,
+	): Flow<ViewQueryResultEvent>
 }
