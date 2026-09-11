@@ -58,30 +58,43 @@ fun <T> Flow<ViewQueryResultEvent>.toPaginatedFlow(
 	var emitted = 0
 	val emittedIds = LinkedHashSet<String?>()
 	return filterIsInstance<ViewRow<*, *, *>>().transform { row ->
-		val rowId = extractId(row)
-		if (emitted++ < pageSize &&
-				rowId != null &&
-				rowFilter(row) &&
-				emittedIds.add(rowId)
-		) {
-			extractElement(rowId, row)?.let {
+		try {
+			val rowId = extractId(row)
+			if (emitted++ < pageSize) {
+				if (
+					rowId != null &&
+					rowFilter(row) &&
+					emittedIds.add(rowId)
+				) {
+					extractElement(rowId, row)?.let {
+						emit(
+							PaginationRowElement(
+								element = it,
+								key = row.key,
+							)
+						)
+					}
+				}
+			} else {
 				emit(
-					PaginationRowElement(
-						element = it,
-						key = row.key,
+					NextPageElement(
+						startKeyDocId = row.id,
+						startKey = row.key,
 					)
 				)
 			}
-		} else {
+		} catch (e: Exception) {
 			emit(
-				NextPageElement(
-					startKeyDocId = row.id,
-					startKey = row.key,
+				AbortedPageElement(
+					PaginationError(
+						statusCode = 500,
+						message = e.message ?: e.javaClass.simpleName,
+					)
 				)
 			)
 		}
 	}.takeWhile {
-		emitted <= pageSize + 1
+		it !is AbortedPageElement || emitted <= pageSize + 1
 	}
 }
 

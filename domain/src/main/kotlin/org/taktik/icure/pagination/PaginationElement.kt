@@ -1,6 +1,8 @@
 package org.taktik.icure.pagination
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.springframework.http.HttpStatusCode
+import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.id.Identifiable
 
 /**
@@ -68,3 +70,6 @@ data class NextPageElement<K>(val startKeyDocId: String? = null, val startKey: K
  * emits after it is ignored, since the page is already known to be incomplete.
  */
 data class AbortedPageElement(val error: PaginationError) : PaginationElement
+
+fun AbortedPageElement.toResponseStatusException() =
+	ResponseStatusException(HttpStatusCode.valueOf(error.statusCode), error.message)
