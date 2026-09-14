@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.BulkUpdateResult
@@ -188,10 +189,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		}
 		return try {
 			cacheChain?.getEntity(datastoreInformation.getFullIdFor(id))?.takeIf { rev == null || it.rev == rev }
-				?: rev?.let { client.get(id, it, entityClass, *options) }
+				?: rev?.let { client.get(id, it, entityClass, *options) }?.let { postLoad(datastoreInformation, it) }
 				?: client.get(id, entityClass, *options)?.let {
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
-					postLoad(datastoreInformation, it)
+					postLoad(datastoreInformation, it).also { postLoaded ->
+						cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), postLoaded)
+					}
 				}
 		} catch (e: DocumentNotFoundException) {
 			log.warn("Document not found", e)
@@ -200,51 +202,87 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<T> =
-		getEntities(datastoreInformation, ids.asFlow())
+		doGetEntities(datastoreInformation, ids.toList())
 
 	override fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T> = flow {
+		emitAll(doGetEntities(datastoreInformation, ids.toList()))
+	}
+
+	private fun doGetEntities(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".get: " + ids)
 		}
-		val allIds = LinkedList<String>()
-		val toRetrieve = LinkedList<String>()
-		val cached = LinkedList<T>()
-		ids.collect { id ->
-			val currCached = cacheChain?.getEntity(datastoreInformation.getFullIdFor(id))
-			if (currCached != null) {
-				cached.addLast(currCached)
+		val dedupedIds = ids.distinct()
+		// How many times each entity still has to be emitted: an entity is dropped from [resolved] as soon as all the
+		// occurrences of its id in [ids] were emitted, so only the entities for duplicated ids are retained.
+		val pendingOccurrences = ids.groupingBy { it }.eachCountTo(mutableMapOf())
+		val resolved = dedupedIds.mapNotNull { cacheChain?.getEntity(datastoreInformation.getFullIdFor(it)) }
+			.associateByTo(mutableMapOf()) { it.id }
+		val toRetrieve = dedupedIds.filter { !resolved.containsKey(it) }
+
+		suspend fun emitIfResolved(id: String) {
+			val entity = resolved[id] ?: return
+			this@flow.emit(entity)
+			val remaining = pendingOccurrences.getValue(id) - 1
+			if (remaining == 0) {
+				pendingOccurrences.remove(id)
+				resolved.remove(id)
 			} else {
-				toRetrieve.addLast(id)
+				pendingOccurrences[id] = remaining
 			}
-			allIds.addLast(id)
 		}
+
+		if (toRetrieve.isEmpty()) {
+			ids.forEach { emitIfResolved(it) }
+			return@flow
+		}
+
 		// TODO do we want to limit size of the request?
-		if (toRetrieve.isNotEmpty()) {
-			client.get(
-				toRetrieve,
-				entityClass,
-				onEntityException = EntityExceptionBehaviour.Recover
-			).collect { retrieved ->
-				val postLoaded = this@GenericDAOImpl.postLoad(datastoreInformation, retrieved)
-				cacheChain?.putInCache(datastoreInformation.getFullIdFor(postLoaded.id), postLoaded)
-				while (retrieved.id != allIds.first()) {
-					// Some entities may not exist or be of the wrong type, ignore while not matching a cached entity
-					if (cached.firstOrNull()?.id == allIds.first()) {
-						emit(cached.removeFirst())
-					}
-					allIds.removeFirst()
-				}
-				emit(retrieved)
-				allIds.removeFirst()
+		var resultIndex = 0
+		var warnedAboutOrder = false
+		client.get(
+			toRetrieve,
+			entityClass,
+			onEntityException = EntityExceptionBehaviour.Recover
+		).collect { retrieved ->
+			while (resultIndex < ids.size && ids[resultIndex] != retrieved.id) {
+				emitIfResolved(ids[resultIndex])
+				resultIndex++
+			}
+			if (resultIndex >= ids.size && !warnedAboutOrder) {
+				// The entity was not found at or after the current position in the requested ids, meaning that couchdb
+				// did not return the results in the order of the provided ids. All the existing entities are still
+				// emitted exactly once per occurrence, but the order of the output no longer matches the order of the
+				// input.
+				warnedAboutOrder = true
+				log.warn("Getting entities by ids returned ${retrieved.id} out of the requested ids order: ${entityClass.simpleName} entities will be emitted in an arbitrary order")
+			}
+			val postLoaded = this@GenericDAOImpl.postLoad(datastoreInformation, retrieved)
+			cacheChain?.putInCache(datastoreInformation.getFullIdFor(retrieved.id), postLoaded)
+			resolved[retrieved.id] = postLoaded
+			// If the results are in order then ids[resultIndex] == retrieved.id and the cursor moves past it,
+			// otherwise the cursor is already exhausted and the increment is irrelevant.
+			emitIfResolved(retrieved.id)
+			resultIndex++
+		}
+		while (resultIndex < ids.size) {
+			emitIfResolved(ids[resultIndex])
+			resultIndex++
+		}
+		// If the results were in order all the occurrences of the resolved entities were consumed by now, therefore
+		// anything left here was skipped because couchdb did not respect the order of the ids. This also covers the
+		// reorderings that the check in the collect could not detect, because the entity was found again at a later
+		// occurrence of its id.
+		if (resolved.isNotEmpty() && !warnedAboutOrder) {
+			warnedAboutOrder = true
+			log.warn("Getting entities by ids returned ${resolved.keys.first()} out of the requested ids order: ${entityClass.simpleName} entities will be emitted in an arbitrary order")
+		}
+		resolved.forEach { (id, entity) ->
+			repeat(pendingOccurrences.getValue(id)) {
+				emit(entity)
 			}
 		}
-		while (allIds.isNotEmpty() && cached.isNotEmpty()) {
-			if (allIds.removeFirst() == cached.first().id) {
-				emit(cached.removeFirst())
-			}
-		}
-		check(cached.isEmpty()) { "Should have consumed all cached entities" }
 	}
 
 	override suspend fun create(datastoreInformation: IDatastoreInformation, entity: T): T {
@@ -277,8 +315,9 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				} else {
 					client.update(e, entityClass)
 				}.let {
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
-					afterSave(datastoreInformation, it, e)
+					afterSave(datastoreInformation, it, e).also { saved ->
+						cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
+					}
 				}
 			}
 		} catch (e: CouchDbException) {
@@ -544,7 +583,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(it.id))
 			beforeSave(datastoreInformation, it)
 		}
-		val fixedEntitiesById = entities.associateBy { it.id }
+		val fixedEntitiesById = fixedEntities.associateBy { it.id }
 
 		emitAll(
 			client.bulkUpdate(fixedEntities, entityClass).map { updateResult ->
@@ -553,8 +592,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 						rev = checkNotNull(updateResult.rev) { "Updated was successful but rev is null" }
 					) as T
 					updatedEntity.let {
-						cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.id), it)
-						BulkSaveResult.Success(afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)))
+						BulkSaveResult.Success(
+							afterSave(datastoreInformation, it, fixedEntitiesById.getValue(it.id)).also { saved ->
+								cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
+							}
+						)
 					}
 				} else {
 					updateResult.toBulkSaveResultFailure()
@@ -924,9 +966,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return try {
 			check (!checkAllNodesUp || client.hasAllNodesUp()) { "Not all nodes are up" }
 			client.getWithQuorum(id, entityClass, quorum)?.let {
-				cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), it)
 				check (!checkAllNodesUp || client.hasAllNodesUp()) { "Not all nodes are up" }
-				postLoad(datastoreInformation, it)
+				postLoad(datastoreInformation, it).also { postLoaded ->
+					cacheChain?.putInCache(datastoreInformation.getFullIdFor(id), postLoaded)
+				}
 			}
 		} catch (_: DocumentNotFoundException) {
 			null
@@ -950,9 +993,10 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				} else {
 					client.updateWithQuorum(e, entityClass, quorum, timeout)
 				}.let {
-					cacheChain?.putInCache(datastoreInformation.getFullIdFor(it.first.id), it.first)
 					Pair(
-						afterSave(datastoreInformation, it.first, e),
+						afterSave(datastoreInformation, it.first, e).also { saved ->
+							cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
+						},
 						it.second && allNodesUpBeforeSave && client.hasAllNodesUp()
 					)
 				}
