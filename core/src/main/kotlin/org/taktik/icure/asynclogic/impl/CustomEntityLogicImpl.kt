@@ -2,8 +2,11 @@ package org.taktik.icure.asynclogic.impl
 
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
@@ -20,7 +23,9 @@ import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLog
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
+import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.utils.toMap
 
 
 @Service
@@ -108,12 +113,59 @@ class CustomEntityLogicImpl(
 		ids: List<String>,
 	): Flow<CustomEntityBase> = flow {
 		dao.getEntities(getInstanceAndGroup(), ids).collect {
-			require(it.entityTypeId == entityType) {
+			require (it.entityTypeId == entityType) {
 				"Entity ${it.id} is not of expected type."
 			}
 			emit(it)
 		}
 	}
+
+	override suspend fun getCustomEntityMetadataStub(
+		entityType: String,
+		id: String,
+	): CustomEntityBase? =
+		doGetCustomEntityMetadataStub(getInstanceAndGroup(), entityType, id)
+
+	private suspend fun doGetCustomEntityMetadataStub(
+		datastoreInfo: IDatastoreInformation,
+		entityType: String,
+		id: String,
+	): CustomEntityBase? =
+		dao.getCustomEntityMetadataStub(
+			datastoreInfo,
+			id
+		)?.also {
+			require (it.entityTypeId == entityType) {
+				"Entity ${it.id} is not of expected type."
+			}
+		}
+
+	override fun getCustomEntitiesMetadataStub(
+		entityType: String,
+		ids: List<String>,
+	): Flow<CustomEntityBase> = flow {
+		doGetCustomEntitiesMetadataStubs(
+			getInstanceAndGroup(),
+			entityType,
+			ids
+		).collect {
+			emit(it)
+		}
+	}
+
+	private fun doGetCustomEntitiesMetadataStubs(
+		datastoreInfo: IDatastoreInformation,
+		entityType: String,
+		ids: List<String>,
+	): Flow<CustomEntityBase> =
+		dao.getCustomEntitiesMetadataStubs(
+			datastoreInfo,
+			ids
+		).onEach {
+			require (it.entityTypeId == entityType) {
+				"Entity ${it.id} is not of expected type."
+			}
+		}
 
 	override suspend fun modifyCustomEntity(
 		entityType: String,
@@ -123,10 +175,13 @@ class CustomEntityLogicImpl(
 	) {
 		val datastoreInfo = getInstanceAndGroup()
 		dao.save(
-			getInstanceAndGroup(),
+			datastoreInfo,
 			checkAndMapValidModification(
-				currentEntityStub = dao.getCustomEntityMetadataStub(datastoreInfo, entity.id)
-					?: throw NotFoundRequestException("Entity ${entity.id} does not exist"),
+				currentEntityStub = doGetCustomEntityMetadataStub(
+					datastoreInfo,
+					entityType,
+					entity.id
+				) ?: throw NotFoundRequestException("Entity ${entity.id} does not exist"),
 				updatedEntity = entity
 			)
 		)
@@ -140,8 +195,9 @@ class CustomEntityLogicImpl(
 		dao.saveBulk(
 			datastoreInfo,
 			filterAndMapValidModifications(
-				currentEntitiesStubs = dao.getCustomEntitiesMetadataStubs(
+				currentEntitiesStubs = doGetCustomEntitiesMetadataStubs(
 					datastoreInfo,
+					entityType,
 					entities.map { it.id }
 				).toList(),
 				updatedEntities = entities
@@ -196,19 +252,34 @@ class CustomEntityLogicImpl(
 		id: String,
 		rev: String,
 	): DocIdentifier = withDefinitionContext(entityType) {
-		val entity = dao.getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
+		val datastoreInfo = getInstanceAndGroup()
+		val entity = doGetCustomEntityMetadataStub(datastoreInfo, entityType, id)?.also {
+			if (it.rev != rev) throw ConflictRequestException("Revision does not match for entity with id $id")
+		} ?: throw NotFoundRequestException("Entity with id $id not found")
 		require(entity.entityTypeId == entityType) { "Entity $id is not of expected type." }
-		dao.purge(getInstanceAndGroup(), entity).also { cleanupPurgedEntity(entity) }
+		dao.purge(datastoreInfo, entity).also { cleanupPurgedEntity(entity) }
 	}
 
 	override fun purgeCustomEntities(
 		entityType: String,
 		identifiers: Collection<IdAndRev>,
 	): Flow<DocIdentifier> = flowWithDefinitionContext(entityType) {
+		require(identifiers.mapTo(mutableSetOf()) { it.id }.size == identifiers.size) {
+			"Duplicate identifiers provided"
+		}
 		val datastoreInfo = getInstanceAndGroup()
-		val entitiesById = dao.getEntitiesWithExpectedRev(datastoreInfo, identifiers).onEach {
+		val expectedRevById = identifiers.associate { it.id to it.rev }
+		val entitiesById = doGetCustomEntitiesMetadataStubs(
+			datastoreInfo,
+			entityType,
+			identifiers.map { it.id }
+		).onEach {
 			require(it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
-		}.associateBy { it.id }
+		}.filter {
+			it.rev == expectedRevById[it.id]
+		}.map {
+			it.id to it
+		}.toMap()
 		dao.purge(datastoreInfo, entitiesById.values).filterSuccessfulUpdates().onEach {
 			cleanupPurgedEntity(checkNotNull(entitiesById[it.id]))
 		}
