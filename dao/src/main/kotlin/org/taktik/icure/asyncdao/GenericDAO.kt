@@ -155,10 +155,21 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	fun getEntityIds(datastoreInformation: IDatastoreInformation, limit: Int? = null): Flow<String>
 
 	/**
-	 * Retrieves a collection of entities from the database by their id. The returned flow will have the same order as
-	 * the order of the ids passed as parameter. If an entity is not found, then it is ignored and no error will be
-	 * returned. For each id, the cache is checked first if present. Also, if the cache is present, all the found
-	 * entities will be stored in all the levels of the cache.
+	 * Retrieves a collection of entities from the database by their id. If an entity is not found, then it is ignored
+	 * and no error will be returned, therefore the returned flow may contain fewer elements than [ids]; a duplicate id
+	 * is emitted once per occurrence, but it is requested to the database only once. For each id, the cache is checked
+	 * first if present. Also, if the cache is present, all the found entities will be stored in all the levels of the
+	 * cache.
+	 *
+	 * The entities are emitted in the same order as the corresponding ids in [ids], but this holds only as long as
+	 * couchdb returns the results of a bulk get by ids in the order the ids were provided. That is the actual behaviour
+	 * of all the supported couchdb versions, but it is not part of the documented api: if couchdb ever stops respecting
+	 * that order the implementation still emits each existing entity exactly once per occurrence, in an unspecified
+	 * order, and logs a warning. The entities retrieved from the database are not buffered in memory, except for the
+	 * ones that still have to be emitted for a duplicate id, therefore the implementation cannot reorder them itself;
+	 * the callers for which the order is critical should match the emitted entities by id instead of relying on their
+	 * position.
+	 *
 	 * @param datastoreInformation the datastore information to get the database client.
 	 * @param ids a [Collection] containing the ids of the entities to retrieve.
 	 * @return a [Flow] containing all the found entities.
@@ -166,10 +177,22 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	fun getEntities(datastoreInformation: IDatastoreInformation, ids: Collection<String>): Flow<T>
 
 	/**
-	 * Retrieves a collection of entities from the database by their id. The returned flow will have the same order as
-	 * the order of the ids passed as parameter. If an entity is not found, then it is ignored and no error will be
-	 * returned. For each id, the cache is checked first if present. Also, if the cache is present, all the found
-	 * entities will be stored in all the levels of the cache.
+	 * Retrieves a collection of entities from the database by their id. If an entity is not found, then it is ignored
+	 * and no error will be returned, therefore the returned flow may contain fewer elements than [ids]; a duplicate id
+	 * is emitted once per occurrence, but it is requested to the database only once. For each id, the cache is checked
+	 * first if present. Also, if the cache is present, all the found entities will be stored in all the levels of the
+	 * cache.
+	 *
+	 * The entities are emitted in the same order as the corresponding ids in [ids], but this holds only as long as
+	 * couchdb returns the results of a bulk get by ids in the order the ids were provided. That is the actual behaviour
+	 * of all the supported couchdb versions, but it is not part of the documented api: if couchdb ever stops respecting
+	 * that order the implementation still emits each existing entity exactly once per occurrence, in an unspecified
+	 * order, and logs a warning. The entities retrieved from the database are not buffered in memory, except for the
+	 * ones that still have to be emitted for a duplicate id, therefore the implementation cannot reorder them itself;
+	 * the callers for which the order is critical should match the emitted entities by id instead of relying on their
+	 * position.
+	 *
+	 * Note that [ids] is fully collected before requesting the entities to the database.
 	 *
 	 * @param datastoreInformation the datastore information to get the database client.
 	 * @param ids a [Flow] containing the ids of the entities to retrieve.
