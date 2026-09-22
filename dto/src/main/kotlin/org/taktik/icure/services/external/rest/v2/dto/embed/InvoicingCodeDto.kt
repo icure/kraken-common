@@ -20,9 +20,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.SdkName
-import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -136,6 +135,8 @@ data class InvoicingCodeDto(
 	@ActiveField val lost: Boolean? = null,
 	/** The insurance justification code. */
 	@ActiveField val insuranceJustification: Int? = null,
+	/** The reimbursement agreement number obtained during a pre-authorization. */
+	@ActiveField val agreementNumber: String? = null,
 	/** The reason for canceling patient intervention. */
 	@ActiveField val cancelPatientInterventionReason: Int? = null,
 	/** The status bitmask of this invoicing code. */
