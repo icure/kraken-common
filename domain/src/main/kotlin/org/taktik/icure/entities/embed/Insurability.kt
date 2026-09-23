@@ -5,6 +5,8 @@ package org.taktik.icure.entities.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.taktik.icure.handlers.JacksonLenientStringMapDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
 import java.io.Serializable
 
@@ -13,6 +15,7 @@ import java.io.Serializable
 @Mergeable(["insuranceId", "startDate"])
 data class Insurability(
 	// Key from InsuranceParameter
+	@param:JsonDeserialize(using = JacksonLenientStringMapDeserializer::class)
 	val parameters: Map<String, String> = emptyMap(),
 	val hospitalisation: Boolean? = null,
 	val ambulatory: Boolean? = null,
