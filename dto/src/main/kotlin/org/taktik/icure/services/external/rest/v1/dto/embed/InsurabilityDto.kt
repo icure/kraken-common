@@ -9,8 +9,6 @@ package org.taktik.icure.services.external.rest.v1.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import org.taktik.icure.handlers.JacksonLenientStringMapDeserializer
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
 
@@ -18,7 +16,7 @@ import java.io.Serializable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "This class represents a coverage of a patient by an insurance during a period or time.")
 data class InsurabilityDto(
-	@param:Schema(description = "Insurance extra parameters.") @param:JsonDeserialize(using = JacksonLenientStringMapDeserializer::class) val parameters: Map<String, String> = emptyMap(),
+	@param:Schema(description = "Insurance extra parameters.") val parameters: Map<String, String> = emptyMap(),
 	@param:Schema(description = "Is hospitalization covered.") val hospitalisation: Boolean? = null,
 	@param:Schema(description = "Is outpatient care covered.") val ambulatory: Boolean? = null,
 	@param:Schema(description = "Is dental care covered.") val dental: Boolean? = null,
