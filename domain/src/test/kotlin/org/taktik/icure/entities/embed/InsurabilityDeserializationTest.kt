@@ -23,6 +23,15 @@ class InsurabilityDeserializationTest :
 			).parameters shouldBe mapOf("a" to "x")
 		}
 
+		"Parameter with null as key and value should be discarded" {
+			mapper.readValue<Insurability>(
+				"""{ "parameters": { "null": null } }""",
+			).parameters shouldBe emptyMap()
+			mapper.readValue<Insurability>(
+				"""{ "parameters": { "null": null, "a": "x" } }""",
+			).parameters shouldBe mapOf("a" to "x")
+		}
+
 		"Object and array parameter values should be discarded" {
 			mapper.readValue<Insurability>(
 				"""{ "parameters": { "a": "x", "b": { "c": "d" }, "e": ["f"] } }""",
