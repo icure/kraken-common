@@ -38,6 +38,7 @@ import org.taktik.icure.entities.embed.SchoolingInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.handlers.JacksonBase64LenientDeserializer
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
+import org.taktik.icure.handlers.JacksonLenientNestedStringMapDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -195,6 +196,7 @@ data class Patient(
 	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
 	// Extra AES exchange keys, usually the ones we lost access to at some point
 	// The structure is { publicKey: { delegateId: { myPubKey1: aesExKey_for_this, delegatePubKey1: aesExKey_for_delegate } } }
+	@param:JsonDeserialize(using = JacksonLenientNestedStringMapDeserializer::class)
 	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
 	// Our private keys encrypted with our public keys
 	// The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }

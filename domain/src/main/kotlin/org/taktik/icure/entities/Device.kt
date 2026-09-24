@@ -20,6 +20,7 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
@@ -32,6 +33,7 @@ import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
+import org.taktik.icure.handlers.JacksonLenientNestedStringMapDeserializer
 import org.taktik.icure.mergers.annotations.Mergeable
 import org.taktik.icure.validation.AutoFix
 import org.taktik.icure.validation.NotNull
@@ -117,6 +119,7 @@ data class Device(
 	override val hcPartyKeys: Map<String, List<String>> = emptyMap(),
 	// Extra AES exchange keys, usually the ones we lost access to at some point
 	// The structure is { publicKey: { delegateId: { myPubKey1: aesExKey_for_this, delegatePubKey1: aesExKey_for_delegate } } }
+	@param:JsonDeserialize(using = JacksonLenientNestedStringMapDeserializer::class)
 	override val aesExchangeKeys: Map<String, Map<String, Map<String, String>>> = emptyMap(),
 	// Our private keys encrypted with our public keys
 	// The structure is { publicKey1: { publicKey2: privateKey2_encrypted_with_publicKey1, publicKey3: privateKey3_encrypted_with_publicKey1 } }
