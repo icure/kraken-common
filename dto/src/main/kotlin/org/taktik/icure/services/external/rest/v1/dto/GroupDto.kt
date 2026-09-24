@@ -10,7 +10,6 @@ import org.taktik.icure.services.external.rest.v1.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v1.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v1.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.AuthenticationClassDto
-import org.taktik.icure.services.external.rest.v1.dto.embed.GroupStatusDto
 import org.taktik.icure.services.external.rest.v1.dto.embed.UserTypeDto
 import org.taktik.icure.services.external.rest.v1.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v1.dto.security.OperationTokenDto
@@ -43,8 +42,6 @@ data class GroupDto(
 	)
 	val applicationId: String? = null,
 	val templates: TemplatesConfigurationDto? = null,
-	@param:Schema(description = "The commercial status of the group, derived from the group hierarchy when not explicitly set on the group. Read-only.")
-	val status: GroupStatusDto? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
