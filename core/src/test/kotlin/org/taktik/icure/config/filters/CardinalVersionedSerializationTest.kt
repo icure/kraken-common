@@ -134,20 +134,20 @@ class CardinalVersionedSerializationTest : StringSpec({
 	}
 
 	"GroupDto.status is filtered out strictly before 3.0.0-preview-6, in both regimes" {
-		val group = GroupDto(id = "group", status = GroupStatusDto.INHERITED_PAYING, designDocSchemaVersions = setOf(1))
+		val group = GroupDto(id = "group", status = GroupStatusDto.PAYING, designDocSchemaVersions = setOf(1))
 
-		mapperFor(version = null).toTree(group)["status"].asText() shouldBe "INHERITED_PAYING"
+		mapperFor(version = null).toTree(group)["status"].asText() shouldBe "PAYING"
 		listOf("2.0.0", "2.7.0", "2.13.0", "3.0.0-preview-5").forEach { version ->
 			mapperFor(version, includingLegacyFields = false).toTree(group).has("status") shouldBe false
 			mapperFor(version, includingLegacyFields = true).toTree(group).has("status") shouldBe false
 		}
 		listOf("3.0.0-preview-6", "3.0.0").forEach { version ->
 			mapperFor(version, includingLegacyFields = false).toTree(group).let {
-				it["status"].asText() shouldBe "INHERITED_PAYING"
+				it["status"].asText() shouldBe "PAYING"
 				// The policies of the previous versions still apply
 				it.has("designDocSchemaVersions") shouldBe true
 			}
-			mapperFor(version, includingLegacyFields = true).toTree(group)["status"].asText() shouldBe "INHERITED_PAYING"
+			mapperFor(version, includingLegacyFields = true).toTree(group)["status"].asText() shouldBe "PAYING"
 		}
 		// The policies of the other DTOs are carried over to the new version
 		mapperFor("3.0.0-preview-6", includingLegacyFields = false).toTree(HealthElementDto(id = "he", status = 7)).has("status") shouldBe false
