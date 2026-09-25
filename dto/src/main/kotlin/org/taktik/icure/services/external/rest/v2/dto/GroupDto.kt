@@ -26,6 +26,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AuthenticationClassDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.GroupStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
@@ -106,6 +107,16 @@ data class GroupDto(
 		Since("2.7.0", ActiveField::class)
 	)
 	val defaultChildrenSchemaVersion: Int? = null,
+	/**
+	 * The commercial status of the group, derived from the group hierarchy when not explicitly set on the group.
+	 * This field is read-only: it is ignored when creating or modifying a group.
+	 */
+	@param:Schema(description = "The commercial status of the group, derived from the group hierarchy when not explicitly set on the group. Read-only.")
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("3.0.0-preview-6", ActiveField::class)
+	)
+	val status: GroupStatusDto? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
