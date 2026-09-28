@@ -41,9 +41,16 @@ class ServerTimings {
 	private val entries = ConcurrentLinkedQueue<String>()
 	private val collected = AtomicInteger(0)
 
-	/** Records [entry], unless [limit] entries were already recorded for this request. */
-	fun add(entry: String, limit: Int) {
-		if (collected.incrementAndGet() <= limit) entries.add(entry) else collected.decrementAndGet()
+	/**
+	 * Records [entry], unless [limit] limited entries were already recorded for this request.
+	 * A null [limit] records [entry] unconditionally, without counting it toward the limit of the others.
+	 */
+	fun add(entry: String, limit: Int?) {
+		when {
+			limit == null -> entries.add(entry)
+			collected.incrementAndGet() <= limit -> entries.add(entry)
+			else -> collected.decrementAndGet()
+		}
 	}
 
 	/** Hands every entry recorded so far to [write] and forgets it, so an entry is never written twice. */
@@ -54,25 +61,30 @@ class ServerTimings {
 
 fun ServerWebExchange.serverTimings(): ServerTimings? = attributes[SERVER_TIMINGS_ATTRIBUTE] as? ServerTimings
 
+/**
+ * Records a `Server-Timing` entry for [exchange]. Entries are capped per request by the feedback limit, unless
+ * [limited] is false: filter timings use that, so they are not crowded out by the CouchDB requests they trigger.
+ */
 fun addServerTimingHeader(
 	exchange: ServerWebExchange,
 	name: String,
 	duration: Long,
 	methodCallStart: Long? = null,
+	limited: Boolean = true,
 ) {
 	val desc = methodCallStart?.let { start ->
 		exchange.getAttribute<Long>(ArrivalTimeFilter.ARRIVAL_TIME)?.let { arrivalTime -> "mfs:${start - arrivalTime}" }
 	}
 	// `dur=` is required by the Server-Timing grammar: without it browsers parse the duration as 0.
 	val entry = "$name;dur=$duration${desc?.let { ";desc=\"$it\"" } ?: ""}"
-	val limit = exchange.request.headers.getFirst(FEEDBACK_LIMIT_HEADER)?.toIntOrNull() ?: DEFAULT_FEEDBACK_LIMIT
+	val limit = if (limited) exchange.request.headers.getFirst(FEEDBACK_LIMIT_HEADER)?.toIntOrNull() ?: DEFAULT_FEEDBACK_LIMIT else null
 	exchange.serverTimings()?.add(entry, limit) ?: addDirectly(exchange, entry, limit)
 }
 
 /** Fallback for exchanges that never went through `ServerTimingFilter`, e.g. in unit tests. */
-private fun addDirectly(exchange: ServerWebExchange, entry: String, limit: Int) {
+private fun addDirectly(exchange: ServerWebExchange, entry: String, limit: Int?) {
 	try {
-		if ((exchange.response.headers[SERVER_TIMING_HEADER]?.size ?: 0) < limit) {
+		if (limit == null || (exchange.response.headers[SERVER_TIMING_HEADER]?.size ?: 0) < limit) {
 			exchange.response.headers.add(SERVER_TIMING_HEADER, entry)
 		}
 	} catch (_: UnsupportedOperationException) {
@@ -84,10 +96,11 @@ suspend fun addServerTimingHeader(
 	name: String,
 	duration: Long,
 	methodCallStart: Long? = null,
+	limited: Boolean = true,
 ) {
 	currentCoroutineContext()[ReactorContext.Key]
 		?.context
 		?.getOrEmpty<ServerWebExchange>(ServerWebExchange::class.java)
 		?.orElse(null)
-		?.let { addServerTimingHeader(exchange = it, name = name, duration = duration, methodCallStart = methodCallStart) }
+		?.let { addServerTimingHeader(exchange = it, name = name, duration = duration, methodCallStart = methodCallStart, limited = limited) }
 }
