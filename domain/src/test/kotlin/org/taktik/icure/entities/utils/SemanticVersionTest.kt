@@ -1,53 +1,89 @@
 package org.taktik.icure.entities.utils
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.comparables.shouldBeEqualComparingTo
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import java.util.TreeMap
 
 class SemanticVersionTest : StringSpec({
-	"core components should be compared numerically" {
+	fun v(version: String) = SemanticVersion(version)
+
+	fun List<String>.shouldBeStrictlyIncreasing() = zipWithNext().forEach { (lower, higher) ->
+		v(lower) shouldBeLessThan v(higher)
+		v(higher) shouldBeGreaterThan v(lower)
+	}
+
+	"major, minor and patch are compared numerically" {
+		listOf("1.0.2", "1.0.10", "1.9.9", "1.10.0", "2.0.0", "2.0.10", "2.1.0", "10.0.0").shouldBeStrictlyIncreasing()
+	}
+
+	"a release is greater than its pre-releases" {
+		listOf("2.13.0", "3.0.0-preview-1", "3.0.0-preview-6", "3.0.0").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-preview.6", "3.0.0").shouldBeStrictlyIncreasing()
+	}
+
+	"numeric pre-release identifiers are compared numerically" {
 		listOf(
-			"1.0.0" to "2.0.0",
-			"1.2.0" to "1.10.0",
-			"1.0.2" to "1.0.10",
-		).forEach { (lower, higher) ->
-			SemanticVersion(lower) shouldBeLessThan SemanticVersion(higher)
-			SemanticVersion(higher) shouldBeGreaterThan SemanticVersion(lower)
-		}
+			"3.0.0-preview-2",
+			"3.0.0-preview-6",
+			"3.0.0-preview-9",
+			"3.0.0-preview-10",
+			"3.0.0-preview-59",
+			"3.0.0-preview-100"
+		).shouldBeStrictlyIncreasing()
+		listOf("1.0.0-rc2", "1.0.0-rc9", "1.0.0-rc10").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-preview-6", "3.0.0-preview.10", "3.0.0-preview-11").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-rc-2-1", "3.0.0-rc.2.2").shouldBeStrictlyIncreasing()
 	}
 
-	"a version with a suffix should precede the same version without suffix" {
-		SemanticVersion("3.0.0-PREVIEW-6") shouldBeLessThan SemanticVersion("3.0.0")
-		SemanticVersion("3.0.0-PREVIEW.6") shouldBeLessThan SemanticVersion("3.0.0")
-	}
-
-	"numeric suffix identifiers should be compared numerically in both conventions" {
+	"pre-releases follow the semantic versioning precedence" {
 		listOf(
-			"3.0.0-PREVIEW-6" to "3.0.0-PREVIEW-10",
-			"3.0.0-PREVIEW.6" to "3.0.0-PREVIEW.11",
-			"3.0.0-PREVIEW-6" to "3.0.0-PREVIEW.11",
-			"3.0.0-PREVIEW.6" to "3.0.0-PREVIEW-10",
-			"3.0.0-RC-2-1" to "3.0.0-RC.2.2",
-		).forEach { (lower, higher) ->
-			SemanticVersion(lower) shouldBeLessThan SemanticVersion(higher)
-			SemanticVersion(higher) shouldBeGreaterThan SemanticVersion(lower)
+			"1.0.0-alpha",
+			"1.0.0-alpha.1",
+			"1.0.0-alpha.beta",
+			"1.0.0-beta",
+			"1.0.0-beta.2",
+			"1.0.0-beta.11",
+			"1.0.0-rc.1",
+			"1.0.0"
+		).shouldBeStrictlyIncreasing()
+	}
+
+	"separators and leading zeros do not change the precedence, build metadata is ignored" {
+		v("3.0.0-preview-6") shouldBeEqualComparingTo v("3.0.0-preview.6")
+		v("3.0.0-preview-06") shouldBeEqualComparingTo v("3.0.0-preview-6")
+		v("3.0.0+build.5") shouldBeEqualComparingTo v("3.0.0")
+		v("3.0.0-preview-6+abc") shouldBeEqualComparingTo v("3.0.0-preview-6")
+	}
+
+	"floor lookups pick the latest configuration whose minimum version is not above the requested one" {
+		val configs = TreeMap<SemanticVersion, String>().apply {
+			put(v("2.0.0"), "2.0.0")
+			put(v("2.13.0"), "2.13.0")
+			put(v("3.0.0-preview-6"), "3.0.0-preview-6")
 		}
+		configs.floorEntry(v("3.0.0-preview-5"))?.value shouldBe "2.13.0"
+		configs.floorEntry(v("3.0.0-preview-6"))?.value shouldBe "3.0.0-preview-6"
+		configs.floorEntry(v("3.0.0-preview-10"))?.value shouldBe "3.0.0-preview-6"
+		configs.floorEntry(v("3.0.0-preview-59"))?.value shouldBe "3.0.0-preview-6"
+		configs.floorEntry(v("3.0.0"))?.value shouldBe "3.0.0-preview-6"
+		configs.floorEntry(v("1.9.0")) shouldBe null
 	}
 
-	"alphanumeric suffix identifiers should be compared lexicographically and take precedence over numeric ones" {
-		SemanticVersion("3.0.0-ALPHA.2") shouldBeLessThan SemanticVersion("3.0.0-BETA.1")
-		SemanticVersion("3.0.0-PREVIEW.11") shouldBeLessThan SemanticVersion("3.0.0-PREVIEW.RC")
-		SemanticVersion("3.0.0-PREVIEW.11") shouldBeLessThan SemanticVersion("3.0.0-PREVIEW.11.1")
+	"equality is based on the version string" {
+		v("3.0.0-preview-6") shouldBe v("3.0.0-preview-6")
+		v("3.0.0-preview-6").hashCode() shouldBe v("3.0.0-preview-6").hashCode()
+		v("3.0.0-preview-6") shouldBeEqualComparingTo v("3.0.0-preview-6")
+		v("3.0.0") shouldBeEqualComparingTo v("3.0.0")
+		v("3.0.0-preview-6") shouldNotBe v("3.0.0-preview.6")
 	}
 
-	"suffixes equivalent across the two conventions should fall back to a lexicographic comparison" {
-		SemanticVersion("3.0.0-PREVIEW-11").compareTo(SemanticVersion("3.0.0-PREVIEW.11")) shouldBe
-			"-PREVIEW-11".compareTo("-PREVIEW.11")
-	}
-
-	"versions with the same suffix should compare as equal" {
-		SemanticVersion("3.0.0-PREVIEW.11").compareTo(SemanticVersion("3.0.0-PREVIEW.11")) shouldBe 0
-		SemanticVersion("3.0.0").compareTo(SemanticVersion("3.0.0")) shouldBe 0
+	"invalid versions are rejected" {
+		shouldThrow<IllegalArgumentException> { v("3.0").compareTo(v("3.0.0")) }
+		shouldThrow<NumberFormatException> { v("a.b.c").compareTo(v("3.0.0")) }
 	}
 })

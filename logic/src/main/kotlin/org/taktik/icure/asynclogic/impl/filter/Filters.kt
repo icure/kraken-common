@@ -58,7 +58,8 @@ class Filters : ApplicationContextAware {
 			addServerTimingHeader(
 				name = "filter-$desc",
 				duration = System.currentTimeMillis() - startTime,
-				methodCallStart = startTime
+				methodCallStart = startTime,
+				limited = false,
 			)
 		}
 	}
