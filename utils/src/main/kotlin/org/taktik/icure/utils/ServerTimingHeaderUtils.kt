@@ -14,11 +14,14 @@ const val SERVER_TIMING_HEADER: String = "Server-Timing"
 /** Attribute holding the [ServerTimings] of a request, set by `ServerTimingFilter`. */
 const val SERVER_TIMINGS_ATTRIBUTE: String = "com.icure.request.serverTimings"
 
-/** Request header enabling `Server-Timing` on the response: without it, no timing entry is written at all. */
-const val ENABLE_SERVER_TIMING_HEADER: String = "Enable-Server-Timing"
+/** Request header enabling HTTP trailers on the response: without it, no trailer is ever sent. */
+const val ENABLE_TRAILERS_HEADER: String = "Enable-Trailers"
 
 private const val FEEDBACK_LIMIT_HEADER = "X-Couch-Requests-Feedback-Limit"
 private const val DEFAULT_FEEDBACK_LIMIT = 5
+
+/** Whether the client asked for HTTP trailers on the response, by passing [ENABLE_TRAILERS_HEADER]. */
+fun ServerWebExchange.areTrailersEnabled(): Boolean = request.headers.containsKey(ENABLE_TRAILERS_HEADER)
 
 /**
  * The reactor-netty response behind the (possibly decorated) response of this exchange, or null when running
@@ -61,13 +64,9 @@ class ServerTimings {
 
 fun ServerWebExchange.serverTimings(): ServerTimings? = attributes[SERVER_TIMINGS_ATTRIBUTE] as? ServerTimings
 
-/** Whether the client asked for `Server-Timing` entries on the response, by passing [ENABLE_SERVER_TIMING_HEADER]. */
-fun ServerWebExchange.isServerTimingEnabled(): Boolean = request.headers.containsKey(ENABLE_SERVER_TIMING_HEADER)
-
 /**
- * Records a `Server-Timing` entry for [exchange], if the client enabled them with [ENABLE_SERVER_TIMING_HEADER].
- * Entries are capped per request by the feedback limit, unless [limited] is false: filter timings use that, so
- * they are not crowded out by the CouchDB requests they trigger.
+ * Records a `Server-Timing` entry for [exchange]. Entries are capped per request by the feedback limit, unless
+ * [limited] is false: filter timings use that, so they are not crowded out by the CouchDB requests they trigger.
  */
 fun addServerTimingHeader(
 	exchange: ServerWebExchange,
@@ -76,15 +75,13 @@ fun addServerTimingHeader(
 	methodCallStart: Long? = null,
 	limited: Boolean = true,
 ) {
-	if (exchange.isServerTimingEnabled()) {
-		val desc = methodCallStart?.let { start ->
-			exchange.getAttribute<Long>(ArrivalTimeFilter.ARRIVAL_TIME)?.let { arrivalTime -> "mfs:${start - arrivalTime}" }
-		}
-		// `dur=` is required by the Server-Timing grammar: without it browsers parse the duration as 0.
-		val entry = "$name;dur=$duration${desc?.let { ";desc=\"$it\"" } ?: ""}"
-		val limit = if (limited) exchange.request.headers.getFirst(FEEDBACK_LIMIT_HEADER)?.toIntOrNull() ?: DEFAULT_FEEDBACK_LIMIT else null
-		exchange.serverTimings()?.add(entry, limit) ?: addDirectly(exchange, entry, limit)
+	val desc = methodCallStart?.let { start ->
+		exchange.getAttribute<Long>(ArrivalTimeFilter.ARRIVAL_TIME)?.let { arrivalTime -> "mfs:${start - arrivalTime}" }
 	}
+	// `dur=` is required by the Server-Timing grammar: without it browsers parse the duration as 0.
+	val entry = "$name;dur=$duration${desc?.let { ";desc=\"$it\"" } ?: ""}"
+	val limit = if (limited) exchange.request.headers.getFirst(FEEDBACK_LIMIT_HEADER)?.toIntOrNull() ?: DEFAULT_FEEDBACK_LIMIT else null
+	exchange.serverTimings()?.add(entry, limit) ?: addDirectly(exchange, entry, limit)
 }
 
 /** Fallback for exchanges that never went through `ServerTimingFilter`, e.g. in unit tests. */

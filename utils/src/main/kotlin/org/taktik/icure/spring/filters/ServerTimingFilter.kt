@@ -10,7 +10,7 @@ import org.springframework.web.server.WebFilterChain
 import org.taktik.icure.utils.SERVER_TIMINGS_ATTRIBUTE
 import org.taktik.icure.utils.SERVER_TIMING_HEADER
 import org.taktik.icure.utils.ServerTimings
-import org.taktik.icure.utils.isServerTimingEnabled
+import org.taktik.icure.utils.areTrailersEnabled
 import org.taktik.icure.utils.reactorNettyResponse
 import reactor.core.publisher.Mono
 
@@ -24,17 +24,13 @@ import reactor.core.publisher.Mono
  * wire on a chunked HTTP/1.1 response or on HTTP/2, and only browser devtools read them - the Fetch API and
  * `PerformanceServerTiming` see the headers only.
  *
- * Nothing is collected nor written unless the request carries the
- * [org.taktik.icure.utils.ENABLE_SERVER_TIMING_HEADER] header.
+ * Trailers are only sent when the request carries the [org.taktik.icure.utils.ENABLE_TRAILERS_HEADER] header:
+ * otherwise the entries measured after the commit are dropped.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 class ServerTimingFilter : WebFilter {
 	override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-		if (!exchange.isServerTimingEnabled()) {
-			return chain.filter(exchange)
-		}
-
 		val timings = ServerTimings()
 		exchange.attributes[SERVER_TIMINGS_ATTRIBUTE] = timings
 
@@ -44,7 +40,7 @@ class ServerTimingFilter : WebFilter {
 			}
 		}
 
-		exchange.reactorNettyResponse()?.let { nativeResponse ->
+		exchange.reactorNettyResponse()?.takeIf { exchange.areTrailersEnabled() }?.let { nativeResponse ->
 			exchange.response.headers.add(HttpHeaders.TRAILER, SERVER_TIMING_HEADER)
 			nativeResponse.trailerHeaders { trailers ->
 				timings.drainTo { entry -> trailers.add(SERVER_TIMING_HEADER, entry) }
