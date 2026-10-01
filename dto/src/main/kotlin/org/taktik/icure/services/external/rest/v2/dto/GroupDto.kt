@@ -114,7 +114,7 @@ data class GroupDto(
 	@param:Schema(description = "The commercial status of the group, derived from the group hierarchy when not explicitly set on the group. Read-only.")
 	@SerializationPolicy(
 		Since("2.0.0", Omit::class),
-		Since("3.0.0-preview-6", ActiveField::class)
+		Since("2.13.5", ActiveField::class)
 	)
 	val status: GroupStatusDto? = null,
 ) : StoredDocumentDto,
