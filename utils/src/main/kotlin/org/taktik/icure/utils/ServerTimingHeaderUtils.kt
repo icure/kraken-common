@@ -2,7 +2,6 @@ package org.taktik.icure.utils
 
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.reactor.ReactorContext
-import org.springframework.http.HttpHeaders
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator
 import org.springframework.web.server.ServerWebExchange
 import org.taktik.icure.spring.filters.ArrivalTimeFilter
@@ -15,10 +14,14 @@ const val SERVER_TIMING_HEADER: String = "Server-Timing"
 /** Attribute holding the [ServerTimings] of a request, set by `ServerTimingFilter`. */
 const val SERVER_TIMINGS_ATTRIBUTE: String = "com.icure.request.serverTimings"
 
+/** Request header enabling HTTP trailers on the response: without it, no trailer is ever sent. */
+const val ENABLE_TRAILERS_HEADER: String = "Enable-Trailers"
+
 private const val FEEDBACK_LIMIT_HEADER = "X-Couch-Requests-Feedback-Limit"
 private const val DEFAULT_FEEDBACK_LIMIT = 5
 
-fun HttpHeaders.isReadOnly() = this::class.simpleName?.startsWith("ReadOnly") == true
+/** Whether the client asked for HTTP trailers on the response, by passing [ENABLE_TRAILERS_HEADER]. */
+fun ServerWebExchange.areTrailersEnabled(): Boolean = request.headers.containsKey(ENABLE_TRAILERS_HEADER)
 
 /**
  * The reactor-netty response behind the (possibly decorated) response of this exchange, or null when running
