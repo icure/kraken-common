@@ -10,6 +10,7 @@ import org.springframework.web.server.WebFilterChain
 import org.taktik.icure.utils.SERVER_TIMINGS_ATTRIBUTE
 import org.taktik.icure.utils.SERVER_TIMING_HEADER
 import org.taktik.icure.utils.ServerTimings
+import org.taktik.icure.utils.isServerTimingEnabled
 import org.taktik.icure.utils.reactorNettyResponse
 import reactor.core.publisher.Mono
 
@@ -22,16 +23,23 @@ import reactor.core.publisher.Mono
  * headers, and everything measured afterwards goes out as `Server-Timing` trailers. Trailers only reach the
  * wire on a chunked HTTP/1.1 response or on HTTP/2, and only browser devtools read them - the Fetch API and
  * `PerformanceServerTiming` see the headers only.
+ *
+ * Nothing is collected nor written unless the request carries the
+ * [org.taktik.icure.utils.ENABLE_SERVER_TIMING_HEADER] header.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 class ServerTimingFilter : WebFilter {
 	override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
+		if (!exchange.isServerTimingEnabled()) {
+			return chain.filter(exchange)
+		}
+
 		val timings = ServerTimings()
 		exchange.attributes[SERVER_TIMINGS_ATTRIBUTE] = timings
 
 		exchange.response.beforeCommit {
-			Mono.fromRunnable<Void> {
+			Mono.fromRunnable {
 				timings.drainTo { entry -> exchange.response.headers.add(SERVER_TIMING_HEADER, entry) }
 			}
 		}
