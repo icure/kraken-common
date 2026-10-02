@@ -64,7 +64,7 @@ open class CustomFilteringLogicImpl(
 			datastoreInformation = datastoreInformation,
 			filter = filter,
 		).toPaginatedFlow(
-			pageSize = filter.queryLimit,
+			pageSize = filter.queryLimit - 1,
 			extractElement = { id, row ->
 				(row.value as? JsonNode)?.let {
 					IdWithValue(
