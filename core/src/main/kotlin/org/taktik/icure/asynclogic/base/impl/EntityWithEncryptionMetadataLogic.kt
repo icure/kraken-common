@@ -142,7 +142,7 @@ class EntityWithEncryptionMetadataLogicHelper<E, D>(
 		D : GenericDAO<E> {
 
 	fun hasLegacyEncryptionMetadata(e: E): Boolean =
-		e.delegations.isNotEmpty() || e.cryptedForeignKeys.isNotEmpty() || e.cryptedForeignKeys.isNotEmpty()
+		e.delegations.isNotEmpty() || e.cryptedForeignKeys.isNotEmpty() || e.encryptionKeys.isNotEmpty()
 
 	fun doBulkShareOrUpdateMetadata(
 		requests: BulkShareOrUpdateMetadataParams,
