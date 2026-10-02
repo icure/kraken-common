@@ -54,6 +54,7 @@ import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.dao.IdWithValue
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
@@ -151,7 +152,7 @@ class PatientController(
 			builtinValidationConfigsProvider,
 		)
 
-	private suspend fun Patient.toDto(): PatientDto =
+	private fun Patient.toDto(): PatientDto =
 		patientMapper.map(this)
 
 	private suspend fun List<PatientDto>.toDomain(): List<Patient> =
@@ -165,7 +166,13 @@ class PatientController(
 		)
 
 	private fun Flow<Patient>.toDto(): Flow<PatientDto> =
-		map { patientMapper.map(it) }
+		map { it.toDto() }
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> =
+		mapElements<Patient, PatientDto> { it.toDto() }
+
+	private fun toDtoLambda(): (Patient) -> PatientDto = { it.toDto() }
 
 	private fun Flow<EntityBulkShareResult<Patient>>.toDtoUpdateResult(): Flow<EntityBulkShareResultDto<PatientDto>> =
 		map { bulkShareResultV2Mapper.map(it) }
@@ -211,7 +218,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientMapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients of a specific HcParty or of the current HcParty ",
@@ -246,7 +253,7 @@ class PatientController(
 				paginationOffset,
 				null,
 				Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name)),
-			).mapElements(patientMapper::map)
+			).toDto()
 			.asPaginatedFlux()
 	}
 
@@ -275,7 +282,7 @@ class PatientController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.listOfPatientsModifiedAfter(date, offset)
-			.mapElements(patientMapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -373,7 +380,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientMapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients by pages for a specific HcParty",
@@ -490,7 +497,7 @@ class PatientController(
 			val patients = patientService.listPatients(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow(), sort, desc)
 			log.info("Filter patients in " + (System.currentTimeMillis() - System.currentTimeMillis()) + " ms.")
 
-			patients.paginatedList(patientMapper::map, realLimit, objectMapper = objectMapper)
+			patients.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 		} catch (e: LoginException) {
 			log.warn(e.message, e)
 			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
@@ -613,7 +620,7 @@ class PatientController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.findDeletedPatientsByDeleteDate(startDate, endDate, desc ?: false, paginationOffset)
-			.mapElements(patientMapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -790,7 +797,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsBySsin(hcPartyId, paginationOffset)
-			.mapElements(patientMapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -807,7 +814,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsByName(hcPartyId, paginationOffset)
-			.mapElements(patientMapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 

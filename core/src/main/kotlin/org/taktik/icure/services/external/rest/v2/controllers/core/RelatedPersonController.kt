@@ -114,7 +114,7 @@ class RelatedPersonController(
 			builtinValidationConfigsProvider,
 		)
 
-	private suspend fun RelatedPerson.toDto(): RelatedPersonDto =
+	private fun RelatedPerson.toDto(): RelatedPersonDto =
 		relatedPersonV2Mapper.map(this)
 
 	private suspend fun List<RelatedPersonDto>.toDomain(): List<RelatedPerson> =
@@ -128,7 +128,9 @@ class RelatedPersonController(
 		)
 
 	private fun Flow<RelatedPerson>.toDto(): Flow<RelatedPersonDto> =
-		map { relatedPersonV2Mapper.map(it) }
+		map { it.toDto() }
+
+	private fun toDtoLambda(): (RelatedPerson) -> RelatedPersonDto = { it.toDto() }
 
 	@Operation(
 		summary = "Create a related person with the current user",
@@ -138,7 +140,7 @@ class RelatedPersonController(
 	fun createRelatedPerson(
 		@RequestBody c: RelatedPersonDto,
 	): Mono<RelatedPersonDto> = mono {
-		relatedPersonV2Mapper.map(relatedPersonService.createRelatedPerson(c.toDomain()))
+		relatedPersonService.createRelatedPerson(c.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Get a related person")
@@ -315,7 +317,7 @@ class RelatedPersonController(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge,
 		)
-		conflictResolutionV2Mapper.map(result, relatedPersonV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")
@@ -357,7 +359,7 @@ class RelatedPersonController(
 
 		val relatedPersons = relatedPersonService.filterRelatedPersons(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		relatedPersons.paginatedList(relatedPersonV2Mapper::map, realLimit, objectMapper = objectMapper)
+		relatedPersons.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 }

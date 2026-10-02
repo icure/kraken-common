@@ -454,7 +454,7 @@ class UserController(
 		@PathVariable userId: String,
 		@RequestParam previousMobilePhone: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, null, previousMobilePhone))
+		userService.changeUserMobilePhone(userId, null, previousMobilePhone).toDto()
 	}
 
 	@PutMapping("/{userId}/password")
