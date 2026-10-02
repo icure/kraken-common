@@ -347,15 +347,10 @@ class HealthElementController(
 	fun modifyHealthElements(
 		@RequestBody healthElementDtos: List<HealthElementDto>,
 	): Flux<HealthElementDto> = flow {
-		try {
-			val hes = healthElementService.modifyEntities(
-				healthElementDtos.toDomain().asFlow()
-			)
-			emitAll(hes.toDto())
-		} catch (e: Exception) {
-			logger.warn(e.message, e)
-			throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
-		}
+		val hes = healthElementService.modifyEntities(
+			healthElementDtos.toDomain().asFlow()
+		)
+		emitAll(hes.toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of healthcare elements", description = "Returns the created healthcare elements.")
