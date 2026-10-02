@@ -10,7 +10,6 @@ plugins {
     alias(coreLibs.plugins.kotlinAllOpen) apply (true)
     alias(coreLibs.plugins.kotlinSpring) apply (true)
     alias(coreLibs.plugins.mavenRepository)
-    alias(coreLibs.plugins.gitVersion) apply (true)
     alias(coreLibs.plugins.helmRepository) apply (true)
     alias(coreLibs.plugins.licenceReport) apply (true)
     alias(coreLibs.plugins.ksp) apply (true)

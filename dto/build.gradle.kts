@@ -3,12 +3,11 @@ plugins {
 
     alias(coreLibs.plugins.kotlinAllOpen)
     alias(coreLibs.plugins.mavenRepository)
-    alias(coreLibs.plugins.gitVersion)
     alias(coreLibs.plugins.ksp)
     alias(coreLibs.plugins.ktlint)
 }
 
-val gitVersion: String? by project
+val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
 
 group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"

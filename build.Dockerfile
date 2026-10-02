@@ -12,6 +12,7 @@ COPY . ./
 
 RUN mv ci.settings.kts settings.gradle.kts
 
-# RUN apk --no-cache add bash # for git-version plugin
+# git.version is written by the CI before the docker build and exposed to Gradle as the gitVersion property
+RUN test -s git.version || (echo "git.version is missing or empty" && exit 1)
 
-RUN gradle -x test :dto:publish :domain:publish :utils:publish
+RUN export ORG_GRADLE_PROJECT_gitVersion="$(cat git.version)" && gradle -x test :dto:publish :domain:publish :utils:publish
