@@ -4,11 +4,13 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -33,6 +35,8 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.RelatedPersonService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.dao.IdWithValue
@@ -41,6 +45,7 @@ import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
+import org.taktik.icure.services.external.rest.v2.dto.PaginatedList
 import org.taktik.icure.services.external.rest.v2.dto.RelatedPersonDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionRequestDto
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResolutionResultDto
@@ -50,6 +55,7 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.dao.IdWithValueDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
@@ -60,10 +66,12 @@ import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResol
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.dao.IdWithValueV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.RelatedPersonCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.RelatedPersonBulkShareResultV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.paginatedList
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import org.taktik.icure.utils.orThrow
@@ -77,6 +85,7 @@ import reactor.core.publisher.Mono
 class RelatedPersonController(
 	private val relatedPersonService: RelatedPersonService,
 	private val relatedPersonV2Mapper: RelatedPersonV2Mapper,
+	private val filterChainV2Mapper: FilterChainV2Mapper,
 	private val filterV2Mapper: FilterV2Mapper,
 	private val bulkShareResultV2Mapper: RelatedPersonBulkShareResultV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
@@ -90,7 +99,9 @@ class RelatedPersonController(
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	private val relatedPersonCustomFilterV2Mapper: RelatedPersonCustomFilterV2Mapper,
-	private val idWithValueV2Mapper: IdWithValueV2Mapper
+	private val idWithValueV2Mapper: IdWithValueV2Mapper,
+	private val paginationConfig: SharedPaginationConfig,
+	private val objectMapper: ObjectMapper,
 ) {
 
 	private suspend fun RelatedPersonDto.toDomain(): RelatedPerson =
@@ -330,4 +341,23 @@ class RelatedPersonController(
 	).mapElements<IdWithValue, IdWithValueDto> {
 		idWithValueV2Mapper.map(it)
 	}.asPaginatedFlux()
+
+	@Operation(
+		summary = "Filter related persons for the current user (data owner)",
+		description = "Returns a list of related persons along with next start keys and Document ID. If the nextStartKey is Null it means that this is the last page.",
+	)
+	@PostMapping("/filter")
+	fun filterRelatedPersonsBy(
+		@Parameter(description = "A RelatedPerson document ID") @RequestParam(required = false) startDocumentId: String?,
+		@Parameter(description = "Number of rows") @RequestParam(required = false) limit: Int?,
+		@RequestBody filterChain: FilterChain<RelatedPersonDto>,
+	): Mono<PaginatedList<RelatedPersonDto>> = mono {
+		val realLimit = limit ?: paginationConfig.defaultLimit
+		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
+
+		val relatedPersons = relatedPersonService.filterRelatedPersons(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
+
+		relatedPersons.paginatedList(relatedPersonV2Mapper::map, realLimit, objectMapper = objectMapper)
+	}
+
 }
