@@ -34,7 +34,7 @@ interface HealthcarePartyMapper {
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
 
 	fun map(healthcareParty: HealthcareParty): HealthcarePartyDto {
-		require (healthcareParty.extensions == null)  { "Patient has extensions and can't be used with v1 endpoints" }
+		require (healthcareParty.extensions == null)  { "HealthcareParty has extensions and can't be used with v1 endpoints" }
 		return doMap(healthcareParty)
 	}
 
