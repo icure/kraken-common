@@ -7,10 +7,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
@@ -24,6 +26,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
@@ -220,6 +223,8 @@ data class Patient(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	Person,
@@ -227,7 +232,9 @@ data class Patient(
 	HasIdentifier,
 	CryptoActor,
 	DataOwner,
-	Encryptable {
+	Encryptable,
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

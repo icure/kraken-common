@@ -19,7 +19,15 @@ interface CalendarItemTypeMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "publicProperties", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(calendarItemTypeDto: CalendarItemTypeDto): CalendarItemType
-	fun map(calendarItemType: CalendarItemType): CalendarItemTypeDto
+
+	fun map(calendarItemType: CalendarItemType): CalendarItemTypeDto {
+		require(calendarItemType.extensions == null) { "CalendarItemType has extensions and can't be used with v1 endpoints" }
+		return doMap(calendarItemType)
+	}
+
+	fun doMap(calendarItemType: CalendarItemType): CalendarItemTypeDto
 }

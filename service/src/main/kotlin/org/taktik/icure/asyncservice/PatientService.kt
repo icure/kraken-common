@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.Sorting
@@ -26,7 +27,9 @@ import java.time.Instant
 
 interface PatientService :
 	EntityWithSecureDelegationsService<Patient>,
-	EntityWithConflictResolutionService<Patient> {
+	EntityWithConflictResolutionService<Patient>,
+	EntityWithCustomViewsService
+{
 
 	suspend fun countByHcParty(healthcarePartyId: String): Int
 	fun listOfMergesAfter(date: Long?): Flow<Patient>

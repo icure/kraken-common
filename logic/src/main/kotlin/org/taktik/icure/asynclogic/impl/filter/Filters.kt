@@ -3,13 +3,10 @@
  */
 package org.taktik.icure.asynclogic.impl.filter
 
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.reactor.ReactorContext
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.springframework.web.server.ServerWebExchange
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter

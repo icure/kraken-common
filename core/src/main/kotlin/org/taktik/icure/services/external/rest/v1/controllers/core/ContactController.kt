@@ -36,6 +36,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Contact
 import org.taktik.icure.exceptions.ForbiddenException
 import org.taktik.icure.exceptions.MissingRequirementsException
 import org.taktik.icure.pagination.PaginatedFlux
@@ -561,7 +562,7 @@ class ContactController(
 		val paginationOffset = PaginationOffset<ComplexKey>(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return contactService
 			.listContactsByOpeningDate(hcpartyid, startKey, endKey, paginationOffset)
-			.mapElements(contactMapper::map)
+			.mapElements<Contact, ContactDto>(contactMapper::map)
 			.asPaginatedFlux()
 	}
 }

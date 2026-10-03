@@ -21,6 +21,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.DocumentLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
@@ -49,7 +50,9 @@ open class DocumentLogicImpl(
 	documentMerger: Merger<Document>
 ) : EntityWithEncryptionMetadataLogic<Document, DocumentDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Document> by ConflictResolutionLogicImpl(documentDAO, documentMerger, datastoreInstanceProvider),
-	DocumentLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = documentDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	DocumentLogic
+{
 	override suspend fun createDocument(
 		document: Document,
 		strict: Boolean,

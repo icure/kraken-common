@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.result.AggregatedAccessLogs
@@ -15,7 +16,9 @@ import org.taktik.icure.pagination.PaginationElement
 interface AccessLogLogic :
 	EntityWithSecureDelegationsLogic<AccessLog>,
 	EntityPersister<AccessLog>,
-	ConflictResolutionLogic<AccessLog> {
+	ConflictResolutionLogic<AccessLog>,
+	CustomFilteringLogic
+{
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 	fun createAccessLogs(accessLogs: List<AccessLog>): Flow<AccessLog>
 

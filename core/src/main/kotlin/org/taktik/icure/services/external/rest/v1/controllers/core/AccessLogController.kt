@@ -31,6 +31,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.AccessLogService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -106,7 +107,7 @@ class AccessLogController(
 
 		return accessLogService
 			.listAccessLogsBy(from, to, paginationOffset, descending == true)
-			.mapElements(accessLogMapper::map)
+			.mapElements<AccessLog, AccessLogDto>(accessLogMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -125,7 +126,7 @@ class AccessLogController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return accessLogService
 			.findAccessLogsByUserAfterDate(userId, accessType, startDate, paginationOffset, descending ?: false)
-			.mapElements(accessLogMapper::map)
+			.mapElements<AccessLog, AccessLogDto>(accessLogMapper::map)
 			.asPaginatedFlux()
 	}
 

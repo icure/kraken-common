@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -31,6 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementAsserterDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementQualifiedLinkDto
@@ -40,6 +42,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Represents a healthcare element. A healthcare element is a patient-centric representation of a healthcare problem
@@ -136,12 +139,16 @@ data class HealthElementDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

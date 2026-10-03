@@ -22,9 +22,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import com.fasterxml.jackson.annotation.JsonFilter
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -64,8 +66,14 @@ data class CalendarItemTypeDto(
 	/** Subject text for this calendar item type, by language. */
 	@ActiveField val subjectByLanguage: Map<String, String> = emptyMap(),
 	/** Public properties exposed to anonymous endpoints for public calendar items. */
-	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT) @ActiveField val publicProperties: Set<PropertyStubDto>? = null,
-) : StoredDocumentDto {
+	@param:JsonInclude(JsonInclude.Include.NON_DEFAULT)
+	@ActiveField
+	val publicProperties: Set<PropertyStubDto>? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
+) : StoredDocumentDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

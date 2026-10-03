@@ -91,11 +91,11 @@ class ExchangeDataController(
 		@PathVariable dataOwnerId: String,
 		@RequestParam(required = false) startDocumentId: String?,
 		@RequestParam(required = false) limit: Int?,
-	): PaginatedFlux<ExchangeData> {
+	): PaginatedFlux<ExchangeDataDto> {
 		val paginationOffset = PaginationOffset<String>(limit ?: paginationConfig.defaultLimit, startDocumentId)
 		return exchangeDataLogic
 			.findExchangeDataByParticipant(dataOwnerId, paginationOffset)
-			.mapElements(exchangeDataMapper::map)
+			.mapElements<ExchangeData, ExchangeDataDto>(exchangeDataMapper::map)
 			.asPaginatedFlux()
 	}
 

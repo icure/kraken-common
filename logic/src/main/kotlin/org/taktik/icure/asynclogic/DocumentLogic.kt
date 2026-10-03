@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
@@ -16,7 +17,9 @@ import java.nio.ByteBuffer
 interface DocumentLogic :
 	ConflictResolutionLogic<Document>,
 	EntityPersister<Document>,
-	EntityWithSecureDelegationsLogic<Document> {
+	EntityWithSecureDelegationsLogic<Document>,
+	CustomFilteringLogic
+{
 	/**
 	 * Creates a new document.
 	 * It is generally not allowed to specify information related to attachments on creation (throws

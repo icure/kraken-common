@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -29,16 +30,25 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.HealthcareParty
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import kotlinx.coroutines.flow.collect
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.exceptions.DocumentNotFoundException
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.HealthcarePartyDto
@@ -88,10 +98,55 @@ class HealthcarePartyController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val cardinalVersionConfig: CardinalVersionConfig,
 ) {
 	companion object {
 		private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+	}
+
+	private suspend fun HealthcarePartyDto.toDomain(): HealthcareParty =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::healthcareParty,
+			healthcarePartyV2Mapper::map,
+			scopePathProvider.getScopePathFor("HealthcareParty"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<HealthcarePartyDto>.toDomain(): List<HealthcareParty> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::healthcareParty,
+			healthcarePartyV2Mapper::map,
+			scopePathProvider.getScopePathFor("HealthcareParty"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun HealthcareParty.toDto(): HealthcarePartyDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return healthcarePartyV2Mapper.map(this, versionCtx)
+	}
+
+	private fun Flow<HealthcareParty>.toDto(): Flow<HealthcarePartyDto> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		collect { emit(healthcarePartyV2Mapper.map(it, versionCtx)) }
+	}
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = flow {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		emitAll(mapElements<HealthcareParty, HealthcarePartyDto> { healthcarePartyV2Mapper.map(it, versionCtx) })
+	}
+
+	private suspend fun toDtoLambda(): (HealthcareParty) -> HealthcarePartyDto {
+		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
+		return { healthcarePartyV2Mapper.map(it, versionCtx) }
 	}
 
 	@Operation(
@@ -108,7 +163,7 @@ class HealthcarePartyController(
 					HttpStatus.NOT_FOUND,
 					"A problem regarding fetching the current healthcare party. Probable reasons: no healthcare party is logged in, or server error. Please try again or read the server log.",
 				)
-		healthcarePartyV2Mapper.map(healthcareParty)
+		healthcareParty.toDto()
 	}
 
 	@Operation(
@@ -125,7 +180,7 @@ class HealthcarePartyController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.findHealthcarePartiesBy(paginationOffset, desc)
-			.mapElements(healthcarePartyV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -146,7 +201,7 @@ class HealthcarePartyController(
 			healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
 		} else {
 			healthcarePartyService.findHealthcarePartiesBy(name, paginationOffset, desc)
-		}.mapElements(healthcarePartyV2Mapper::map).asPaginatedFlux()
+		}.toDto().asPaginatedFlux()
 	}
 
 	@Operation(
@@ -164,7 +219,7 @@ class HealthcarePartyController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
-			.mapElements(healthcarePartyV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -178,7 +233,7 @@ class HealthcarePartyController(
 		@PathVariable name: String,
 	): Flux<HealthcarePartyDto> = healthcarePartyService
 		.listHealthcarePartiesByName(name)
-		.map { healthcarePartyV2Mapper.map(it) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(
@@ -199,7 +254,7 @@ class HealthcarePartyController(
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode, paginationOffset)
-			.mapElements(healthcarePartyV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -211,8 +266,8 @@ class HealthcarePartyController(
 	fun createHealthcareParty(
 		@RequestBody h: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		val hcParty = healthcarePartyService.createHealthcareParty(healthcarePartyV2Mapper.map(h))
-		healthcarePartyV2Mapper.map(hcParty)
+		val hcParty = healthcarePartyService.createHealthcareParty(h.toDomain())
+		hcParty.toDto()
 	}
 
 	@Operation(
@@ -223,9 +278,7 @@ class HealthcarePartyController(
 	fun createHealthcareParties(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
 	): Flux<HealthcarePartyDto> = flow {
-		emitAll(healthcarePartyService.createHealthcareParties(
-			healthcareParties.map { healthcarePartyV2Mapper.map(it) }
-		).map(healthcarePartyV2Mapper::map))
+		emitAll(healthcarePartyService.createHealthcareParties(healthcareParties.toDomain()).toDto())
 	}.injectReactorContext()
 
 	@Operation(
@@ -253,7 +306,7 @@ class HealthcarePartyController(
 					HttpStatus.NOT_FOUND,
 					"A problem regarding fetching the healthcare party. Probable reasons: no such party exists, or server error. Please try again or read the server log.",
 				)
-		healthcarePartyV2Mapper.map(healthcareParty)
+		healthcareParty.toDto()
 	}
 
 	@Operation(
@@ -268,7 +321,7 @@ class HealthcarePartyController(
 		?.let { ids ->
 			healthcarePartyService
 				.getHealthcareParties(ids)
-				.map { healthcarePartyV2Mapper.map(it) }
+				.toDto()
 				.injectReactorContext()
 		}
 		?: throw ResponseStatusException(
@@ -282,7 +335,7 @@ class HealthcarePartyController(
 		@PathVariable parentId: String,
 	): Flux<HealthcarePartyDto> = healthcarePartyService
 		.getHealthcarePartiesByParentId(parentId)
-		.map { healthcarePartyV2Mapper.map(it) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(
@@ -340,7 +393,7 @@ class HealthcarePartyController(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<HealthcarePartyDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		healthcarePartyV2Mapper.map(healthcarePartyService.undeleteHealthcareParty(healthcarePartyId, rev))
+		healthcarePartyService.undeleteHealthcareParty(healthcarePartyId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -349,7 +402,7 @@ class HealthcarePartyController(
 	): Flux<HealthcarePartyDto> = healthcarePartyService
 		.undeleteHealthcareParties(
 			healthcarePartyIds.ids.map(idWithRevV2Mapper::map),
-		).map(healthcarePartyV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 
@@ -375,9 +428,7 @@ class HealthcarePartyController(
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
 	): Mono<HealthcarePartyDto> = mono {
-		healthcarePartyService.modifyHealthcareParty(healthcarePartyV2Mapper.map(healthcarePartyDto)).let {
-			healthcarePartyV2Mapper.map(it)
-		}
+		healthcarePartyService.modifyHealthcareParty(healthcarePartyDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a batch of HealthcareParty.")
@@ -385,9 +436,7 @@ class HealthcarePartyController(
 	fun modifyHealthcareParties(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
 	): Flux<HealthcarePartyDto> = flow {
-		emitAll(healthcarePartyService.modifyHealthcareParties(
-			healthcareParties.map { healthcarePartyV2Mapper.map(it) }
-		).map(healthcarePartyV2Mapper::map))
+		emitAll(healthcarePartyService.modifyHealthcareParties(healthcareParties.toDomain()).toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
@@ -414,7 +463,7 @@ class HealthcarePartyController(
 		val healthcareParties =
 			healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		healthcareParties.paginatedList(healthcarePartyV2Mapper::map, realLimit, objectMapper = objectMapper)
+		healthcareParties.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
@@ -426,7 +475,7 @@ class HealthcarePartyController(
 		@RequestParam entityId: String,
 	): Flux<HealthcarePartyDto> =
 		healthcarePartyService.getConflictsFor(entityId)
-			.map(healthcarePartyV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -434,10 +483,10 @@ class HealthcarePartyController(
 		@RequestBody request: ConflictResolutionRequestDto<HealthcarePartyDto>
 	): Mono<ConflictResolutionResultDto<HealthcarePartyDto>> = mono {
 		val result = healthcarePartyService.declareConflictWinner(
-			entity = healthcarePartyV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, healthcarePartyV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

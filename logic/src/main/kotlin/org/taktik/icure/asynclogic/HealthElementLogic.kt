@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -15,7 +16,9 @@ import org.taktik.icure.entities.embed.Delegation
 interface HealthElementLogic :
 	EntityPersister<HealthElement>,
 	EntityWithSecureDelegationsLogic<HealthElement>,
-	ConflictResolutionLogic<HealthElement> {
+	ConflictResolutionLogic<HealthElement>,
+	CustomFilteringLogic
+{
 	suspend fun getHealthElement(healthElementId: String): HealthElement?
 	fun getHealthElements(healthElementIds: Collection<String>): Flow<HealthElement>
 

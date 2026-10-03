@@ -28,7 +28,15 @@ interface AccessLogMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(accessLogDto: AccessLogDto): AccessLog
-	fun map(accessLog: AccessLog): AccessLogDto
+
+	fun map(accessLog: AccessLog): AccessLogDto {
+		require(accessLog.extensions == null) { "AccessLog has extensions and can't be used with v1 endpoints" }
+		return doMap(accessLog)
+	}
+
+	fun doMap(accessLog: AccessLog): AccessLogDto
 }

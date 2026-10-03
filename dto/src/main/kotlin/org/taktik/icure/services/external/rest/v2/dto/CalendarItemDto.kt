@@ -17,10 +17,11 @@
  */
 package org.taktik.icure.services.external.rest.v2.dto
 
-import com.fasterxml.jackson.annotation.JsonFilter
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.taktik.icure.CardinalMetadataProperty
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
@@ -30,10 +31,12 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CalendarItemTagDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlowItemDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Represents an appointment or event in a calendar. Calendar items are linked to an agenda and can block
@@ -114,7 +117,9 @@ data class CalendarItemDto(
 	/** The resource group of the agenda that will handle this calendar item. */
 	@ActiveField val resourceGroup: CodeStubDto? = null,
 	/** How this calendar item is considered by the availabilities algorithm. */
-	@ActiveField val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
+	@CardinalMetadataProperty
+	@ActiveField
+	val availabilitiesAssignmentStrategy: AvailabilitiesAssignmentStrategy? = null,
 	/** The healthcare party id associated with this calendar item. Deprecated: This field is scheduled for deletion */
 	@ActiveField val hcpId: String? = null,
 	/** An id for linking recurring calendar items. */
@@ -138,11 +143,15 @@ data class CalendarItemDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
-	EncryptableDto {
+	EncryptableDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

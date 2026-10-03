@@ -6,9 +6,12 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.icure.cardinal.entities.RawJson
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.Person
@@ -94,11 +97,15 @@ data class RelatedPerson(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	override val customisedModelVersion: Int? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : StoredICureDocument,
 	Person,
 	HasEncryptionMetadata,
 	HasIdentifier,
-	Encryptable {
+	Encryptable,
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

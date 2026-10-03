@@ -19,6 +19,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.RequireHashable
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
@@ -29,6 +30,7 @@ import org.taktik.icure.dto.annotations.filtering.LegacyField
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RequireHashable
+@ExposedToCustomEntities
 data class CodeStubDto(
 	/** The unique identifier, formatted as type|code|version. */
 	override val id: String? = null, // id = type|code|version  => this must be unique

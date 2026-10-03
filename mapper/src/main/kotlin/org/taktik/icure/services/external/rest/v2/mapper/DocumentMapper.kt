@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Document
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -46,8 +47,9 @@ interface DocumentV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(documentDto.extensions))"),
 	)
-	fun map(documentDto: DocumentDto): Document
+	fun map(documentDto: DocumentDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Document
 
 	@Mappings(
 		Mapping(target = "encryptedAttachment", ignore = true),

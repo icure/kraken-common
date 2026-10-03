@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -32,15 +33,20 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.DelegationV2Mappe
 import org.taktik.icure.services.external.rest.v2.mapper.embed.FlowItemV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 
-@Mapper(componentModel = "spring", uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [CalendarItemTagV2Mapper::class, CodeStubV2Mapper::class, DelegationV2Mapper::class, AddressV2Mapper::class, FlowItemV2Mapper::class, SecurityMetadataV2Mapper::class, PropertyStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+)
 abstract class CalendarItemV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "tentativeTimestamp", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(calendarItemDto.extensions))"),
 	)
-	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
+	abstract fun map(calendarItemDto: CalendarItemDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): CalendarItem
 
 	fun map(calendarItem: CalendarItem): CalendarItemDto {
 		return doMap(calendarItem)

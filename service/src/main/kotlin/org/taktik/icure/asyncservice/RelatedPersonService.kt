@@ -10,6 +10,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -20,7 +21,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface RelatedPersonService :
 	EntityWithSecureDelegationsService<RelatedPerson>,
-	EntityWithConflictResolutionService<RelatedPerson> {
+	EntityWithConflictResolutionService<RelatedPerson>,
+	EntityWithCustomViewsService
+{
 	suspend fun createRelatedPerson(relatedPerson: RelatedPerson): RelatedPerson
 	fun createRelatedPersons(relatedPersons: List<RelatedPerson>): Flow<RelatedPerson>
 

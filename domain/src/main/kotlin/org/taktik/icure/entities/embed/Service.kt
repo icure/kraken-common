@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasMedicalLocation
@@ -116,11 +118,14 @@ data class Service(
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val codes: Set<CodeStub> = emptySet(), // stub object of the Code used to qualify the content of the Service
 	@field:ValidCode(autoFix = AutoFix.NORMALIZECODE) override val tags: Set<CodeStub> = emptySet(), // stub object of the tag used to qualify the type of the Service
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	val contactCustomisedModelVersion: Int? = null, // Filled only when service is emitted as standalone, required to do proper migration on client side
 ) : Encryptable,
 	ICureDocument<String>,
 	HasMedicalLocation,
 	HasIdentifier,
-	Comparable<Service> {
+	Comparable<Service>,
+	Extendable {
 
 	override fun compareTo(other: Service): Int {
 		if (this == other) {

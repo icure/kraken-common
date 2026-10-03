@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -50,7 +51,14 @@ import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.security.ChangeUserPasswordRequestDto
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.User
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.SecureUserV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
@@ -88,11 +96,64 @@ class UserController(
 	private val objectMapper: ObjectMapper,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
+
+	private suspend fun UserDto.toDomain(isCreate: Boolean = false): User {
+		return mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::user,
+			{ dto, ctx -> userV2Mapper.mapFillingOmittedSecrets(dto, ctx, isCreate) },
+			scopePathProvider.getScopePathFor("User"),
+			builtinValidationConfigsProvider,
+		)
+	}
+
+	private suspend fun List<UserDto>.toDomain(isCreate: Boolean = false): List<User> {
+		return mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::user,
+			{ dto: UserDto, ctx -> userV2Mapper.mapFillingOmittedSecrets(dto, ctx, isCreate) },
+			scopePathProvider.getScopePathFor("User"),
+			builtinValidationConfigsProvider,
+		)
+	}
+
+	private suspend fun List<UserDto>.toDomainOrNull(isCreate: Boolean = false): List<User?> {
+		return mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::user,
+			{ dto: UserDto, ctx -> userV2Mapper.mapFillingOmittedSecretsOrNull(dto, ctx, isCreate) },
+			scopePathProvider.getScopePathFor("User"),
+			builtinValidationConfigsProvider,
+		)
+	}
+
+	private suspend fun UserDto.toDomainFromRev(): User {
+		return mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::user,
+			{ dto, ctx -> userV2Mapper.mapFillingOmittedSecretsFromRev(dto, ctx) },
+			scopePathProvider.getScopePathFor("User"),
+			builtinValidationConfigsProvider,
+		)
+	}
+
+	private fun User.toDto(): UserDto = userV2Mapper.mapOmittingSecrets(this)
+	private fun toDtoLambda(): (User) -> UserDto = { it.toDto() }
+	private fun Flow<User>.toDto(): Flow<UserDto> = map { it.toDto() }
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = mapElements<User, UserDto> { it.toDto() }
 
 	@Operation(summary = "Get presently logged-in user.", description = "Get current user.")
 	@GetMapping(value = ["/current"])
@@ -105,7 +166,7 @@ class UserController(
 					HttpStatus.NOT_FOUND,
 					"Getting Current User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
 				)
-		userV2Mapper.mapOmittingSecrets(user)
+		user.toDto()
 	}
 
 	@Operation(summary = "List users with pagination", description = "Returns a list of users.")
@@ -120,7 +181,7 @@ class UserController(
 
 		return userService
 			.listUsers(paginationOffset, skipPatients ?: true)
-			.mapElements(userV2Mapper::mapOmittingSecrets)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -132,8 +193,8 @@ class UserController(
 	fun createUser(
 		@RequestBody userDto: UserDto,
 	): Mono<UserDto> = mono {
-		val user = userService.createUser(userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null), isCreate = true))
-		userV2Mapper.mapOmittingSecrets(user)
+		val user = userService.createUser(userDto.copy(groupId = null).toDomain(isCreate = true))
+		user.toDto()
 	}
 
 	@Operation(
@@ -146,8 +207,8 @@ class UserController(
 	): Flux<UserDto> = flow {
 		emitAll(
 			userService.createUsers(
-				userDtos.map { userV2Mapper.mapFillingOmittedSecrets(it.copy(groupId = null), isCreate = true) }
-			).map(userV2Mapper::mapOmittingSecrets)
+				userDtos.map { it.copy(groupId = null) }.toDomain(isCreate = true)
+			).toDto()
 		)
 	}.injectReactorContext()
 
@@ -163,7 +224,7 @@ class UserController(
 					HttpStatus.NOT_FOUND,
 					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
 				)
-		userV2Mapper.mapOmittingSecrets(user)
+		user.toDto()
 	}
 
 	@Operation(summary = "Get multiple users by their ids", description = "General information about the user")
@@ -172,9 +233,8 @@ class UserController(
 		@RequestBody userIds: ListOfIdsDto,
 	): Flux<UserDto> = userService
 		.getUsers(userIds.ids)
-		.map { user ->
-			userV2Mapper.mapOmittingSecrets(user)
-		}.injectReactorContext()
+		.toDto()
+		.injectReactorContext()
 
 	@Operation(summary = "Get a user by his Email/Login", description = "General information about the user")
 	@GetMapping("/byEmail/{email}")
@@ -187,7 +247,7 @@ class UserController(
 					HttpStatus.NOT_FOUND,
 					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
 				)
-		userV2Mapper.mapOmittingSecrets(user)
+		user.toDto()
 	}
 
 	@Operation(summary = "Get a user by his Phone Number/Login", description = "General information about the user")
@@ -201,7 +261,7 @@ class UserController(
 					HttpStatus.NOT_FOUND,
 					"Getting User failed. Possible reasons: no such user exists, or server error. Please try again or read the server log.",
 				)
-		userV2Mapper.mapOmittingSecrets(user)
+		user.toDto()
 	}
 
 	@Operation(summary = "Get the list of User ids by healthcare party id")
@@ -240,7 +300,7 @@ class UserController(
 		@PathVariable userId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.undeleteUser(userId, rev))
+		userService.undeleteUser(userId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -248,7 +308,7 @@ class UserController(
 		@RequestBody userIds: ListOfIdsAndRevDto
 	): Flux<UserDto> = userService.undeleteUsers(
 			userIds.ids.map(idWithRevV2Mapper::map)
-		).map(userV2Mapper::mapOmittingSecrets)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{userId}")
@@ -275,10 +335,10 @@ class UserController(
 		// Sanitize group
 		val modifiedUser =
 			userService.modifyUser(
-				userV2Mapper.mapFillingOmittedSecrets(userDto.copy(groupId = null))
+				userDto.copy(groupId = null).toDomain()
 			)
 
-		userV2Mapper.mapOmittingSecrets(modifiedUser)
+		modifiedUser.toDto()
 	}
 
 	@Operation(summary = "Modify a batch of Users.")
@@ -288,8 +348,8 @@ class UserController(
 	): Flux<UserDto> = flow {
 		emitAll(
 			userService.modifyUsers(
-				userDtos.mapNotNull { userV2Mapper.mapFillingOmittedSecretsOrNull(it.copy(groupId = null)) }
-			).map(userV2Mapper::mapOmittingSecrets)
+				userDtos.map { it.copy(groupId = null) }.toDomainOrNull().filterNotNull()
+			).toDto()
 		)
 	}.injectReactorContext()
 
@@ -302,7 +362,7 @@ class UserController(
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
-			userV2Mapper.mapOmittingSecrets(modifiedUser)
+			modifiedUser.toDto()
 		}
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Assigning healthcare party ID to the current user failed.").also {
 				logger.error(it.message)
@@ -323,7 +383,7 @@ class UserController(
 				userId,
 				properties?.map { p -> propertyStubV2Mapper.map(p) }
 					?: listOf(),
-			)?.let(userV2Mapper::mapOmittingSecrets)
+			)?.toDto()
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
 
@@ -359,7 +419,7 @@ class UserController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val users = userService.filterUsers(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		users.paginatedList(userV2Mapper::mapOmittingSecrets, realLimit, objectMapper = objectMapper)
+		users.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get the ids of the Users matching the provided filter.")
@@ -377,7 +437,7 @@ class UserController(
 		@RequestParam(required = true) newEmail: String,
 		@RequestParam previousEmail: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.changeUserEmail(userId, newEmail, previousEmail))
+		userService.changeUserEmail(userId, newEmail, previousEmail).toDto()
 	}
 
 	@PutMapping("/{userId}/mobilePhone")
@@ -386,7 +446,7 @@ class UserController(
 		@RequestParam(required = true) newMobilePhone: String,
 		@RequestParam previousMobilePhone: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, newMobilePhone, previousMobilePhone))
+		userService.changeUserMobilePhone(userId, newMobilePhone, previousMobilePhone).toDto()
 	}
 
 	@DeleteMapping("/{userId}/mobilePhone")
@@ -394,7 +454,7 @@ class UserController(
 		@PathVariable userId: String,
 		@RequestParam previousMobilePhone: String? = null,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.changeUserMobilePhone(userId, null, previousMobilePhone))
+		userService.changeUserMobilePhone(userId, null, previousMobilePhone).toDto()
 	}
 
 	@PutMapping("/{userId}/password")
@@ -402,7 +462,7 @@ class UserController(
 		@PathVariable userId: String,
 		@RequestBody request: ChangeUserPasswordRequestDto,
 	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		userV2Mapper.mapOmittingSecrets(userService.changeUserPassword(userId, request.newPassword))
+		userService.changeUserPassword(userId, request.newPassword).toDto()
 	}
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
@@ -414,7 +474,7 @@ class UserController(
 		@RequestParam entityId: String,
 	): Flux<UserDto> =
 		userService.getConflictsFor(entityId)
-			.map(userV2Mapper::mapOmittingSecrets)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -422,10 +482,10 @@ class UserController(
 		@RequestBody request: ConflictResolutionRequestDto<UserDto>
 	): Mono<ConflictResolutionResultDto<UserDto>> = mono {
 		val result = userService.declareConflictWinner(
-			entity = userV2Mapper.mapFillingOmittedSecretsFromRev(request.document),
+			entity = request.document.toDomainFromRev(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, userV2Mapper::mapOmittingSecrets)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

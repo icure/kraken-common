@@ -27,7 +27,6 @@ open class InsuranceLogicImpl(
 ) : GenericLogicImpl<Insurance, InsuranceDAO>(fixer, datastoreInstanceProvider, filters),
 	ConflictResolutionLogic<Insurance> by ConflictResolutionLogicImpl(insuranceDAO, merger, datastoreInstanceProvider),
 	InsuranceLogic {
-	override suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 
 	override suspend fun createInsurance(insurance: Insurance) = fix(insurance, isCreate = true) { fixedInsurance ->
 		checkValidityForCreation(fixedInsurance)

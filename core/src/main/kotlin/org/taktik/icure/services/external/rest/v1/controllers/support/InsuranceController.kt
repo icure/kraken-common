@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.icure.asyncservice.InsuranceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Insurance
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -53,7 +54,7 @@ class InsuranceController(
 
 		return insuranceService
 			.getAllInsurances(paginationOffset)
-			.mapElements(insuranceMapper::map)
+			.mapElements<Insurance, InsuranceDto>(insuranceMapper::map)
 			.asPaginatedFlux()
 	}
 

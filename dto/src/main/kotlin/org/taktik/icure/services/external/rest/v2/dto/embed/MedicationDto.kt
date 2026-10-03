@@ -19,6 +19,7 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
@@ -26,6 +27,7 @@ import java.io.Serializable
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ExposedToCustomEntities
 data class MedicationDto(
 	@ActiveField val compoundPrescription: String? = null,
 	@ActiveField val substanceProduct: SubstanceproductDto? = null,

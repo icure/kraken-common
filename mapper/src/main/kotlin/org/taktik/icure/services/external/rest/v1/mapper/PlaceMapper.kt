@@ -18,7 +18,15 @@ interface PlaceMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(placeDto: PlaceDto): Place
-	fun map(place: Place): PlaceDto
+
+	fun map(place: Place): PlaceDto {
+		require(place.extensions == null) { "Place has extensions and can't be used with v1 endpoints" }
+		return doMap(place)
+	}
+
+	fun doMap(place: Place): PlaceDto
 }

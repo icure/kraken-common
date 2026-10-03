@@ -8,9 +8,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.mergers.annotations.Mergeable
 
@@ -40,7 +43,11 @@ data class CalendarItemType(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
-) : StoredDocument {
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
+) : StoredDocument,
+	CustomisableRoot,
+	Extendable {
 
 	init {
 		require(extraDurationsConfig == null || extraDurationsConfig.canAccept(duration)) {

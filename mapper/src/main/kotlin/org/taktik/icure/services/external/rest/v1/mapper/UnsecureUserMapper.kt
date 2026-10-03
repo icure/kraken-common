@@ -21,13 +21,20 @@ interface UnsecureUserMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(userDto: UserDto): User
+
+	fun map(user: User): UserDto {
+		require(user.extensions == null) { "User has extensions and can't be used with v1 endpoints" }
+		return doMap(user)
+	}
 
 	@Mappings(
 		Mapping(target = "applicationTokens", expression = "kotlin(emptyMap())"),
 	)
-	fun map(user: User): UserDto
+	fun doMap(user: User): UserDto
 
 	@Mapper(componentModel = "spring", uses = [IdentifierMapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 	interface SystemMetadataMapper {

@@ -18,6 +18,8 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.taktik.icure.CardinalMetadataProperty
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
@@ -25,10 +27,11 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 /**
  * Defines the possible roles a participant can have within a topic conversation.
@@ -76,7 +79,9 @@ data class TopicDto(
 	/** Hard delete (unix epoch in ms) timestamp of the object. */
 	override val deletionDate: Long? = null,
 	/** Map of active participants with their roles (participant, admin, or owner). */
-	@ActiveField val activeParticipants: Map<String, TopicRoleDto> = emptyMap(),
+	@CardinalMetadataProperty
+	@ActiveField
+	val activeParticipants: Map<String, TopicRoleDto> = emptyMap(),
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	/** The secret patient key, encrypted in the patient's own AES key. */
@@ -93,11 +98,15 @@ data class TopicDto(
 	@ActiveField val linkedHealthElements: Set<String> = emptySet(),
 	/** Set of ids of services linked to this topic. */
 	@ActiveField val linkedServices: Set<String> = emptySet(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
-	EncryptableDto {
+	EncryptableDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

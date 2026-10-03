@@ -25,9 +25,17 @@ interface HealthElementMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 		Mapping(target = "qualifiedLinks", ignore = true),
 		Mapping(target = "asserters", ignore = true),
 	)
 	fun map(healthElementDto: HealthElementDto): HealthElement
-	fun map(healthElement: HealthElement): HealthElementDto
+
+	fun map(healthElement: HealthElement): HealthElementDto {
+		require(healthElement.extensions == null) { "HealthElement has extensions and can't be used with v1 endpoints" }
+		return doMap(healthElement)
+	}
+
+	fun doMap(healthElement: HealthElement): HealthElementDto
 }

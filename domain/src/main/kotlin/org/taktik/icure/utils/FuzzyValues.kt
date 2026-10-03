@@ -36,7 +36,7 @@ import java.time.temporal.TemporalUnit
  *
  */
 @Suppress("unused")
-@Deprecated("Use FuzzyDates instead; if the method you need is not there consider adding fixing it if needed and adding it, or if it is not about dates create a new FuzzyX class")
+@Deprecated("Use FuzzyDates from utils-multiplatform instead; if the method you need is not there consider adding fixing it if needed and adding it, or if it is not about dates create a new FuzzyX class")
 object FuzzyValues {
 	const val MAX_FUZZY_DATE = 99991231
 	const val MAX_FUZZY_TIME = 23_59_59

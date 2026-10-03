@@ -36,6 +36,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.HealthcarePartyService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.exceptions.DeletionException
 import org.taktik.icure.exceptions.DocumentNotFoundException
 import org.taktik.icure.exceptions.MissingRequirementsException
@@ -106,7 +107,7 @@ class HealthcarePartyController(
 
 		return healthcarePartyService
 			.findHealthcarePartiesBy(paginationOffset, desc)
-			.mapElements(healthcarePartyMapper::map)
+			.mapElements<HealthcareParty, HealthcarePartyDto>(healthcarePartyMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -124,7 +125,7 @@ class HealthcarePartyController(
 			healthcarePartyService.findHealthcarePartiesBy(paginationOffset, desc)
 		} else {
 			healthcarePartyService.findHealthcarePartiesBy(name, paginationOffset, desc)
-		}.mapElements(healthcarePartyMapper::map).asPaginatedFlux()
+		}.mapElements<HealthcareParty, HealthcarePartyDto>(healthcarePartyMapper::map).asPaginatedFlux()
 	}
 
 	@Operation(
@@ -142,7 +143,7 @@ class HealthcarePartyController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.findHealthcarePartiesBySsinOrNihii(searchValue, paginationOffset, desc)
-			.mapElements(healthcarePartyMapper::map)
+			.mapElements<HealthcareParty, HealthcarePartyDto>(healthcarePartyMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -171,7 +172,7 @@ class HealthcarePartyController(
 		val paginationOffset = PaginationOffset(key, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return healthcarePartyService
 			.listHealthcarePartiesBySpecialityAndPostcode(type, spec, firstCode, lastCode, paginationOffset)
-			.mapElements(healthcarePartyMapper::map)
+			.mapElements<HealthcareParty, HealthcarePartyDto>(healthcarePartyMapper::map)
 			.asPaginatedFlux()
 	}
 

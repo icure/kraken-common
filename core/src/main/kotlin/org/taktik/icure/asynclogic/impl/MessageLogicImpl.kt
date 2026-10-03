@@ -16,6 +16,7 @@ import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.MessageLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.UserLogic
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
@@ -44,7 +45,9 @@ open class MessageLogicImpl(
 	messageMerger: Merger<Message>,
 ) : EntityWithEncryptionMetadataLogic<Message, MessageDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Message> by ConflictResolutionLogicImpl(messageDAO, messageMerger, datastoreInstanceProvider),
-	MessageLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = messageDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	MessageLogic
+{
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
 	override fun listMessagesByHCPartySecretPatientKeys(

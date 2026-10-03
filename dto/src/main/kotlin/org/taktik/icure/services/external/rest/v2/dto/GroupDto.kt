@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.FilteringVersions
 import org.taktik.icure.SdkName
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
@@ -77,7 +78,13 @@ data class GroupDto(
 		JsonInclude.Include.NON_EMPTY,
 	)
 	/** Verified public keys that can be used to allow log in with external JWTs. */
-	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs") @ActiveField val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs")
+	@ActiveField
+	val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	@SerializationPolicy(
+		Since(FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION, ActiveField::class)
+	)
+	val customEntityConfig: CustomEntityConfiguration? = null,
 	/** The minimum authentication class required for elevated privileges. */
 	@ActiveField val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 	/** The id of the parent super group, if any. */
@@ -119,6 +126,11 @@ data class GroupDto(
 	val status: GroupStatusDto? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
+	data class CustomEntityConfiguration(
+		val sourceGroup: String,
+		val version: Int
+	)
+
 	override fun withIdRev(
 		id: String?,
 		rev: String,

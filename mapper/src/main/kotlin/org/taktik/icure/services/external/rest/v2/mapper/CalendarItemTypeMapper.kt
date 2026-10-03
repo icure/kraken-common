@@ -22,18 +22,24 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.CalendarItemType
 import org.taktik.icure.services.external.rest.v2.dto.CalendarItemTypeDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.PropertyStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.DurationConfigV2Mapper
 
-@Mapper(componentModel = "spring", uses = [DurationConfigV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [DurationConfigV2Mapper::class, PropertyStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+)
 interface CalendarItemTypeV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(calendarItemTypeDto.extensions))"),
 	)
-	fun map(calendarItemTypeDto: CalendarItemTypeDto): CalendarItemType
+	fun map(calendarItemTypeDto: CalendarItemTypeDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): CalendarItemType
 	fun map(calendarItemType: CalendarItemType): CalendarItemTypeDto
 }

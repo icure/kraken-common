@@ -35,7 +35,7 @@ open class TarificationLogicImpl(
 ) : GenericLogicImpl<Tarification, TarificationDAO>(fixer, datastoreInstanceProvider, filters),
 	TarificationLogic {
 
-	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.useLegacyDataModelCompatibility()
+	override suspend fun shouldCheckIdValidity(): Boolean = !cardinalVersionConfig.getMappingContextForCurrentUser().useLegacyDataModelCompatibility()
 
 	private fun validateIdFields(code: Tarification) {
 		requireNotNull(code.code) { "Element with id ${code.id} has a null code field." }

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -54,15 +55,27 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.Message
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import org.taktik.icure.entities.dao.IdWithValue
+import org.taktik.icure.pagination.PaginationElement
+import org.taktik.icure.services.external.rest.v2.dto.dao.IdWithValueDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MessageV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.dao.IdWithValueV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.MessageCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.MessageBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.utils.paginatedList
@@ -94,28 +107,62 @@ class MessageController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val messageCustomFilterV2Mapper: MessageCustomFilterV2Mapper,
+	private val idWithValueV2Mapper: IdWithValueV2Mapper
 ) {
 	companion object {
 		private val logger = LoggerFactory.getLogger(this::class.java)
 	}
+
+	private suspend fun MessageDto.toDomain(): Message =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::message,
+			messageV2Mapper::map,
+			scopePathProvider.getScopePathFor("Message"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<MessageDto>.toDomain(): List<Message> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::message,
+			messageV2Mapper::map,
+			scopePathProvider.getScopePathFor("Message"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Message.toDto(): MessageDto = messageV2Mapper.map(this)
+	private fun Flow<Message>.toDto(): Flow<MessageDto> = map { it.toDto() }
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = mapElements<Message, MessageDto> { it.toDto() }
+	private fun toDtoLambda(): (Message) -> MessageDto = { it.toDto() }
 
 	@Operation(summary = "Creates a Message")
 	@PostMapping
 	fun createMessage(
 		@RequestBody messageDto: MessageDto,
 	): Mono<MessageDto> = mono {
-		messageV2Mapper.map(messageService.createMessage(messageV2Mapper.map(messageDto)))
+		messageService.createMessage(messageDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Creates a batch of Message")
 	@PostMapping("/batch")
 	fun createMessages(
 		@RequestBody messageDtos: List<MessageDto>,
-	): Flux<MessageDto> = messageService
-		.createMessages(
-			messageDtos.map(messageV2Mapper::map)
-		).map(messageV2Mapper::map).injectReactorContext()
+	): Flux<MessageDto> = flow {
+		emitAll(
+			messageService
+				.createMessages(messageDtos.toDomain())
+				.toDto()
+		)
+	}.injectReactorContext()
 
 
 	@Operation(summary = "Deletes multiple Messages")
@@ -154,7 +201,7 @@ class MessageController(
 		@PathVariable messageId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<MessageDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		messageV2Mapper.map(messageService.undeleteMessage(messageId, rev))
+		messageService.undeleteMessage(messageId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -163,7 +210,7 @@ class MessageController(
 	): Flux<MessageDto> = messageService
 		.undeleteMessages(
 			messageIds.ids.map(idWithRevV2Mapper::map),
-		).map(messageV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{messageId}")
@@ -188,7 +235,7 @@ class MessageController(
 	fun getMessage(
 		@PathVariable messageId: String,
 	): Mono<MessageDto> = mono {
-		messageService.getMessage(messageId)?.let { messageV2Mapper.map(it) }
+		messageService.getMessage(messageId)?.toDto()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found")
 				.also { logger.error(it.message) }
 	}
@@ -199,7 +246,7 @@ class MessageController(
 		@RequestBody messageIds: ListOfIdsDto,
 	): Flux<MessageDto> {
 		require(messageIds.ids.isNotEmpty()) { "You must specify at least one id." }
-		return messageService.getMessages(messageIds.ids).map(messageV2Mapper::map).injectReactorContext()
+		return messageService.getMessages(messageIds.ids).toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "List message stubs found by ids.")
@@ -216,7 +263,7 @@ class MessageController(
 	fun listMessagesByTransportGuids(
 		@RequestParam("hcpId") hcpId: String,
 		@RequestBody transportGuids: ListOfIdsDto,
-	): Flux<MessageDto> = messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.getMessagesByTransportGuids(hcpId, transportGuids.ids.toSet()).toDto().injectReactorContext()
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listMessageIdsByDataOwnerPatientSentDate instead")
@@ -228,7 +275,7 @@ class MessageController(
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		return messageService
 			.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
-			.map { contact -> messageV2Mapper.map(contact) }
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -262,7 +309,7 @@ class MessageController(
 		@RequestBody secretPatientKeys: List<String>,
 	): Flux<MessageDto> = messageService
 		.listMessagesByCurrentHCPartySecretPatientKeys(secretPatientKeys)
-		.map { contact -> messageV2Mapper.map(contact) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party")
@@ -277,7 +324,7 @@ class MessageController(
 
 		return messageService
 			.findForCurrentHcPartySortedByReceived(paginationOffset)
-			.mapElements(messageV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -285,7 +332,7 @@ class MessageController(
 	@GetMapping("/{messageId}/children")
 	fun getChildrenMessages(
 		@PathVariable messageId: String,
-	): Flux<MessageDto> = messageService.getMessageChildren(messageId).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.getMessageChildren(messageId).toDto().injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/children/batch")
@@ -293,14 +340,14 @@ class MessageController(
 		@RequestBody parentIds: ListOfIdsDto,
 	): Flux<MessageDto> = messageService
 		.getMessagesChildren(parentIds.ids)
-		.map(messageV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Get children messages of provided message")
 	@PostMapping("/byInvoice")
 	fun listMessagesByInvoices(
 		@RequestBody ids: ListOfIdsDto,
-	): Flux<MessageDto> = messageService.listMessagesByInvoiceIds(ids.ids).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.listMessagesByInvoiceIds(ids.ids).toDto().injectReactorContext()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided transportGuid")
 	@GetMapping("/byTransportGuid")
@@ -320,7 +367,7 @@ class MessageController(
 		} else {
 			emitAll(messageService.findMessagesByTransportGuid(hcpIdOrCurrentDataOwnerId, transportGuid, paginationOffset))
 		}
-	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
@@ -344,7 +391,7 @@ class MessageController(
 				paginationOffset,
 			),
 		)
-	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
 	@GetMapping("/byToAddress")
@@ -360,7 +407,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
 		emitAll(messageService.findMessagesByToAddress(hcpIdOrCurrentDataOwnerId, toAddress, paginationOffset, reverse ?: false))
-	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
 	@GetMapping("/byFromAddress")
@@ -375,31 +422,34 @@ class MessageController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
 		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentDataOwnerId, fromAddress, paginationOffset))
-	}.mapElements(messageV2Mapper::map).asPaginatedFlux()
+	}.toDto().asPaginatedFlux()
 
 	@Operation(summary = "Updates a Message")
 	@PutMapping
 	fun modifyMessage(
 		@RequestBody messageDto: MessageDto,
 	): Mono<MessageDto> = mono {
-		messageService.modifyMessage(messageV2Mapper.map(messageDto)).let { messageV2Mapper.map(it) }
+		messageService.modifyMessage(messageDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Updates a batch of Messages")
 	@PutMapping("/batch")
 	fun modifyMessages(
 		@RequestBody messageDtos: List<MessageDto>,
-	): Flux<MessageDto> = messageService
-		.modifyMessages(messageDtos.map(messageV2Mapper::map))
-		.map(messageV2Mapper::map)
-		.injectReactorContext()
+	): Flux<MessageDto> = flow {
+		emitAll(
+			messageService
+				.modifyMessages(messageDtos.toDomain())
+				.toDto()
+		)
+	}.injectReactorContext()
 
 	@Operation(summary = "Set status bits for given list of Messages")
 	@PutMapping("/status/{status}")
 	fun setMessagesStatusBits(
 		@PathVariable status: Int,
 		@RequestBody messageIds: ListOfIdsDto,
-	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).map { messageV2Mapper.map(it) }.injectReactorContext()
+	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).toDto().injectReactorContext()
 
 	@Operation(summary = "Set read status for given list of Messages")
 	@PutMapping("/readstatus")
@@ -414,7 +464,7 @@ class MessageController(
 						data.userId,
 						data.status ?: false,
 						data.time,
-					).map { messageV2Mapper.map(it) },
+					).toDto(),
 			)
 		}
 	}.injectReactorContext()
@@ -460,7 +510,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val messages = messageService.filterMessages(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
-		messages.paginatedList(messageV2Mapper::map, realLimit, objectMapper = objectMapper)
+		messages.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(summary = "Get ids of the Messages matching the provided filter.")
@@ -481,7 +531,7 @@ class MessageController(
 		@RequestParam entityId: String,
 	): Flux<MessageDto> =
 		messageService.getConflictsFor(entityId)
-			.map(messageV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -489,10 +539,10 @@ class MessageController(
 		@RequestBody request: ConflictResolutionRequestDto<MessageDto>
 	): Mono<ConflictResolutionResultDto<MessageDto>> = mono {
 		val result = messageService.declareConflictWinner(
-			entity = messageV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, messageV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")
@@ -509,4 +559,13 @@ class MessageController(
 		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
+
+	@PostMapping("/matchByCustom")
+	fun matchMessagesByCustomFilter(
+		@RequestBody filter: CustomFilterDto,
+	): PaginatedFlux<IdWithValueDto> = messageService.matchByCustomFilter(
+		filter = messageCustomFilterV2Mapper.map(filter),
+	).mapElements<IdWithValue, IdWithValueDto> {
+		idWithValueV2Mapper.map(it)
+	}.asPaginatedFlux()
 }

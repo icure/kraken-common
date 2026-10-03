@@ -24,6 +24,7 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy
 import org.taktik.icure.config.SharedWebFluxConfiguration.CardinalMappers.MapperConfig
 import org.taktik.icure.entities.utils.SemanticVersion
+import org.taktik.icure.serialization.IcureDomainObjectMapper.registerMultiplatformSupportModules
 import org.taktik.icure.services.external.http.WebSocketOperationHandler
 import org.taktik.icure.spring.encoder.FluxStringJsonEncoder
 import reactor.netty.http.server.WebsocketServerSpec
@@ -182,7 +183,7 @@ abstract class SharedWebFluxConfiguration(
 				.build()
 		).apply {
 			setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-		}
+		}.registerMultiplatformSupportModules()
 
 	/**
 	 * Object mapper that serializes always all fields
@@ -201,7 +202,7 @@ abstract class SharedWebFluxConfiguration(
 			// dropping "x" from a Map<String, Set<T>> if the set for "x" is empty), even though the entry itself is
 			// meaningful. We only want to omit a property entirely when it is empty, not filter within its contents.
 			setDefaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_EMPTY, JsonInclude.Include.ALWAYS))
-		}
+		}.registerMultiplatformSupportModules()
 	}
 
 	@Bean
@@ -225,7 +226,7 @@ abstract class SharedWebFluxConfiguration(
 						// TODO : may have significant performance impact but provides better error reporting (400 instead of 500), disable in case of issues.
 						.configure(KotlinFeature.StrictNullChecks, true)
 						.build(),
-				),
+				).registerMultiplatformSupportModules(),
 			).apply { maxInMemorySize = 128 * 1024 * 1024 },
 		)
 	}

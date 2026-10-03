@@ -7,6 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -15,12 +16,15 @@ import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.data.LabelledOccurence
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.entities.filters.AbstractCustomFilter
 import org.taktik.icure.pagination.PaginationElement
 
 interface ContactLogic :
 	EntityPersister<Contact>,
 	EntityWithSecureDelegationsLogic<Contact>,
-	ConflictResolutionLogic<Contact> {
+	ConflictResolutionLogic<Contact>,
+	CustomFilteringLogic
+{
 
 	suspend fun getContact(id: String): Contact?
 	fun getContacts(selectedIds: Collection<String>): Flow<Contact>
@@ -111,4 +115,5 @@ interface ContactLogic :
 	 * @return a [Flow] containing the created [Contact]s.
 	 */
 	fun createContacts(contacts: Flow<Contact>): Flow<Contact>
+	fun matchServicesByCustomFilter(filter: AbstractCustomFilter): Flow<PaginationElement>
 }

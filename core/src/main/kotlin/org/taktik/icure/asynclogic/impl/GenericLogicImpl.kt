@@ -19,11 +19,11 @@ import org.taktik.icure.asyncdao.results.entityOrNull
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.EntityPersister
 import org.taktik.icure.asynclogic.base.AutoFixableLogic
+import org.taktik.icure.asynclogic.base.ProxyDatastoreProvider
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.validation.EntityIdValidation
 import org.taktik.icure.validation.aspect.Fixer
 
 abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
@@ -31,8 +31,10 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	private val datastoreInstanceProvider: DatastoreInstanceProvider,
 	protected val filters: Filters,
 ) : AutoFixableLogic<E>(fixer),
-	EntityPersister<E> {
-	protected open suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
+	EntityPersister<E>,
+	ProxyDatastoreProvider
+{
+	override suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
 	override suspend fun createEntity(entity: E): E = fix(entity, isCreate = true) { fixedEntity ->
 		checkValidityForCreation(fixedEntity)

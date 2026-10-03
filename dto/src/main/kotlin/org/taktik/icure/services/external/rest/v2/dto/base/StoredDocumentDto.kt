@@ -18,6 +18,7 @@
 package org.taktik.icure.services.external.rest.v2.dto.base
 
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
 /**
@@ -25,7 +26,9 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 interface StoredDocumentDto : VersionableDto<String> {
 	@get:Schema(description = "hard delete (unix epoch in ms) timestamp of the object. Filled automatically when deletePatient is called.")
-	@ActiveField val deletionDate:
+	@CardinalMetadataProperty
+	@ActiveField
+	val deletionDate:
 		Long?
 
 	fun withDeletionDate(deletionDate: Long?): StoredDocumentDto

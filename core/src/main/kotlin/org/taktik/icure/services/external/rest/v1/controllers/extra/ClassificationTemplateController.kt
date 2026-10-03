@@ -24,6 +24,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.icure.asyncservice.ClassificationTemplateService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.ClassificationTemplate
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -121,7 +122,7 @@ class ClassificationTemplateController(
 
 		return classificationTemplateService
 			.listClassificationTemplates(paginationOffset)
-			.mapElements(classificationTemplateMapper::map)
+			.mapElements<ClassificationTemplate, ClassificationTemplateDto>(classificationTemplateMapper::map)
 			.asPaginatedFlux()
 	}
 }

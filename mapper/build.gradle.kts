@@ -4,11 +4,10 @@ plugins {
 
     alias(coreLibs.plugins.ksp)
     alias(coreLibs.plugins.mavenRepository)
-    alias(coreLibs.plugins.gitVersion)
     alias(coreLibs.plugins.kotlinAllOpen)
 }
 
-val gitVersion: String? by project
+val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
 
 group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"
@@ -70,7 +69,7 @@ tasks.register("KspPreCheck") {
     }
 }
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
+tasks.withType<com.google.devtools.ksp.gradle.KspAATask> {
     dependsOn("KspPreCheck")
 }
 

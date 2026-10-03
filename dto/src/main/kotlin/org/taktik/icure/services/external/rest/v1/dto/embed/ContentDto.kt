@@ -36,7 +36,8 @@ data class ContentDto(
 	val compoundValue: List<ServiceDto>? = null,
 	val ratio: List<MeasureDto>? = null,
 	val range: List<MeasureDto>? = null,
-) : Serializable {
+	override val encryptedSelf: String? = null,
+) : Serializable, EncryptableDto {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (other !is ContentDto) return false

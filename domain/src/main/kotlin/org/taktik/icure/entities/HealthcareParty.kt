@@ -7,10 +7,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.base.DataOwner
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.HasCodes
@@ -21,6 +23,7 @@ import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.FlatRateTarification
 import org.taktik.icure.entities.embed.Gender
@@ -180,6 +183,9 @@ data class HealthcareParty(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Named,
 	Person,
@@ -187,7 +193,9 @@ data class HealthcareParty(
 	DataOwner,
 	HasTags,
 	HasCodes,
-	HasIdentifier {
+	HasIdentifier,
+	CustomisableRoot,
+	Extendable {
 
 	init {
 		CryptoActor.validateDataOwnerGroupLinks(dataOwnerGroups)

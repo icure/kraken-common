@@ -22,17 +22,23 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Place
 import org.taktik.icure.services.external.rest.v2.dto.PlaceDto
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 
-@Mapper(componentModel = "spring", uses = [AddressV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [AddressV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+)
 interface PlaceV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(placeDto.extensions))"),
 	)
-	fun map(placeDto: PlaceDto): Place
+	fun map(placeDto: PlaceDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Place
 	fun map(place: Place): PlaceDto
 }

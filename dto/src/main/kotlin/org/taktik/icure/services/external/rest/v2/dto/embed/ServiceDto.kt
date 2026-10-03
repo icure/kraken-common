@@ -24,7 +24,10 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
@@ -46,13 +49,17 @@ Any action performed by the healthcare party which is relevant for the healthcar
 data class ServiceDto(
 	/** The Id of the Service. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Service. We encourage using either a v4 UUID or a HL7 Id.")
+	@CardinalMetadataProperty
 	override val id: String = UUID.randomUUID().toString(),
 	/** The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service */
 	@param:Schema(description = "The transactionId is used when a single service had to be split into parts for technical reasons. Several services with the same non null transaction id form one single service")
 	@ActiveField val transactionId: String? = null,
 	@ActiveField override val identifier: List<IdentifierDto> = emptyList(),
 	/** Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact */
-	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact") @ActiveField val contactId: String? = null,
+	@param:Schema(description = "Id of the contact during which the service is provided. Only used when the Service is emitted outside of its contact")
+	@CardinalMetadataProperty
+	@ActiveField
+	val contactId: String? = null,
 	//List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
 	@param:Schema(description = "List of IDs of all sub-contacts that link the service to structural elements. Only used when the Service is emitted outside of its contact",)
 	@ActiveField val subContactIds: Set<String>? = null, // Only used when the ServiceDto is emitted outside of its contact
@@ -70,14 +77,24 @@ data class ServiceDto(
 		description = "The secret patient key, encrypted in the patient document, in clear here.",
 		defaultValue = "emptySet()"
 	)
-	@ActiveField val secretForeignKeys: Set<String>? = emptySet(), // Only used when the ServiceDto is emitted outside of its contact
+	@CardinalMetadataProperty
+	@ActiveField
+	val secretForeignKeys: Set<String>? = emptySet(), // Only used when the ServiceDto is emitted outside of its contact
 	/** The public patient key, encrypted here for separate Crypto Actors. */
-	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.") @ActiveField val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "The public patient key, encrypted here for separate Crypto Actors.")
+	@CardinalMetadataProperty
+	@ActiveField
+	val cryptedForeignKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	/** The delegations giving access to connected healthcare information. */
-	@param:Schema(description = "The delegations giving access to connected healthcare information.") @ActiveField val delegations: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@param:Schema(description = "The delegations giving access to connected healthcare information.")
+	@CardinalMetadataProperty
+	@ActiveField
+	val delegations: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	/** The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors. */
 	@param:Schema(description = "The contact secret encryption key used to encrypt the secured properties (like services for example), encrypted for separate Crypto Actors.")
-	@ActiveField val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
+	@CardinalMetadataProperty
+	@ActiveField
+	val encryptionKeys: Map<String, Set<DelegationDto>> = emptyMap(), // Only used when the ServiceDto is emitted outside of its contact
 	/** Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ... */
 	@param:Schema(description = "Description / Unambiguous qualification (LOINC code) of the type of information contained in the service. Could be a code to qualify temperature, complaint, diagnostic, ...")
 	@ActiveField val label: String? = null,
@@ -85,9 +102,14 @@ data class ServiceDto(
 	@param:Schema(description = "Used for sorting services inside an upper object (A contact, a transaction, a FHIR bundle, ...)")
 	@ActiveField val index: Long? = null, // Used for sorting
 	/** Information contained in the service. Content is localized, using ISO language code as key */
-	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key") @ActiveField val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
-	@Deprecated("use encryptedSelf instead") @ActiveField val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
-	@ActiveField val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
+	@param:Schema(description = "Information contained in the service. Content is localized, using ISO language code as key")
+	@ActiveField
+	val content: Map<String, ContentDto> = emptyMap(), // Localized, in the case when the service contains a document, the document id is the SerializableValue
+	@Deprecated("use encryptedSelf instead")
+	@ActiveField
+	val encryptedContent: String? = null, // Crypted (AES+base64) version of the above, deprecated, use encryptedSelf instead
+	@ActiveField
+	val textIndexes: Map<String, String> = emptyMap(), // Same structure as content but used for full text indexation
 	/** The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date */
 	@param:Schema(description = "The date (YYYYMMDDhhmmss) when the Service is noted to have started and also closes on the same date") @ActiveField val valueDate: Long? = null, // YYYYMMDDHHMMSS if unknown, 00, ex:20010800000000. Note that to avoid all confusion: 2015/01/02 00:00:00 is encoded as 20140101235960.
 	/** The date (YYYYMMDDhhmmss) of the start of the Service */
@@ -123,13 +145,20 @@ data class ServiceDto(
 	override val codes: Set<CodeStubDto> = emptySet(), // stub object of the CodeDto used to qualify the content of the ServiceDto
 	override val tags: Set<CodeStubDto> = emptySet(), // stub object of the tag used to qualify the type of the ServiceDto
 	override val encryptedSelf: Base64StringDto? = null,
-	@ActiveField val securityMetadata: SecurityMetadataDto? = null,
+	@ActiveField
+	@CardinalMetadataProperty
+	val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	@ActiveField
+	@CardinalMetadataProperty
+	val contactCustomisedModelVersion: Int? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	Comparable<ServiceDto>,
 	HasEndOfLifeDto,
-	HasIdentifierDto {
+	HasIdentifierDto,
+	ExtendableDto {
 	override fun compareTo(other: ServiceDto): Int {
 		if (this == other) {
 			return 0

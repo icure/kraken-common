@@ -3,6 +3,7 @@ package org.taktik.icure.entities.utils
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeEqualComparingTo
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -13,14 +14,16 @@ class SemanticVersionTest : StringSpec({
 
 	fun List<String>.shouldBeStrictlyIncreasing() = zipWithNext().forEach { (lower, higher) ->
 		v(lower) shouldBeLessThan v(higher)
+		v(higher) shouldBeGreaterThan v(lower)
 	}
 
 	"major, minor and patch are compared numerically" {
-		listOf("1.9.9", "1.10.0", "2.0.0", "2.0.10", "2.1.0", "10.0.0").shouldBeStrictlyIncreasing()
+		listOf("1.0.2", "1.0.10", "1.9.9", "1.10.0", "2.0.0", "2.0.10", "2.1.0", "10.0.0").shouldBeStrictlyIncreasing()
 	}
 
 	"a release is greater than its pre-releases" {
 		listOf("2.13.0", "3.0.0-preview-1", "3.0.0-preview-6", "3.0.0").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-preview.6", "3.0.0").shouldBeStrictlyIncreasing()
 	}
 
 	"numeric pre-release identifiers are compared numerically" {
@@ -33,6 +36,8 @@ class SemanticVersionTest : StringSpec({
 			"3.0.0-preview-100"
 		).shouldBeStrictlyIncreasing()
 		listOf("1.0.0-rc2", "1.0.0-rc9", "1.0.0-rc10").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-preview-6", "3.0.0-preview.10", "3.0.0-preview-11").shouldBeStrictlyIncreasing()
+		listOf("3.0.0-rc-2-1", "3.0.0-rc.2.2").shouldBeStrictlyIncreasing()
 	}
 
 	"pre-releases follow the semantic versioning precedence" {
@@ -72,6 +77,8 @@ class SemanticVersionTest : StringSpec({
 	"equality is based on the version string" {
 		v("3.0.0-preview-6") shouldBe v("3.0.0-preview-6")
 		v("3.0.0-preview-6").hashCode() shouldBe v("3.0.0-preview-6").hashCode()
+		v("3.0.0-preview-6") shouldBeEqualComparingTo v("3.0.0-preview-6")
+		v("3.0.0") shouldBeEqualComparingTo v("3.0.0")
 		v("3.0.0-preview-6") shouldNotBe v("3.0.0-preview.6")
 	}
 
