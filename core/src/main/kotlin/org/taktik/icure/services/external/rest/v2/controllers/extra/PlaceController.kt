@@ -82,7 +82,7 @@ class PlaceController(
 	private suspend fun PlaceDto.toDomain(): Place =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::place,
 			placeV2Mapper::map,
 			scopePathProvider.getScopePathFor("Place"),
@@ -92,7 +92,7 @@ class PlaceController(
 	private suspend fun List<PlaceDto>.toDomain(): List<Place> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::place,
 			placeV2Mapper::map,
 			scopePathProvider.getScopePathFor("Place"),

@@ -87,7 +87,7 @@ class AgendaController(
 	private suspend fun AgendaDto.toDomain(): Agenda =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::agenda,
 			agendaV2Mapper::map,
 			scopePathProvider.getScopePathFor("Agenda"),
@@ -97,7 +97,7 @@ class AgendaController(
 	private suspend fun List<AgendaDto>.toDomain(): List<Agenda> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::agenda,
 			agendaV2Mapper::map,
 			scopePathProvider.getScopePathFor("Agenda"),

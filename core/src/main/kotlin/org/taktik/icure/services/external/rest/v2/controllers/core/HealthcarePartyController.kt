@@ -111,7 +111,7 @@ class HealthcarePartyController(
 	private suspend fun HealthcarePartyDto.toDomain(): HealthcareParty =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::healthcareParty,
 			healthcarePartyV2Mapper::map,
 			scopePathProvider.getScopePathFor("HealthcareParty"),
@@ -121,7 +121,7 @@ class HealthcarePartyController(
 	private suspend fun List<HealthcarePartyDto>.toDomain(): List<HealthcareParty> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::healthcareParty,
 			healthcarePartyV2Mapper::map,
 			scopePathProvider.getScopePathFor("HealthcareParty"),

@@ -134,7 +134,7 @@ class ContactController(
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::contact,
 			{ dto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
 			scopePathProvider.getScopePathFor("Contact"),
@@ -146,7 +146,7 @@ class ContactController(
 		val versionCtx = cardinalVersionConfig.getMappingContextForCurrentUser()
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::contact,
 			{ dto: ContactDto, ctx -> contactV2Mapper.map(dto, versionCtx, ctx) },
 			scopePathProvider.getScopePathFor("Contact"),

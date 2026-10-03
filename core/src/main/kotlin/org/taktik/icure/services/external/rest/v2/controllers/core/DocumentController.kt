@@ -121,7 +121,7 @@ class DocumentController(
 	private suspend fun DocumentDto.toDomain(): Document =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::document,
 			documentV2Mapper::map,
 			scopePathProvider.getScopePathFor("Document"),
@@ -131,7 +131,7 @@ class DocumentController(
 	private suspend fun List<DocumentDto>.toDomain(): List<Document> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::document,
 			documentV2Mapper::map,
 			scopePathProvider.getScopePathFor("Document"),

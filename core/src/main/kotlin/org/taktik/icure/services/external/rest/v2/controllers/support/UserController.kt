@@ -108,7 +108,7 @@ class UserController(
 	private suspend fun UserDto.toDomain(isCreate: Boolean = false): User {
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::user,
 			{ dto, ctx -> userV2Mapper.mapFillingOmittedSecrets(dto, ctx, isCreate) },
 			scopePathProvider.getScopePathFor("User"),
@@ -119,7 +119,7 @@ class UserController(
 	private suspend fun List<UserDto>.toDomain(isCreate: Boolean = false): List<User> {
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::user,
 			{ dto: UserDto, ctx -> userV2Mapper.mapFillingOmittedSecrets(dto, ctx, isCreate) },
 			scopePathProvider.getScopePathFor("User"),
@@ -130,7 +130,7 @@ class UserController(
 	private suspend fun List<UserDto>.toDomainOrNull(isCreate: Boolean = false): List<User?> {
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::user,
 			{ dto: UserDto, ctx -> userV2Mapper.mapFillingOmittedSecretsOrNull(dto, ctx, isCreate) },
 			scopePathProvider.getScopePathFor("User"),
@@ -141,7 +141,7 @@ class UserController(
 	private suspend fun UserDto.toDomainFromRev(): User {
 		return mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::user,
 			{ dto, ctx -> userV2Mapper.mapFillingOmittedSecretsFromRev(dto, ctx) },
 			scopePathProvider.getScopePathFor("User"),

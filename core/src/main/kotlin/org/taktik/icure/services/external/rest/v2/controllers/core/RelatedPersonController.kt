@@ -107,7 +107,7 @@ class RelatedPersonController(
 	private suspend fun RelatedPersonDto.toDomain(): RelatedPerson =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::relatedPerson,
 			relatedPersonV2Mapper::map,
 			scopePathProvider.getScopePathFor("RelatedPerson"),
@@ -120,7 +120,7 @@ class RelatedPersonController(
 	private suspend fun List<RelatedPersonDto>.toDomain(): List<RelatedPerson> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::relatedPerson,
 			relatedPersonV2Mapper::map,
 			scopePathProvider.getScopePathFor("RelatedPerson"),

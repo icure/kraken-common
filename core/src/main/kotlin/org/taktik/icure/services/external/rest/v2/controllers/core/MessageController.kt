@@ -121,7 +121,7 @@ class MessageController(
 	private suspend fun MessageDto.toDomain(): Message =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::message,
 			messageV2Mapper::map,
 			scopePathProvider.getScopePathFor("Message"),
@@ -131,7 +131,7 @@ class MessageController(
 	private suspend fun List<MessageDto>.toDomain(): List<Message> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::message,
 			messageV2Mapper::map,
 			scopePathProvider.getScopePathFor("Message"),

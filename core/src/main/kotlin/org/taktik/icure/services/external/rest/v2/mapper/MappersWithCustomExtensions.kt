@@ -6,7 +6,6 @@ import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfigura
 import com.icure.cardinal.customentities.config.VersionedObjectDefinitionReference
 import com.icure.cardinal.customentities.config.typing.ObjectDefinition
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
-import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.CustomEntityConfigResolutionContext
 import com.icure.cardinal.customentities.util.CustomEntityValueValidationContext
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
@@ -18,7 +17,6 @@ import com.icure.cardinal.errorreporting.ScopePath
 import com.icure.cardinal.errorreporting.ScopedErrorCollector
 import com.icure.cardinal.errorreporting.appending
 import org.springframework.stereotype.Component
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 
@@ -152,13 +150,13 @@ object MappersWithCustomExtensions {
 
 	suspend inline fun validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion: Int?,
-		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): MapperExtensionsValidationContext = validateModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion = dtoModelVersion,
-		getConfigForCurrentUser = customEntitiesConfigurationProvider::getConfigForCurrentUser,
+		getCustomEntitiesConfigForRequest = getCustomEntitiesConfigForRequest,
 		getExtension = { it.extensions.getExtension() },
 		scopePath = scopePath,
 		builtinValidationConfigsProvider = builtinValidationConfigsProvider,
@@ -172,7 +170,7 @@ object MappersWithCustomExtensions {
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): MapperExtensionsValidationContext = validateModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion = dtoModelVersion,
-		getConfigForCurrentUser = { config },
+		getCustomEntitiesConfigForRequest = { config },
 		getExtension = { it.customEntities[customEntityTypeId] },
 		scopePath = scopePath,
 		builtinValidationConfigsProvider = builtinValidationConfigsProvider,
@@ -180,12 +178,12 @@ object MappersWithCustomExtensions {
 
 	suspend inline fun validateModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion: Int?,
-		getConfigForCurrentUser: suspend () -> VersionedCustomEntitiesConfiguration?,
+		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
 		getExtension: (config: VersionedCustomEntitiesConfiguration) -> VersionedObjectDefinitionReference?,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): MapperExtensionsValidationContext {
-		val config = getConfigForCurrentUser()
+		val config = getCustomEntitiesConfigForRequest()
 		val extension = config?.let { getExtension(it) }
 		return if (extension != null) {
 			require (dtoModelVersion == extension.version) {
@@ -208,7 +206,7 @@ object MappersWithCustomExtensions {
 
 	suspend inline fun <DTO : CustomisableRootDto, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
-		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?,
@@ -216,7 +214,7 @@ object MappersWithCustomExtensions {
 	): OBJ =
 		doMap(dto, validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
 			dtoModelVersion = dto.customisedModelVersion,
-			customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+			getCustomEntitiesConfigForRequest = getCustomEntitiesConfigForRequest,
 			getExtension = getExtension,
 			scopePath = scopePath,
 			builtinValidationConfigsProvider = builtinValidationConfigsProvider,
@@ -224,7 +222,7 @@ object MappersWithCustomExtensions {
 
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
-		customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
 		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?,
@@ -237,7 +235,7 @@ object MappersWithCustomExtensions {
 		) {
 			validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
 				dtoModelVersion = it,
-				customEntitiesConfigurationProvider = customEntitiesConfigurationProvider,
+				getCustomEntitiesConfigForRequest = getCustomEntitiesConfigForRequest,
 				getExtension = getExtension,
 				scopePath = scopePath,
 				builtinValidationConfigsProvider = builtinValidationConfigsProvider,

@@ -87,7 +87,7 @@ class DeviceController(
 	private suspend fun DeviceDto.toDomain(): Device =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::device,
 			deviceV2Mapper::map,
 			scopePathProvider.getScopePathFor("Device"),
@@ -97,7 +97,7 @@ class DeviceController(
 	private suspend fun List<DeviceDto>.toDomain(): List<Device> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::device,
 			deviceV2Mapper::map,
 			scopePathProvider.getScopePathFor("Device"),

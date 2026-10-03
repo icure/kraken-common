@@ -113,7 +113,7 @@ class HealthElementController(
 	private suspend fun HealthElementDto.toDomain(): HealthElement =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::healthElement,
 			healthElementV2Mapper::map,
 			scopePathProvider.getScopePathFor("HealthElement"),
@@ -123,7 +123,7 @@ class HealthElementController(
 	private suspend fun List<HealthElementDto>.toDomain(): List<HealthElement> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::healthElement,
 			healthElementV2Mapper::map,
 			scopePathProvider.getScopePathFor("HealthElement"),

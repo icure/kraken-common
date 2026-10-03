@@ -84,7 +84,7 @@ class CalendarItemTypeController(
 	private suspend fun CalendarItemTypeDto.toDomain(): CalendarItemType =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::calendarItemType,
 			calendarItemTypeV2Mapper::map,
 			scopePathProvider.getScopePathFor("CalendarItemType"),
@@ -94,7 +94,7 @@ class CalendarItemTypeController(
 	private suspend fun List<CalendarItemTypeDto>.toDomain(): List<CalendarItemType> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::calendarItemType,
 			calendarItemTypeV2Mapper::map,
 			scopePathProvider.getScopePathFor("CalendarItemType"),

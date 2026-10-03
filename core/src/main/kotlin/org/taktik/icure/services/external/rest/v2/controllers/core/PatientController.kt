@@ -145,7 +145,7 @@ class PatientController(
 	private suspend fun PatientDto.toDomain(): Patient =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient"),
@@ -158,7 +158,7 @@ class PatientController(
 	private suspend fun List<PatientDto>.toDomain(): List<Patient> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::patient,
 			patientMapper::map,
 			scopePathProvider.getScopePathFor("Patient"),

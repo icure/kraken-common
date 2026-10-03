@@ -107,7 +107,7 @@ class AccessLogController(
 	private suspend fun AccessLogDto.toDomain(): AccessLog =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::accessLog,
 			accessLogV2Mapper::map,
 			scopePathProvider.getScopePathFor("AccessLog"),
@@ -117,7 +117,7 @@ class AccessLogController(
 	private suspend fun List<AccessLogDto>.toDomain(): List<AccessLog> =
 		mapFromDtoWithExtension(
 			this,
-			customEntitiesConfigurationProvider,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
 			StandardRootEntitiesExtensionConfig::accessLog,
 			accessLogV2Mapper::map,
 			scopePathProvider.getScopePathFor("AccessLog"),
