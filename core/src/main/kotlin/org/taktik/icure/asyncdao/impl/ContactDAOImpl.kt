@@ -57,6 +57,7 @@ import org.taktik.icure.domain.ContactIdServiceId
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
+import org.taktik.icure.exceptions.UnsupportedConfigViewException
 import org.taktik.icure.utils.DeduplicationMode
 import org.taktik.icure.utils.FuzzyDates
 import org.taktik.icure.utils.NoDocViewQueries
@@ -908,10 +909,21 @@ class ContactDAOImpl(
 			ComplexKey.emptyObject(),
 		)
 
+		// The configuration view has no reduce function, so the occurrences cannot be counted in groups that use it.
+		if (createConfigurationQueryOrNull(datastoreInformation, "service_by_all_delegates_code") != null) {
+			throw UnsupportedConfigViewException(
+				viewName = "service_by_all_delegates_code",
+				entity = entityClass.simpleName,
+				message = "Code occurrences are not supported in groups that have a design doc config"
+			)
+		}
+
+		// The data owner view emits for both legacy delegations and secure delegations, once per data owner and document,
+		// so it must be queried alone: counts reduced from several views cannot be deduplicated.
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "service_by_hcparty_code".main(),
-			configurationView = "service_by_all_delegates_code"
+			viewName = if (daoConfig.useDataOwnerPartition) "service_by_data_owner_code" else "service_by_hcparty_code",
+			secondaryPartition = if (daoConfig.useDataOwnerPartition) DATA_OWNER_PARTITION else null,
 		).startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(3)
 
 		emitAll(client.queryView<Array<String>, Long>(viewQuery).map { Pair(ComplexKey.of(*(it.key as Array<String>)), it.value) })
