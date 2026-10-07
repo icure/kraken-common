@@ -4,11 +4,10 @@ plugins {
 	alias(coreLibs.plugins.kotlinAllOpen) apply (true)
 	alias(coreLibs.plugins.kotlinSpring) apply (true)
 	alias(coreLibs.plugins.mavenRepository)
-	alias(coreLibs.plugins.gitVersion)
 	alias(coreLibs.plugins.ksp)
 }
 
-val gitVersion: String? by project
+val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
 
 group = "org.taktik.icure"
 version = gitVersion ?: "0.0.1-SNAPSHOT"
@@ -19,16 +18,17 @@ tasks.withType<Test> {
 	maxHeapSize = "16g"
 }
 
+val projectPrefix =
+	when (rootProject.name) {
+		"kmehr-importer" -> ":kmehr-module:kraken-common"
+		"kraken-common" -> ""
+		else -> ":kraken-common"
+	}
+
 dependencies {
 
-	val projectPrefix =
-		when (rootProject.name) {
-			"kmehr-importer" -> ":kmehr-module:kraken-common"
-			"kraken-common" -> ""
-			else -> ":kraken-common"
-		}
-
 	implementation(project("$projectPrefix:utils"))
+	api("com.icure:customentities-core")
 
 	if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
 		ksp("com.icure:ksp-json-processor")

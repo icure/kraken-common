@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic.objectstorage
 
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.objectstorage.DataAttachment
@@ -64,3 +65,5 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
 interface DocumentDataAttachmentModificationLogic : DataAttachmentModificationLogic<Document>
 
 interface TmpDocumentDataAttachmentModificationLogic : DataAttachmentModificationLogic<Document>
+
+interface CustomEntityDataAttachmentModificationLogic : DataAttachmentModificationLogic<CustomEntityBase>

@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Message
 import org.taktik.icure.services.external.rest.v2.dto.MessageDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -31,13 +32,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.MessageAttachment
 import org.taktik.icure.services.external.rest.v2.mapper.embed.MessageReadStatusV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.SecurityMetadataV2Mapper
 
-@Mapper(componentModel = "spring", uses = [CodeStubV2Mapper::class, DelegationV2Mapper::class, MessageReadStatusV2Mapper::class, SecurityMetadataV2Mapper::class, MessageAttachmentV2Mapper::class, PropertyStubV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [CodeStubV2Mapper::class, DelegationV2Mapper::class, MessageReadStatusV2Mapper::class, SecurityMetadataV2Mapper::class, MessageAttachmentV2Mapper::class, PropertyStubV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+)
 interface MessageV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(messageDto.extensions))"),
 	)
-	fun map(messageDto: MessageDto): Message
+	fun map(messageDto: MessageDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Message
 	fun map(message: Message): MessageDto
 }

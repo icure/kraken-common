@@ -63,13 +63,26 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import org.taktik.icure.entities.dao.IdWithValue
+import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.asPaginatedFlux
+import org.taktik.icure.pagination.mapElements
+import org.taktik.icure.services.external.rest.v2.dto.dao.IdWithValueDto
+import org.taktik.icure.services.external.rest.v2.dto.filter.CustomFilterDto
 import org.taktik.icure.services.external.rest.v2.mapper.DocumentV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.dao.IdWithValueV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.filter.DocumentCustomFilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DocumentBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -98,25 +111,55 @@ class DocumentController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val documentCustomFilterV2Mapper: DocumentCustomFilterV2Mapper,
+	private val idWithValueV2Mapper: IdWithValueV2Mapper
 ) {
+	private suspend fun DocumentDto.toDomain(): Document =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::document,
+			documentV2Mapper::map,
+			scopePathProvider.getScopePathFor("Document"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<DocumentDto>.toDomain(): List<Document> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::document,
+			documentV2Mapper::map,
+			scopePathProvider.getScopePathFor("Document"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Document.toDto(): DocumentDto = documentV2Mapper.map(this)
+
+	private fun Flow<Document>.toDto(): Flow<DocumentDto> = map { it.toDto() }
+	private fun List<Document>.toDto(): List<DocumentDto> = map { it.toDto() }
+
 	@Operation(summary = "Create a Document", description = "Creates a document and returns an instance of created document afterward")
 	@PostMapping
 	fun createDocument(
 		@RequestBody documentDto: DocumentDto,
 		@RequestParam(required = false) strict: Boolean? = null,
 	): Mono<DocumentDto> = mono {
-		val document = documentV2Mapper.map(documentDto)
-		documentV2Mapper.map(documentService.createDocument(document, strict ?: true))
+		val document = documentDto.toDomain()
+		documentService.createDocument(document, strict ?: true).toDto()
 	}
 
 	@Operation(summary = "Create a batch of Documents")
 	@PostMapping("/batch")
 	fun createDocuments(
 		@RequestBody documentDtos: List<DocumentDto>,
-	): Flux<DocumentDto> = documentService.createDocuments(
-		documentDtos.map(documentV2Mapper::map),
-	).map(documentV2Mapper::map).injectReactorContext()
+	): Flux<DocumentDto> = flow {
+		emitAll(documentService.createDocuments(documentDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Deletes multiple Documents")
 	@PostMapping("/delete/batch")
@@ -154,7 +197,7 @@ class DocumentController(
 		@PathVariable documentId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		documentV2Mapper.map(documentService.undeleteDocument(documentId, rev))
+		documentService.undeleteDocument(documentId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -163,7 +206,7 @@ class DocumentController(
 	): Flux<DocumentDto> = documentService
 		.undeleteDocuments(
 			documentIds.ids.map(idWithRevV2Mapper::map),
-		).map(documentV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{documentId}")
@@ -224,7 +267,7 @@ class DocumentController(
 				documentId,
 				rev,
 				mainAttachmentChange = DataAttachmentChange.Delete,
-			).let { documentV2Mapper.map(checkNotNull(it) { "Failed to update attachment" }) }
+			).let { checkNotNull(it) { "Failed to update attachment" }.toDto() }
 	}
 
 	@Operation(summary = "Creates or updates the main attachment of a document")
@@ -271,7 +314,7 @@ class DocumentController(
 					triedCompressionAlgorithmsVersion = triedCompressionAlgorithmsVersion,
 					realDataSize = realDataSize
 				),
-			)?.let { documentV2Mapper.map(it) }
+			)?.toDto()
 	}
 
 	@Operation(summary = "Gets a document")
@@ -282,7 +325,7 @@ class DocumentController(
 		val document =
 			documentService.getDocument(documentId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
-		documentV2Mapper.map(document)
+		document.toDto()
 	}
 
 	@Operation(summary = "Gets a document")
@@ -293,7 +336,7 @@ class DocumentController(
 		val document =
 			documentService.getDocumentsByExternalUuid(externalUuid).firstOrNull()
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
-		documentV2Mapper.map(document)
+		document.toDto()
 	}
 
 	@Operation(summary = "Get all documents with externalUuid")
@@ -301,7 +344,7 @@ class DocumentController(
 	fun getDocumentsByExternalUuid(
 		@PathVariable externalUuid: String,
 	): Mono<List<DocumentDto>> = mono {
-		documentService.getDocumentsByExternalUuid(externalUuid).map { documentV2Mapper.map(it) }
+		documentService.getDocumentsByExternalUuid(externalUuid).toDto()
 	}
 
 	@Operation(summary = "Get one or more documents by their ids.")
@@ -312,7 +355,7 @@ class DocumentController(
 		require(documentIds.ids.isNotEmpty()) { "You must specify at least one id." }
 		return documentService
 			.getDocuments(documentIds.ids)
-			.map(documentV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -330,8 +373,8 @@ class DocumentController(
 	fun modifyDocument(
 		@RequestBody documentDto: DocumentDto,
 	): Mono<DocumentDto> = mono {
-		val newDocument = documentV2Mapper.map(documentDto)
-		documentService.modifyDocument(newDocument, true).let { documentV2Mapper.map(it) }
+		val newDocument = documentDto.toDomain()
+		documentService.modifyDocument(newDocument, true).toDto()
 	}
 
 	@Operation(summary = "Updates a batch of documents", description = "Returns the modified documents.")
@@ -339,7 +382,7 @@ class DocumentController(
 	fun modifyDocuments(
 		@RequestBody documentDtos: List<DocumentDto>,
 	): Flux<DocumentDto> = flow {
-		documentService.modifyDocuments(documentDtos.map(documentV2Mapper::map)).collect { emit(documentV2Mapper.map(it)) }
+		emitAll(documentService.modifyDocuments(documentDtos.toDomain()).toDto())
 	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
@@ -358,7 +401,7 @@ class DocumentController(
 				}
 				documentService.listDocumentsByDocumentTypeHCPartySecretMessageKeys(documentTypeCode, hcPartyId, secretMessageKeys.ids)
 			} ?: documentService.listDocumentsByHCPartySecretMessageKeys(hcPartyId, secretMessageKeys.ids)
-		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
+		return documentList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find Document ids by data owner id, patient secret keys and creation date.")
@@ -389,7 +432,7 @@ class DocumentController(
 		@RequestParam(required = false) limit: Int?,
 	): Flux<DocumentDto> {
 		val documentList = documentService.listDocumentsWithoutDelegation(limit ?: 100)
-		return documentList.map { document -> documentV2Mapper.map(document) }.injectReactorContext()
+		return documentList.toDto().injectReactorContext()
 	}
 
 	@Operation(
@@ -450,7 +493,7 @@ class DocumentController(
 							realDataSize = realDataSize
 						),
 				),
-			).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
+			).let { checkNotNull(it) { "Could not update document" }.toDto() }
 	}
 
 	@Operation(
@@ -514,7 +557,7 @@ class DocumentController(
 				documentId,
 				rev,
 				secondaryAttachmentsChanges = mapOf(key to DataAttachmentChange.Delete),
-			).let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
+			).let { checkNotNull(it) { "Could not update document" }.toDto() }
 	}
 
 	@Operation(
@@ -567,7 +610,7 @@ class DocumentController(
 				}
 		documentService
 			.updateAttachmentsWrappingExceptions(documentId, rev, mainAttachmentChange, secondaryAttachmentsChanges)
-			.let { documentV2Mapper.map(checkNotNull(it) { "Could not update document" }) }
+			.let { checkNotNull(it) { "Could not update document" }.toDto() }
 	}
 
 	private fun makeMultipartAttachmentUpdate(
@@ -648,7 +691,7 @@ class DocumentController(
 		@RequestParam entityId: String,
 	): Flux<DocumentDto> =
 		documentService.getConflictsFor(entityId)
-			.map(documentV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -656,10 +699,10 @@ class DocumentController(
 		@RequestBody request: ConflictResolutionRequestDto<DocumentDto>
 	): Mono<ConflictResolutionResultDto<DocumentDto>> = mono {
 		val result = documentService.declareConflictWinner(
-			entity = documentV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, documentV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")
@@ -676,4 +719,13 @@ class DocumentController(
 		)
 		.map(mergeResultV2Mapper::map)
 		.injectReactorContext()
+
+	@PostMapping("/matchByCustom")
+	fun matchDocumentsByCustomFilter(
+		@RequestBody filter: CustomFilterDto,
+	): PaginatedFlux<IdWithValueDto> = documentService.matchByCustomFilter(
+		filter = documentCustomFilterV2Mapper.map(filter),
+	).mapElements<IdWithValue, IdWithValueDto> {
+		idWithValueV2Mapper.map(it)
+	}.asPaginatedFlux()
 }

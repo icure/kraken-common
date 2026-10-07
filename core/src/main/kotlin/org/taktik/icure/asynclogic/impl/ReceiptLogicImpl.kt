@@ -22,6 +22,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.ReceiptLogic
 import org.taktik.icure.asynclogic.SessionInformationProvider
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.asynclogic.objectstorage.ReceiptDataAttachmentLoader
@@ -52,7 +53,9 @@ open class ReceiptLogicImpl(
 	@param:Qualifier("receiptDataAttachmentLoader") private val attachmentLoader: ReceiptDataAttachmentLoader,
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Receipt> by ConflictResolutionLogicImpl(receiptDAO, merger, datastoreInstanceProvider),
-	ReceiptLogic {
+	CustomFilteringLogic by CustomFilteringLogicImpl(dao = receiptDAO, datastoreInstanceProvider = datastoreInstanceProvider),
+	ReceiptLogic
+{
 	override suspend fun createReceipt(receipt: Receipt) = createEntity(receipt)
 
 	override fun entityWithUpdatedSecurityMetadata(

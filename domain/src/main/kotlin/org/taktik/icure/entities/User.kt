@@ -9,13 +9,16 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.constants.Users
 import org.taktik.icure.entities.base.BaseUser
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
@@ -115,12 +118,17 @@ data class User(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Principal,
 	Cloneable,
 	Serializable,
 	HasIdentifier,
-	BaseUser {
+	BaseUser,
+	CustomisableRoot,
+	Extendable {
 	companion object {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)
 

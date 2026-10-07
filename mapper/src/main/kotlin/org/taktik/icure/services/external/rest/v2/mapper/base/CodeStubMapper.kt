@@ -37,7 +37,8 @@ abstract class CodeStubV2Mapper {
 		)
 	}
 
-	fun mapNotNull(codeStubDto: CodeStubDto): CodeStub = codeStubDto.let {
+	@JvmName("mapNotNullable")
+	fun map(codeStubDto: CodeStubDto): CodeStub = codeStubDto.let {
 		CodeStub(
 			id = it.id ?: "${it.type}|${it.code}|${it.version}",
 			type = it.type,

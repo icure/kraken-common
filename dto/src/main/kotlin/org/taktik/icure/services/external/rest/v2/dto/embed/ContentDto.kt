@@ -22,12 +22,14 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.ExposedToCustomEntities
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
 import java.io.Serializable
 import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,6 +37,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  * Represents the value content of a medical service. A content can hold different types of values
  * such as strings, numbers, dates, measurements, medications, time series, or compound sub-services.
  */
+@ExposedToCustomEntities(specializable = true)
 data class ContentDto(
 	/** A string value. */
 	@ActiveField val stringValue: String? = null,
@@ -69,7 +72,8 @@ data class ContentDto(
 	@ActiveField val ratio: List<MeasureDto>? = null,
 	/** A list of measures representing a range. */
 	@ActiveField val range: List<MeasureDto>? = null,
-) : Serializable {
+	override val encryptedSelf: Base64StringDto? = null,
+) : Serializable, EncryptableDto {
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (other !is ContentDto) return false

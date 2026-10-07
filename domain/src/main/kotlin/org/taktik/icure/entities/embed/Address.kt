@@ -6,7 +6,9 @@ package org.taktik.icure.entities.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasCodes
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.HasTags
@@ -39,12 +41,14 @@ data class Address(
 	val notes: List<Annotation> = emptyList(),
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class) val telecoms: List<Telecom> = emptyList(),
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	Serializable,
 	Comparable<Address>,
 	HasTags,
 	HasCodes,
-	HasIdentifier {
+	HasIdentifier,
+	Extendable {
 
 	override fun compareTo(other: Address): Int = addressType?.compareTo(other.addressType ?: AddressType.other) ?: 0
 }

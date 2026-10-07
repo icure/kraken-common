@@ -43,6 +43,7 @@ import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.SortDirection
 import org.taktik.icure.db.Sorting
+import org.taktik.icure.entities.Patient
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -133,7 +134,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientMapper::map).asPaginatedFlux()
+	}.mapElements<Patient, PatientDto>(patientMapper::map).asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients of a specific HcParty or of the current HcParty ",
@@ -168,7 +169,7 @@ class PatientController(
 				paginationOffset,
 				null,
 				Sorting(sortFieldAsEnum, SortDirection.valueOf(sortDirection.name)),
-			).mapElements(patientMapper::map)
+			).mapElements<Patient, PatientDto>(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -197,7 +198,7 @@ class PatientController(
 		val offset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.listOfPatientsModifiedAfter(date, offset)
-			.mapElements(patientMapper::map)
+			.mapElements<Patient, PatientDto>(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -313,7 +314,7 @@ class PatientController(
 				)
 			} ?: emptyFlow(),
 		)
-	}.mapElements(patientMapper::map).asPaginatedFlux()
+	}.mapElements<Patient, PatientDto>(patientMapper::map).asPaginatedFlux()
 
 	@Operation(
 		summary = "List patients by pages for a specific HcParty",
@@ -506,7 +507,7 @@ class PatientController(
 		val paginationOffset = PaginationOffset(startKey, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return patientService
 			.findDeletedPatientsByDeleteDate(startDate, endDate, desc ?: false, paginationOffset)
-			.mapElements(patientMapper::map)
+			.mapElements<Patient, PatientDto>(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -649,7 +650,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsBySsin(hcPartyId, paginationOffset)
-			.mapElements(patientMapper::map)
+			.mapElements<Patient, PatientDto>(patientMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -666,7 +667,7 @@ class PatientController(
 
 		return patientService
 			.getDuplicatePatientsByName(hcPartyId, paginationOffset)
-			.mapElements(patientMapper::map)
+			.mapElements<Patient, PatientDto>(patientMapper::map)
 			.asPaginatedFlux()
 	}
 

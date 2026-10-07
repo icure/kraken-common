@@ -22,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.dto.annotations.filtering.LegacyField
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
@@ -29,6 +31,8 @@ import org.taktik.icure.services.external.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PrincipalDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationTagDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.enums.UsersTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.AuthenticationTokenDto
@@ -68,32 +72,59 @@ data class UserDto(
 	override val properties: Set<PropertyStubDto> = emptySet(),
 	/** Local permissions specified for the user. */
 	@param:Schema(description = "Local permissions specified for the user: these may not reflect the actual permissions the user has on the cloud system")
-	@ActiveField val permissions: Set<PermissionDto> = emptySet(),
+	@CardinalMetadataProperty
+	@ActiveField
+	val permissions: Set<PermissionDto> = emptySet(),
 	/** Local roles specified for the user. */
 	@param:Schema(description = "Local roles specified for the user: these may not reflect the actual permissions the user has on the cloud system")
-	@ActiveField val roles: Set<String> = emptySet(),
+	@CardinalMetadataProperty
+	@ActiveField
+	val roles: Set<String> = emptySet(),
 	/** Authorization source for user ('Database', 'ldap' or 'token'). */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@LegacyField("An older version of kraken used to automatically set a value for type")
 	@param:Schema(description = "Authorization source for user. 'Database', 'ldap' or 'token'")
 	val type: UsersTypeDto? = null,
 	/** State of user's activeness: 'Active', 'Disabled' or 'Registering'. */
-	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'") @ActiveField val status: UsersStatusDto? = null,
+	@param:Schema(description = "State of user's activeness: 'Active', 'Disabled' or 'Registering'")
+	@CardinalMetadataProperty
+	@ActiveField
+	val status: UsersStatusDto? = null,
 	/** Username for this user. We encourage using an email address. */
-	@param:Schema(description = "Username for this user. We encourage using an email address") @ActiveField val login: String? = null,
+	@param:Schema(description = "Username for this user. We encourage using an email address")
+	@CardinalMetadataProperty
+	@ActiveField
+	val login: String? = null,
 	/** Hashed version of the password (BCrypt is used for hashing). */
-	@param:Schema(description = "Hashed version of the password (BCrypt is used for hashing)") @ActiveField val passwordHash: String? = null,
+	@param:Schema(description = "Hashed version of the password (BCrypt is used for hashing)")
+	@CardinalMetadataProperty
+	@ActiveField
+	val passwordHash: String? = null,
 	/** The id of the group (practice/hospital) the user is member of. */
-	@param:Schema(description = "id of the group (practice/hospital) the user is member of") @ActiveField val groupId: String? = null,
+	@param:Schema(description = "id of the group (practice/hospital) the user is member of")
+	@CardinalMetadataProperty
+	@ActiveField
+	val groupId: String? = null,
 	/** Id of the healthcare party if the user is a healthcare party. */
-	@param:Schema(description = "Id of the healthcare party if the user is a healthcare party.") @ActiveField val healthcarePartyId: String? = null,
+	@param:Schema(description = "Id of the healthcare party if the user is a healthcare party.")
+	@CardinalMetadataProperty
+	@ActiveField
+	val healthcarePartyId: String? = null,
 	/** Id of the patient if the user is a patient. */
-	@param:Schema(description = "Id of the patient if the user is a patient") @ActiveField val patientId: String? = null,
+	@param:Schema(description = "Id of the patient if the user is a patient")
+	@CardinalMetadataProperty
+	@ActiveField
+	val patientId: String? = null,
 	/** Id of the device if the user is a device. */
-	@param:Schema(description = "Id of the device if the user is a device") @ActiveField val deviceId: String? = null,
+	@param:Schema(description = "Id of the device if the user is a device")
+	@CardinalMetadataProperty
+	@ActiveField
+	val deviceId: String? = null,
 	/** Delegations that are automatically generated client side when a new database object is created by this user. */
 	@param:Schema(description = "Delegations that are automatically generated client side when a new database object is created by this user")
-	@ActiveField val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), // DelegationTagDto -> healthcarePartyIds
+	@CardinalMetadataProperty
+	@ActiveField
+	val autoDelegations: Map<DelegationTagDto, Set<String>> = emptyMap(), // DelegationTagDto -> healthcarePartyIds
 	@param:JsonSerialize(using = InstantSerializer::class)
 	@param:JsonInclude(JsonInclude.Include.NON_NULL)
 	@param:JsonDeserialize(using = InstantDeserializer::class)
@@ -102,23 +133,39 @@ data class UserDto(
 	/** The timestamp (unix epoch in ms) of the latest validation of the terms of use. */
 	) @ActiveField val termsOfUseDate: Instant? = null,
 	/** Email address of the user (used for token exchange or password recovery). */
-	@param:Schema(description = "email address of the user (used for token exchange or password recovery).") @ActiveField val email: String? = null,
+	@param:Schema(description = "email address of the user (used for token exchange or password recovery).")
+	@CardinalMetadataProperty
+	@ActiveField
+	val email: String? = null,
 	/** Mobile phone of the user (used for token exchange or password recovery). */
-	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).") @ActiveField val mobilePhone: String? = null,
+	@param:Schema(description = "mobile phone of the user (used for token exchange or password recovery).")
+	@CardinalMetadataProperty
+	@ActiveField
+	val mobilePhone: String? = null,
 	/** Long lived authentication tokens used for inter-applications authentication. */
 	@Deprecated("Long lived authentication tokens used for inter-applications authentication")
-	@ActiveField val applicationTokens: Map<String, String> = emptyMap(),
+	@CardinalMetadataProperty
+	@ActiveField
+	val applicationTokens: Map<String, String> = emptyMap(),
 	/** Encrypted and time-limited authentication tokens used for inter-applications authentication. */
 	@param:Schema(description = "Encrypted and time-limited Authentication tokens used for inter-applications authentication")
-	@ActiveField val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
+	@CardinalMetadataProperty
+	@ActiveField
+	val authenticationTokens: Map<String, AuthenticationTokenDto> = emptyMap(),
 	/** Metadata used to enrich the user with information from the cloud environment. */
 	@param:Schema(description = "Metadata used to enrich the user with information from the cloud environment. This value can't be modified as part of the user changes, you have to instead use the appropriate endpoints.")
-	@ActiveField val systemMetadata: SystemMetadata? = null,
+	@CardinalMetadataProperty
+	@ActiveField
+	val systemMetadata: SystemMetadata? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	PrincipalDto,
 	Cloneable,
 	Serializable,
-	HasIdentifierDto {
+	HasIdentifierDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

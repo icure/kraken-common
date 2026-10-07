@@ -19,6 +19,8 @@ package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
+import org.taktik.icure.CardinalMetadataProperty
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
@@ -31,9 +33,11 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DocumentTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.dto.annotations.filtering.Omit
 import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
 import org.taktik.icure.dto.annotations.filtering.Since
@@ -94,41 +98,72 @@ data class DocumentDto(
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(description = "A unique external id (from another external source).") @ActiveField val externalUuid: String? = null,
 	/** The size of the document file. */
-	@param:Schema(description = "Size of the document file") @ActiveField val size: Long? = null,
+	@param:Schema(description = "Size of the document file")
+	@CardinalMetadataProperty
+	@ActiveField
+	val size: Long? = null,
 	/** The hashed version of the document. */
-	@param:Schema(description = "Hashed version of the document") @ActiveField val hash: String? = null,
+	@param:Schema(description = "Hashed version of the document")
+	@CardinalMetadataProperty
+	@ActiveField
+	val hash: String? = null,
 	/** The id of the contact during which the document was created. */
 	@param:Schema(description = "Id of the contact during which the document was created") @ActiveField val openingContactId: String? = null,
 	/** The id of the main attachment stored as a CouchDB attachment. */
-	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment") @ActiveField val attachmentId: String? = null,
+	@param:Schema(description = "Id of the main attachment of this document, if stored as a couchdb attachment")
+	@CardinalMetadataProperty
+	@ActiveField
+	val attachmentId: String? = null,
 	@param:Schema(
 		description = "Id of the main attachment of this document, if stored using the object storage service",
 	/** The id of the main attachment in the object storage service. */
-	) @ActiveField val objectStoreReference: String? = null,
+	)
+	@CardinalMetadataProperty
+	@ActiveField
+	val objectStoreReference: String? = null,
 	@param:Schema(
 		description = "The main Uniform Type Identifier for the main attachment (https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202-CHDHIJDE)",
 	/** The main Uniform Type Identifier of the main attachment. */
-	) @ActiveField val mainUti: String? = null,
+	)
+	@CardinalMetadataProperty
+	@ActiveField
+	val mainUti: String? = null,
 	/** Extra Uniform Type Identifiers for the main attachment. */
-	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment") @ActiveField val otherUtis: Set<String> = emptySet(),
+	@param:Schema(description = "Extra Uniform Type Identifiers for the main attachment")
+	@CardinalMetadataProperty
+	@ActiveField
+	val otherUtis: Set<String> = emptySet(),
+	@CardinalMetadataProperty
 	@SerializationPolicy(
 		Since("2.0.0", Omit::class),
 		Since("2.4.0", ActiveField::class),
 	)
 	val mainAttachmentStoredDataSize: Long? = null,
-	@ActiveField val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
+	@CardinalMetadataProperty
+	@ActiveField
+	val extraMainAttachmentInfo: ExtraMainAttachmentInfo? = null,
 	/** Secondary attachments for this document. */
-	@param:Schema(description = "Secondary attachments for this document") @ActiveField val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
+	@param:Schema(description = "Secondary attachments for this document")
+	@CardinalMetadataProperty
+	@ActiveField
+	val secondaryAttachments: Map<String, DataAttachmentDto> = emptyMap(),
 	/** Information on past attachments for this document. */
-	@param:Schema(description = "Information on past attachments for this document") @ActiveField val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
+	@param:Schema(description = "Information on past attachments for this document")
+	@CardinalMetadataProperty
+	@ActiveField
+	val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** The encrypted attachment content as bytes. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(type = "string", format = "byte")
-	@ActiveField val encryptedAttachment: ByteArray? = null,
+	@CardinalMetadataProperty
+	@ActiveField
+	val encryptedAttachment: ByteArray? = null,
 	/** The decrypted attachment content as bytes. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")
 	@param:Schema(type = "string", format = "byte")
-	@ActiveField val decryptedAttachment: ByteArray? = null,
+	@CardinalMetadataProperty
+	@ActiveField
+	val decryptedAttachment: ByteArray? = null,
 	/** The secret foreign keys, used for secure linking to patients. */
 	override val secretForeignKeys: Set<String> = emptySet(),
 	/** The encrypted foreign keys. */
@@ -141,11 +176,15 @@ data class DocumentDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of this entity, for access control. */
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
-	EncryptableDto {
+	EncryptableDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

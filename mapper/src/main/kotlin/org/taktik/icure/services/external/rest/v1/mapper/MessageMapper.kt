@@ -23,7 +23,15 @@ interface MessageMapper {
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "properties", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(messageDto: MessageDto): Message
-	fun map(message: Message): MessageDto
+
+	fun map(message: Message): MessageDto {
+		require(message.extensions == null) { "Message has extensions and can't be used with v1 endpoints" }
+		return doMap(message)
+	}
+
+	fun doMap(message: Message): MessageDto
 }

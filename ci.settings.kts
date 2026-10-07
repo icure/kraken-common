@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // Required otherwise plugin coreLibs.plugins.mavenRepository breaks the configuration of repositories
     repositories {
         mavenLocal()
         mavenCentral()

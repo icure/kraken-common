@@ -34,12 +34,19 @@ interface DocumentMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extraMainAttachmentInfo", ignore = true),
 		Mapping(target = "mainAttachmentStoredDataSize", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(documentDto: DocumentDto): Document
+
+	fun map(document: Document): DocumentDto {
+		require(document.extensions == null) { "Document has extensions and can't be used with v1 endpoints" }
+		return doMap(document)
+	}
 
 	@Mappings(
 		Mapping(target = "encryptedAttachment", ignore = true),
 		Mapping(target = "decryptedAttachment", ignore = true),
 	)
-	fun map(document: Document): DocumentDto
+	fun doMap(document: Document): DocumentDto
 }

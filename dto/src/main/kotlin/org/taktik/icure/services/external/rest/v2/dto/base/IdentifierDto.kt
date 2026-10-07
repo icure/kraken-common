@@ -2,6 +2,7 @@ package org.taktik.icure.services.external.rest.v2.dto.base
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.taktik.icure.ExposedToCustomEntities
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
@@ -14,6 +15,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ExposedToCustomEntities
 data class IdentifierDto(
 	/**
 	 * Unique id for inter-element referencing

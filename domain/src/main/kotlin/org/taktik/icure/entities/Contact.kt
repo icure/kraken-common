@@ -6,9 +6,11 @@ package org.taktik.icure.entities
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.icure.cardinal.entities.RawJson
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.ParticipantType
@@ -19,6 +21,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.ContactParticipant
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
+import org.taktik.icure.entities.base.CustomisableRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -119,11 +122,15 @@ data class Contact(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	val notes: List<Annotation> = emptyList(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	HasEncryptionMetadata,
 	HasIdentifier,
-	Encryptable {
+	Encryptable,
+	CustomisableRoot,
+	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)
@@ -188,5 +195,6 @@ fun Service.pimpWithContactInformation(contact: Contact): Service {
 		author = this.author ?: contact.author,
 		responsible = this.responsible ?: contact.responsible,
 		securityMetadata = contact.securityMetadata,
+		contactCustomisedModelVersion = contact.customisedModelVersion,
 	)
 }

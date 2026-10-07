@@ -22,6 +22,7 @@ import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.services.external.rest.v2.dto.AgendaDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
@@ -30,13 +31,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.embed.AgendaSlottingAlg
 import org.taktik.icure.services.external.rest.v2.mapper.embed.ResourceGroupAllocationV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.RightV2Mapper
 
-@Mapper(componentModel = "spring", uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [PropertyStubV2Mapper::class, CodeStubV2Mapper::class, RightV2Mapper::class, ResourceGroupAllocationV2Mapper::class, AgendaSlottingAlgorithmV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+)
 interface AgendaV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(agendaDto.extensions))"),
 	)
-	fun map(agendaDto: AgendaDto): Agenda
+	fun map(agendaDto: AgendaDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Agenda
 	fun map(agenda: Agenda): AgendaDto
 }

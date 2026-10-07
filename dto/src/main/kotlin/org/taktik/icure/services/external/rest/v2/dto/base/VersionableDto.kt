@@ -16,13 +16,17 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto.base
+
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.CardinalMetadataProperty
 
 /**
  * @param <T> The type of the entity identity (a String, a UUID, etc.)
 </T> */
 interface VersionableDto<T> : IdentifiableDto<T> {
-	@ActiveField val rev: String?
+	@CardinalMetadataProperty
+	@ActiveField
+	val rev: String?
 
 	fun withIdRev(
 		id: T?,

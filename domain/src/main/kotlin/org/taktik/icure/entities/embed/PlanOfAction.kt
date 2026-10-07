@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.entities.base.CodeStub
+import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.ICureDocument
 import org.taktik.icure.entities.base.Named
@@ -98,10 +100,12 @@ data class PlanOfAction(
 	@param:JsonDeserialize(using = JacksonLenientCollectionDeserializer::class)
 	val careTeamMemberships: List<CareTeamMembership> = emptyList(),
 	override val encryptedSelf: String? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : Encryptable,
 	ICureDocument<String>,
 	HasMedicalLocation,
-	Named {
+	Named,
+	Extendable {
 	companion object {
 		const val STATUS_PLANNED = 1 shl 0
 		const val STATUS_ONGOING = 1 shl 1

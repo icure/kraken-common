@@ -20,7 +20,9 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
@@ -59,6 +61,8 @@ data class SubContactDto(
 	@param:Schema(description = "List of all services provided to the patient under a given contact which is linked by this sub-contact to other structuring elements.")
 	@ActiveField val services: List<ServiceLinkDto> = emptyList(),
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
 	ICureDocumentDto<String?>,
+	ExtendableDto,
 	HasMedicalLocationDto

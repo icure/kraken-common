@@ -20,6 +20,7 @@ package org.taktik.icure.services.external.rest.v2.dto
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
@@ -34,12 +35,13 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ContactParticipantDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ServiceDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SubContactDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -138,14 +140,20 @@ data class ContactDto(
 	/** The security metadata of this contact, tracking access control information. */
 	@param:Schema(description = "The security metadata of this contact, tracking access control information.") override val securityMetadata: SecurityMetadataDto? = null,
 	/** Comments and notes recorded by a healthcare party about this contact. */
-	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact") @ActiveField val notes: List<AnnotationDto> = emptyList(),
+	@param:Schema(description = "Comments - Notes recorded by a HCP about this contact")
+	@ActiveField
+	val notes: List<AnnotationDto> = emptyList(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,
-	HasIdentifierDto {
+	HasIdentifierDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

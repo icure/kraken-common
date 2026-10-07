@@ -20,10 +20,10 @@ package org.taktik.icure.services.external.rest.v2.mapper.embed
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Mappings
+import org.mapstruct.PassOnParameter
 import org.taktik.icure.domain.result.ImportResult
 import org.taktik.icure.domain.result.MimeAttachment
+import org.taktik.icure.services.external.rest.ModelMappingVersionContext
 import org.taktik.icure.services.external.rest.v2.dto.ImportResultDto
 import org.taktik.icure.services.external.rest.v2.dto.base.MimeAttachmentDto
 import org.taktik.icure.services.external.rest.v2.mapper.ContactV2Mapper
@@ -33,14 +33,9 @@ import org.taktik.icure.services.external.rest.v2.mapper.HealthElementV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.HealthcarePartyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.PatientV2Mapper
 
-@Mapper(componentModel = "spring", uses = [DelegationV2Mapper::class, PatientV2Mapper::class, HealthElementV2Mapper::class, ContactV2Mapper::class, FormV2Mapper::class, HealthcarePartyV2Mapper::class, DocumentV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "spring", uses = [DelegationV2Mapper::class, HealthElementV2Mapper::class, ContactV2Mapper::class, FormV2Mapper::class, HealthcarePartyV2Mapper::class, DocumentV2Mapper::class, PatientV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 interface ImportResultV2Mapper {
-	@Mappings(
-		Mapping(target = "warning", ignore = true),
-		Mapping(target = "error", ignore = true),
-	)
-	suspend fun map(importResultDto: ImportResultDto): ImportResult
-	suspend fun map(importResult: ImportResult): ImportResultDto
+	suspend fun map(importResult: ImportResult, @PassOnParameter modelMappingVersionContext: ModelMappingVersionContext): ImportResultDto
 	fun map(mimeAttachmentDto: MimeAttachmentDto): MimeAttachment
 	fun map(mimeAttachment: MimeAttachment): MimeAttachmentDto
 }

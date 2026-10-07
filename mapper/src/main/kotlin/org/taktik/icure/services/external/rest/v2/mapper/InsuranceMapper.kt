@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import org.mapstruct.DefaultPassOnParameter
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -28,7 +29,18 @@ import org.taktik.icure.services.external.rest.v2.mapper.base.CodeStubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.IdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.embed.AddressV2Mapper
 
-@Mapper(componentModel = "spring", uses = [AddressV2Mapper::class, CodeStubV2Mapper::class, IdentifierV2Mapper::class], injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(
+	componentModel = "spring",
+	uses = [AddressV2Mapper::class, CodeStubV2Mapper::class, IdentifierV2Mapper::class],
+	injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+	defaultPassOnParameters = [
+		DefaultPassOnParameter(
+			type = com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext::class,
+			valueExpression = "com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext.Empty",
+			parameterName = "mapperExtensionsValidationContext",
+		)
+	]
+)
 interface InsuranceV2Mapper {
 	@Mappings(
 		Mapping(target = "attachments", ignore = true),

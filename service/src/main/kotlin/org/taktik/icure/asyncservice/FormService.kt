@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Form
@@ -18,7 +19,9 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface FormService :
 	EntityWithSecureDelegationsService<Form>,
-	EntityWithConflictResolutionService<Form> {
+	EntityWithConflictResolutionService<Form>,
+	EntityWithCustomViewsService
+{
 
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>

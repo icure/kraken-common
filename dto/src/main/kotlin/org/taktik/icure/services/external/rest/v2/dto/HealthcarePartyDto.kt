@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkNonNullable
+import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerDto
@@ -34,6 +35,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
@@ -46,6 +48,7 @@ import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchang
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.SpkiHexStringDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(
@@ -221,6 +224,8 @@ data class HealthcarePartyDto(
 	override val publicKey: SpkiHexStringDto? = null,
 	/** Public keys for OAEP with SHA-256 encryption. */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
+	override val extensions: RawJson.JsonObject? = null,
+	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	NamedDto,
 	PersonDto,
@@ -228,7 +233,9 @@ data class HealthcarePartyDto(
 	DataOwnerDto,
 	HasCodesDto,
 	HasTagsDto,
-	HasIdentifierDto {
+	HasIdentifierDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

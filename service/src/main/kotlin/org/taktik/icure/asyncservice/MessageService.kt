@@ -10,6 +10,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -22,7 +23,9 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface MessageService :
 	EntityWithSecureDelegationsService<Message>,
-	EntityWithConflictResolutionService<Message> {
+	EntityWithConflictResolutionService<Message>,
+	EntityWithCustomViewsService
+{
 
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],

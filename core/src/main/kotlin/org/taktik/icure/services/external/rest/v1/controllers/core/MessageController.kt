@@ -32,6 +32,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.MessageService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Message
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -163,7 +164,7 @@ class MessageController(
 
 		return messageService
 			.findForCurrentHcPartySortedByReceived(paginationOffset)
-			.mapElements(messageMapper::map)
+			.mapElements<Message, MessageDto>(messageMapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -206,7 +207,7 @@ class MessageController(
 		} else {
 			emitAll(messageService.findMessagesByTransportGuid(hcpIdOrCurrentHcpId, transportGuid, paginationOffset))
 		}
-	}.mapElements(messageMapper::map).asPaginatedFlux()
+	}.mapElements<Message, MessageDto>(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages starting by a prefix between two date")
 	@GetMapping("/byTransportGuidSentDate")
@@ -230,7 +231,7 @@ class MessageController(
 				paginationOffset,
 			),
 		)
-	}.mapElements(messageMapper::map).asPaginatedFlux()
+	}.mapElements<Message, MessageDto>(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided to address")
 	@GetMapping("/byToAddress")
@@ -246,7 +247,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
 		emitAll(messageService.findMessagesByToAddress(hcpIdOrCurrentDataOwnerId, toAddress, paginationOffset, reverse ?: false))
-	}.mapElements(messageMapper::map).asPaginatedFlux()
+	}.mapElements<Message, MessageDto>(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Get all messages (paginated) for current HC Party and provided from address")
 	@GetMapping("/byFromAddress")
@@ -261,7 +262,7 @@ class MessageController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		val hcpIdOrCurrentDataOwnerId = hcpId ?: sessionLogic.getCurrentDataOwnerId()
 		emitAll(messageService.findMessagesByFromAddress(hcpIdOrCurrentDataOwnerId, fromAddress, paginationOffset))
-	}.mapElements(messageMapper::map).asPaginatedFlux()
+	}.mapElements<Message, MessageDto>(messageMapper::map).asPaginatedFlux()
 
 	@Operation(summary = "Updates a message")
 	@PutMapping

@@ -32,6 +32,7 @@ import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
+import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginatedFlux
@@ -51,8 +52,8 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.base.CodeV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.filter.FilterChainV2Mapper
@@ -111,7 +112,7 @@ class CodeController(
 		val typesList = types.split(',').toSet()
 		return codeService
 			.findCodesByLabel(region, language, typesList, label, version, paginationOffset)
-			.mapElements(codeV2Mapper::map)
+			.mapElements<Code, CodeDto>(codeV2Mapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -140,7 +141,7 @@ class CodeController(
 
 		return codeService
 			.findCodesBy(region, type, code, version, paginationOffset)
-			.mapElements(codeV2Mapper::map)
+			.mapElements<Code, CodeDto>(codeV2Mapper::map)
 			.asPaginatedFlux()
 	}
 
@@ -165,7 +166,7 @@ class CodeController(
 		val paginationOffset = PaginationOffset(startKeyElements, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return codeService
 			.findCodesByQualifiedLinkId(linkType, linkedId, paginationOffset)
-			.mapElements(codeV2Mapper::map)
+			.mapElements<Code, CodeDto>(codeV2Mapper::map)
 			.asPaginatedFlux()
 	}
 

@@ -18,9 +18,12 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.icure.cardinal.entities.RawJson
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEndOfLifeDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
@@ -103,13 +106,17 @@ data class RelatedPersonDto(
 	override val encryptedSelf: Base64StringDto? = null,
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
+	override val customisedModelVersion: Int? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	PersonDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasIdentifierDto,
-	HasEndOfLifeDto {
+	HasEndOfLifeDto,
+	CustomisableRootDto,
+	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,

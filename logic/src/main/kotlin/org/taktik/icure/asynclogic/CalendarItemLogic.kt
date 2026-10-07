@@ -6,6 +6,7 @@ package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.CalendarItem
@@ -14,7 +15,9 @@ import org.taktik.icure.pagination.PaginationElement
 interface CalendarItemLogic :
 	EntityPersister<CalendarItem>,
 	EntityWithSecureDelegationsLogic<CalendarItem>,
-	ConflictResolutionLogic<CalendarItem> {
+	ConflictResolutionLogic<CalendarItem>,
+	CustomFilteringLogic
+{
 
 	suspend fun createCalendarItem(calendarItem: CalendarItem): CalendarItem
 	fun createCalendarItems(calendarItems: List<CalendarItem>): Flow<CalendarItem>

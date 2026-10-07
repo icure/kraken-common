@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
@@ -38,8 +41,14 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.specializations.AesExchangeKeyEncryptionKeypairIdentifierDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.HexStringDto
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import org.taktik.icure.entities.Device
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.services.external.rest.v2.mapper.DeviceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
@@ -69,15 +78,44 @@ class DeviceController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
+
+	private suspend fun DeviceDto.toDomain(): Device =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::device,
+			deviceV2Mapper::map,
+			scopePathProvider.getScopePathFor("Device"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<DeviceDto>.toDomain(): List<Device> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::device,
+			deviceV2Mapper::map,
+			scopePathProvider.getScopePathFor("Device"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Device.toDto(): DeviceDto = deviceV2Mapper.map(this)
+
+	private fun Flow<Device>.toDto(): Flow<DeviceDto> = map { it.toDto() }
+
+	private fun toDtoLambda(): (Device) -> DeviceDto = { it.toDto() }
 
 	@Operation(summary = "Get Device", description = "It gets device administrative data.")
 	@GetMapping("/{deviceId}")
 	fun getDevice(
 		@PathVariable deviceId: String,
 	): Mono<DeviceDto> = mono {
-		deviceService.getDevice(deviceId)?.let(deviceV2Mapper::map)
+		deviceService.getDevice(deviceId)?.toDto()
 			?: throw ResponseStatusException(
 				HttpStatus.NOT_FOUND,
 				"Getting device failed. Possible reasons: no such device exists, or server error. Please try again or read the server log.",
@@ -90,7 +128,7 @@ class DeviceController(
 		@RequestBody deviceIds: ListOfIdsDto,
 	): Flux<DeviceDto> = deviceService
 		.getDevices(deviceIds.ids)
-		.map { deviceV2Mapper.map(it) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(
@@ -101,7 +139,7 @@ class DeviceController(
 	fun createDevice(
 		@RequestBody p: DeviceDto,
 	): Mono<DeviceDto> = mono {
-		deviceV2Mapper.map(deviceService.createDevice(deviceV2Mapper.map(p)))
+		deviceService.createDevice(p.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a device", description = "Returns the updated device")
@@ -109,26 +147,24 @@ class DeviceController(
 	fun updateDevice(
 		@RequestBody deviceDto: DeviceDto,
 	): Mono<DeviceDto> = mono {
-		deviceService.modifyDevice(deviceV2Mapper.map(deviceDto)).let(deviceV2Mapper::map)
+		deviceService.modifyDevice(deviceDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Create devices in bulk", description = "Returns the id and _rev of created devices")
 	@PostMapping("/bulk", "/batch")
 	fun createDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	): Flux<DeviceDto> = deviceService
-		.createDevices(deviceDtos.map(deviceV2Mapper::map))
-		.map(deviceV2Mapper::map)
-		.injectReactorContext()
+	): Flux<DeviceDto> = flow {
+		emitAll(deviceService.createDevices(deviceDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Modify devices in bulk", description = "Returns the id and _rev of modified devices")
 	@PutMapping("/bulk", "/batch")
 	fun updateDevices(
 		@RequestBody deviceDtos: List<DeviceDto>,
-	): Flux<DeviceDto> = deviceService
-		.modifyDevices(deviceDtos.map(deviceV2Mapper::map))
-		.map(deviceV2Mapper::map)
-		.injectReactorContext()
+	): Flux<DeviceDto> = flow {
+		emitAll(deviceService.modifyDevices(deviceDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(
 		summary = "Filter devices for the current user (HcParty) ",
@@ -144,7 +180,7 @@ class DeviceController(
 
 		deviceService
 			.filterDevices(filterChainV2Mapper.tryMap(filterChain).orThrow(), realLimit + 1, startDocumentId)
-			.paginatedList(deviceV2Mapper::map, realLimit, objectMapper = objectMapper)
+			.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}
 
 	@Operation(
@@ -203,7 +239,7 @@ class DeviceController(
 		@PathVariable deviceId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<DeviceDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		deviceV2Mapper.map(deviceService.undeleteDevice(deviceId, rev))
+		deviceService.undeleteDevice(deviceId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -212,7 +248,7 @@ class DeviceController(
 	): Flux<DeviceDto> = deviceService
 		.undeleteDevices(
 			deviceIds.ids.map(idWithRevV2Mapper::map),
-		).map(deviceV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{deviceId}")
@@ -241,7 +277,7 @@ class DeviceController(
 		@RequestParam entityId: String,
 	): Flux<DeviceDto> =
 		deviceService.getConflictsFor(entityId)
-			.map(deviceV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -249,10 +285,10 @@ class DeviceController(
 		@RequestBody request: ConflictResolutionRequestDto<DeviceDto>
 	): Mono<ConflictResolutionResultDto<DeviceDto>> = mono {
 		val result = deviceService.declareConflictWinner(
-			entity = deviceV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, deviceV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

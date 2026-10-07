@@ -3,14 +3,13 @@ import com.github.jk1.license.render.ReportRenderer
 
 plugins {
     id("com.icure.kotlin-library-conventions")
-    kotlin("plugin.serialization")
+    alias(coreLibs.plugins.kotlinxSerialization)
 
     alias(coreLibs.plugins.springBootPlugin) apply (true)
     alias(coreLibs.plugins.springBootDependenciesManagement) apply (true)
     alias(coreLibs.plugins.kotlinAllOpen) apply (true)
     alias(coreLibs.plugins.kotlinSpring) apply (true)
     alias(coreLibs.plugins.mavenRepository)
-    alias(coreLibs.plugins.gitVersion) apply (true)
     alias(coreLibs.plugins.helmRepository) apply (true)
     alias(coreLibs.plugins.licenceReport) apply (true)
     alias(coreLibs.plugins.ksp) apply (true)
@@ -80,12 +79,18 @@ dependencies {
     testImplementation(coreLibs.bundles.hibernateValidatorLibs)
 }
 
-tasks.withType<com.google.devtools.ksp.gradle.KspTask> {
-    onlyIf {
-        gradle.startParameter.taskNames.contains(":kraken-common:core:kspKotlin")
-    }
-}
-
 if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
 	apply(plugin = "generate-jackson-filters-conventions")
+}
+
+// The Spring Boot plugin above is applied for its dependency management and the kotlin-spring conveniences, not to
+// package an application: this module is a library and has no main class. The plugin still registers `bootJar` and
+// makes `assemble` depend on it, so a plain `build` would fail on "Main class name has not been configured".
+// The executable jar is built by the application module (cloud-core), which sets its own mainClass.
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+	enabled = false
+}
+
+tasks.named<Jar>("jar") {
+	enabled = true
 }

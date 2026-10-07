@@ -2,9 +2,12 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
+import org.taktik.icure.ExposedToCustomEntities
+
 /**
  * Represents a high-frequency time series with named fields, sample data, and statistical summaries.
  */
+@ExposedToCustomEntities
 data class TimeSeriesDto(
 	/** The names of the fields (columns) in the time series. */
 	@ActiveField val fields: List<String> = emptyList(),

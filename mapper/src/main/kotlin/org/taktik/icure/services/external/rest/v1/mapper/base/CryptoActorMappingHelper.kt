@@ -1,8 +1,8 @@
 package org.taktik.icure.services.external.rest.v1.mapper.base
 
-import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.entities.base.CryptoActor
 import org.taktik.icure.entities.utils.SemanticVersion
+import org.taktik.icure.services.external.rest.ModelMappingVersionContext
 import org.taktik.icure.services.external.rest.v2.dto.base.DataOwnerGroupLinkDto
 import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerGroupLinkV2Mapper
 
@@ -21,18 +21,18 @@ object CryptoActorMappingHelper {
 	 * whenever there is a single admin-type link) — there is nothing left for a read-time collapse to do, and
 	 * unlike the old per-edge-typed model there is no longer a link type to assert on.
 	 */
-	suspend fun mapParentIdAndDataOwnerGroupLinks(
+	fun mapParentIdAndDataOwnerGroupLinks(
 		cryptoActor: CryptoActor,
 		linkMapper: DataOwnerGroupLinkV2Mapper,
-		cardinalVersionConfig: CardinalVersionConfig,
-	): Pair<String?, List<DataOwnerGroupLinkDto>> = if (shouldUseLegacyParentId(cardinalVersionConfig)) {
+		modelMappingVersionContext: ModelMappingVersionContext,
+	): Pair<String?, List<DataOwnerGroupLinkDto>> = if (shouldUseLegacyParentId(modelMappingVersionContext)) {
 		cryptoActor.parentId to cryptoActor.dataOwnerGroups.map(linkMapper::map)
 	} else {
 		null to CryptoActor.normalizedDataOwnerGroupLinks(cryptoActor.dataOwnerGroups, cryptoActor.parentId).map(linkMapper::map)
 	}
 
-	private suspend fun shouldUseLegacyParentId(cardinalVersionConfig: CardinalVersionConfig) =
-		cardinalVersionConfig.getUserCardinalVersion()?.let {
+	private fun shouldUseLegacyParentId(modelMappingVersionContext: ModelMappingVersionContext) =
+		modelMappingVersionContext.cardinalModelVersion?.let {
 			it < minDataOwnerGroupLinksVersion
 		} ?: true
 }

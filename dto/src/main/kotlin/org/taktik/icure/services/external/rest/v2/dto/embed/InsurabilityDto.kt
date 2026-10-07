@@ -24,6 +24,8 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import com.icure.cardinal.entities.RawJson
+import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonFilter
@@ -45,5 +47,7 @@ data class InsurabilityDto(
 		description = "UUID of the contact person who is the policyholder of the insurance (when the patient is covered by the insurance of a third person).",
 	) @ActiveField val titularyId: String? = null,
 	override val encryptedSelf: Base64StringDto? = null,
+	override val extensions: RawJson.JsonObject? = null,
 ) : EncryptableDto,
-	Serializable
+	Serializable,
+	ExtendableDto

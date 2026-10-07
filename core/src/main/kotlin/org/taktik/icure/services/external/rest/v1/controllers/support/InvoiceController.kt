@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -33,6 +32,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.InvoiceService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.InvoiceType
 import org.taktik.icure.entities.embed.MediumType
 import org.taktik.icure.exceptions.ForbiddenException
@@ -248,7 +248,7 @@ class InvoiceController(
 			)
 		return invoiceService
 			.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
-			.mapElements(invoiceMapper::map)
+			.mapElements<Invoice, InvoiceDto>(invoiceMapper::map)
 			.asPaginatedFlux()
 	}
 

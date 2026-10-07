@@ -7,6 +7,7 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
+import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
@@ -14,7 +15,9 @@ import org.taktik.icure.entities.MaintenanceTask
 
 interface MaintenanceTaskLogic :
 	EntityPersister<MaintenanceTask>,
-	EntityWithSecureDelegationsLogic<MaintenanceTask> {
+	EntityWithSecureDelegationsLogic<MaintenanceTask>,
+	CustomFilteringLogic
+{
 	suspend fun createMaintenanceTask(maintenanceTask: MaintenanceTask): MaintenanceTask
 
 	/**

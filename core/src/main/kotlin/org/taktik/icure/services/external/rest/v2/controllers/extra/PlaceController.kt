@@ -7,6 +7,9 @@ package org.taktik.icure.services.external.rest.v2.controllers.extra
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -27,9 +30,15 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.PlaceService
 import org.taktik.icure.config.SharedPaginationConfig
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
+import org.taktik.icure.entities.Place
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import org.taktik.icure.pagination.PaginatedFlux
+import org.taktik.icure.pagination.PaginationElement
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
@@ -41,6 +50,7 @@ import org.taktik.icure.services.external.rest.v2.dto.conflicts.ConflictResoluti
 import org.taktik.icure.services.external.rest.v2.dto.conflicts.MergeResultDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.PlaceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
@@ -62,25 +72,57 @@ class PlaceController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val conflictResolutionV2Mapper: ConflictResolutionV2Mapper,
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
-	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper
+	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
+
+	private suspend fun PlaceDto.toDomain(): Place =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::place,
+			placeV2Mapper::map,
+			scopePathProvider.getScopePathFor("Place"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<PlaceDto>.toDomain(): List<Place> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::place,
+			placeV2Mapper::map,
+			scopePathProvider.getScopePathFor("Place"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Place.toDto(): PlaceDto = placeV2Mapper.map(this)
+
+	private fun Flow<Place>.toDto(): Flow<PlaceDto> = map { it.toDto() }
+
+	@JvmName("toDtoPagination")
+	private fun Flow<PaginationElement>.toDto(): Flow<PaginationElement> = mapElements<Place, PlaceDto> { it.toDto() }
 
 	@Operation(summary = "Create a Place")
 	@PostMapping
 	fun createPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeV2Mapper.map(placeService.createPlace(placeV2Mapper.map(placeDto)))
+		placeService.createPlace(placeDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Create a batch of Place")
 	@PostMapping("/batch")
 	fun createPlaces(
 		@RequestBody placeDtos: List<PlaceDto>,
-	): Flux<PlaceDto> = placeService.createPlaces(
-		placeDtos.map(placeV2Mapper::map)
-	).map(placeV2Mapper::map).injectReactorContext()
+	): Flux<PlaceDto> = flow {
+		emitAll(placeService.createPlaces(
+			placeDtos.toDomain()
+		).toDto())
+	}.injectReactorContext()
 
 	@DeleteMapping("/{placeId}")
 	fun deletePlace(
@@ -117,7 +159,7 @@ class PlaceController(
 		@PathVariable placeId: String,
 		@RequestParam rev: String
 	): Mono<PlaceDto> = mono {
-		placeV2Mapper.map(placeService.undeletePlace(placeId, rev))
+		placeService.undeletePlace(placeId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -125,7 +167,7 @@ class PlaceController(
 		@RequestBody placeIds: ListOfIdsAndRevDto,
 	): Flux<PlaceDto> = placeService
 		.undeletePlaces(placeIds.ids.map(idWithRevV2Mapper::map))
-		.map(placeV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@DeleteMapping("/purge/{placeId}")
@@ -149,7 +191,7 @@ class PlaceController(
 	fun getPlace(
 		@PathVariable placeId: String,
 	): Mono<PlaceDto> = mono {
-		placeService.getPlace(placeId)?.let { placeV2Mapper.map(it) }
+		placeService.getPlace(placeId)?.toDto()
 			?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Place fetching failed")
 	}
 
@@ -157,7 +199,7 @@ class PlaceController(
 	@PostMapping("/byIds")
 	fun getPlacesByIds(
 		@RequestBody placeIds: ListOfIdsDto,
-	): Flux<PlaceDto> = placeService.getPlaces(placeIds.ids).map(placeV2Mapper::map).injectReactorContext()
+	): Flux<PlaceDto> = placeService.getPlaces(placeIds.ids).toDto().injectReactorContext()
 
 	@Operation(summary = "Get all Places with pagination")
 	@GetMapping
@@ -168,7 +210,7 @@ class PlaceController(
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return placeService
 			.getAllPlaces(offset)
-			.mapElements(placeV2Mapper::map)
+			.toDto()
 			.asPaginatedFlux()
 	}
 
@@ -177,16 +219,16 @@ class PlaceController(
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
 	): Mono<PlaceDto> = mono {
-		placeService.modifyPlace(placeV2Mapper.map(placeDto)).let { placeV2Mapper.map(it) }
+		placeService.modifyPlace(placeDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a batch of Places")
 	@PutMapping("/batch")
 	fun modifyPlaces(
 		@RequestBody placeDtos: List<PlaceDto>,
-	): Flux<PlaceDto> = placeService.modifyPlaces(
-		placeDtos.map(placeV2Mapper::map)
-	).map(placeV2Mapper::map).injectReactorContext()
+	): Flux<PlaceDto> = flow {
+		emitAll(placeService.modifyPlaces(placeDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
 	fun getConflictingEntitiesIds(): Flux<String> =
@@ -197,7 +239,7 @@ class PlaceController(
 		@RequestParam entityId: String,
 	): Flux<PlaceDto> =
 		placeService.getConflictsFor(entityId)
-			.map(placeV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -205,10 +247,10 @@ class PlaceController(
 		@RequestBody request: ConflictResolutionRequestDto<PlaceDto>
 	): Mono<ConflictResolutionResultDto<PlaceDto>> = mono {
 		val result = placeService.declareConflictWinner(
-			entity = placeV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, placeV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

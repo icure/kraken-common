@@ -11,6 +11,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -20,7 +21,11 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface AccessLogService : EntityWithSecureDelegationsService<AccessLog>, EntityWithConflictResolutionService<AccessLog> {
+interface AccessLogService :
+	EntityWithSecureDelegationsService<AccessLog>,
+	EntityWithConflictResolutionService<AccessLog>,
+	EntityWithCustomViewsService
+{
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 
 	fun createAccessLogs(accessLog: List<AccessLog>): Flow<AccessLog>

@@ -27,6 +27,7 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.MedicalLocationService
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.db.PaginationOffset
+import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginatedFlux
 import org.taktik.icure.pagination.asPaginatedFlux
 import org.taktik.icure.pagination.mapElements
@@ -97,7 +98,7 @@ class MedicalLocationController(
 		val offset = PaginationOffset(null, startDocumentId, null, limit ?: paginationConfig.defaultLimit)
 		return medicalLocationService
 			.getAllMedicalLocations(offset)
-			.mapElements(medicalLocationV2Mapper::map)
+			.mapElements<MedicalLocation, MedicalLocationDto>(medicalLocationV2Mapper::map)
 			.asPaginatedFlux()
 	}
 
