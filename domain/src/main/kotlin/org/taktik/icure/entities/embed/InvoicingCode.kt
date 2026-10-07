@@ -65,6 +65,7 @@ data class InvoicingCode(
 	val archived: Boolean? = null,
 	val lost: Boolean? = null,
 	val insuranceJustification: Int? = null,
+	val agreementNumber: String? = null,
 	val cancelPatientInterventionReason: Int? = null,
 	val status: Long? = null,
 	val codeLabel: String? = null,
