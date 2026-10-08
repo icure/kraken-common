@@ -4,6 +4,7 @@
 
 package org.taktik.icure.config
 
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,12 +21,19 @@ import java.time.Duration
 class SharedCouchDbConfig(
 	protected val couchDbProperties: CouchDbProperties,
 ) {
+	/**
+	 * @param poolMeterRegistrar if a [ConnectionProvider.MeterRegistrar] bean exists, it receives the live metrics of
+	 * every pool created by this provider (one pool per remote CouchDB address).
+	 */
 	@Bean
-	fun connectionProvider(): ConnectionProvider = ConnectionProvider
+	fun connectionProvider(
+		poolMeterRegistrar: ObjectProvider<ConnectionProvider.MeterRegistrar>,
+	): ConnectionProvider = ConnectionProvider
 		.builder("LARGE_POOL")
 		.let { builder -> couchDbProperties.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
 		.maxIdleTime(Duration.ofMillis(couchDbProperties.maxIdleTimeMs ?: 10_000))
 		.pendingAcquireMaxCount(couchDbProperties.maxPendingAcquire ?: -1)
+		.let { builder -> poolMeterRegistrar.ifAvailable?.let { registrar -> builder.metrics(true) { registrar } } ?: builder }
 		.build()
 
 	@Bean
