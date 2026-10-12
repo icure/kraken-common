@@ -1221,7 +1221,7 @@ class PatientDAOImpl(
 		healthcarePartyId: String,
 	): Map<String, Map<String, Map<String, String>>> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val result = client.queryView<String, List<String>>(
+		return client.queryView<String, AesExchangeKeyViewValue>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
 				legacyView = "by_delegate_aes_exchange_keys".main(),
@@ -1229,28 +1229,7 @@ class PatientDAOImpl(
 			)
 				.key(healthcarePartyId)
 				.includeDocs(false),
-		).map { it.key to it.value }
-
-		return result.fold(emptyMap()) { acc, (key, value) ->
-			if (key != null && value != null) {
-				acc +
-					(
-						value[0] to (acc[value[0]] ?: emptyMap()).let { m ->
-							m +
-								(
-									value[1].let { it.substring((it.length - 32).coerceAtLeast(0)) } to (
-										m[value[1]]
-											?: emptyMap()
-										).let { dels ->
-										dels + (value[2] to value[3])
-									}
-									)
-						}
-						)
-			} else {
-				acc
-			}
-		}
+		).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
 	override fun listPatientsByHcPartyAndIdentifier(
