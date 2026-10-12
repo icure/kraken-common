@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
@@ -298,7 +298,7 @@ internal class HealthcarePartyDAOImpl(
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/healthcareparty/By_delegate_aes_exchange_keys_map.js")
 	override suspend fun getAesExchangeKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, Map<String, Map<String, String>>> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val result = client.queryView<String, List<String>>(
+		return client.queryView<String, AesExchangeKeyViewValue>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
 				legacyView = "by_delegate_aes_exchange_keys".main(),
@@ -306,28 +306,7 @@ internal class HealthcarePartyDAOImpl(
 			)
 				.key(healthcarePartyId)
 				.includeDocs(false),
-		).map { it.key to it.value }
-
-		return result.fold(emptyMap()) { acc, (key, value) ->
-			if (key != null && value != null) {
-				acc +
-					(
-						value[0] to (acc[value[0]] ?: emptyMap()).let {
-							it +
-								(
-									value[1].let { v -> v.substring((v.length - 32).coerceAtLeast(0)) } to (
-										it[value[1]]
-											?: emptyMap()
-										).let { dels ->
-										dels + (value[2] to value[3])
-									}
-									)
-						}
-						)
-			} else {
-				acc
-			}
-		}
+		).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
 	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
