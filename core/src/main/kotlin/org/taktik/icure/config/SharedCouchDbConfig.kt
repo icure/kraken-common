@@ -7,8 +7,6 @@ package org.taktik.icure.config
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import org.springframework.http.client.ReactorResourceFactory
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.impl.EntityInfoDAOImpl
@@ -16,21 +14,19 @@ import org.taktik.icure.properties.CouchDbProperties
 import reactor.netty.resources.ConnectionProvider
 import java.time.Duration
 
-@Configuration
-@Profile("app")
-class SharedCouchDbConfig(
-	protected val couchDbProperties: CouchDbProperties,
+open class SharedCouchDbConfig(
+	protected open val couchDbProperties: CouchDbProperties,
 ) {
 
 	protected fun newConnectionProvider(
 		name: String,
-		config: CouchDbProperties.ConnectionPoolConfig,
+		config: CouchDbProperties.ConnectionPoolConfig?,
 		poolMeterRegistrar: ObjectProvider<ConnectionProvider.MeterRegistrar>?
 	): ConnectionProvider = ConnectionProvider
 		.builder(name)
-		.let { builder -> config.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
-		.maxIdleTime(Duration.ofMillis(config.maxIdleTimeMs ?: 10_000))
-		.pendingAcquireMaxCount(config.maxPendingAcquire ?: -1)
+		.let { builder -> config?.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
+		.maxIdleTime(Duration.ofMillis(config?.maxIdleTimeMs ?: 10_000))
+		.pendingAcquireMaxCount(config?.maxPendingAcquire ?: -1)
 		.let { builder -> poolMeterRegistrar?.ifAvailable?.let { registrar -> builder.metrics(true) { registrar } } ?: builder }
 		.build()
 
