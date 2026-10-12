@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.node.ArrayNode
-import org.slf4j.LoggerFactory
 
 /**
  * Value of a row of the `by_delegate_aes_exchange_keys` views of HealthcareParty, Patient and Device, emitted as
@@ -34,17 +33,17 @@ internal data class AesExchangeKeyViewValue(
 				?.takeIf { it.size() == 4 }
 				?.mapNotNull { element -> element.takeIf { it.isTextual || it.isNumber || it.isBoolean }?.asText() }
 				?.takeIf { it.size == 4 }
-			if (values == null) {
-				log.warn("Discarded malformed aes exchange key view row of owner {}", node.get(0)?.textValue() ?: "<unknown>")
-			}
+//			if (values == null) {
+//				log.warn("Discarded malformed aes exchange key view row of owner {}", node.get(0)?.textValue() ?: "<unknown>")
+//			}
 			return values?.let { (ownerId, ownerPublicKeyFingerprint, delegatePublicKeyFingerprint, encryptedExchangeKey) ->
 				AesExchangeKeyViewValue(ownerId, ownerPublicKeyFingerprint, delegatePublicKeyFingerprint, encryptedExchangeKey)
 			}
 		}
 
-		companion object {
-			private val log = LoggerFactory.getLogger(Deserializer::class.java)
-		}
+//		companion object {
+//			private val log = LoggerFactory.getLogger(Deserializer::class.java)
+//		}
 	}
 }
 
