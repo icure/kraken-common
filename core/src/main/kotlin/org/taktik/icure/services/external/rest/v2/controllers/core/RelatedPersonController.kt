@@ -232,7 +232,7 @@ class RelatedPersonController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
-		val relatedPersons = relatedPersonService.filterRelatedPersons(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
+		val relatedPersons = relatedPersonService.filterEntitiesBy(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
 		relatedPersons.paginatedList(relatedPersonV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
@@ -268,7 +268,7 @@ class RelatedPersonController(
 	fun matchRelatedPersonsBy(
 		@RequestBody filter: AbstractFilterDto<RelatedPersonDto>,
 	): Flux<String> = relatedPersonService
-		.matchRelatedPersonsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

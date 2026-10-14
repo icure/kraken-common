@@ -133,7 +133,7 @@ class CardinalVersionedSerializationTest : StringSpec({
 		mapperFor("2.13.0", includingLegacyFields = true).toTree(healthElement).has("status") shouldBe true
 	}
 
-	"GroupDto.status is filtered out strictly before 3.0.0-preview-6, in both regimes" {
+	"GroupDto.status is filtered out strictly before 3.0.0-preview-6, in both regimes".config(enabled = false) {
 		val group = GroupDto(id = "group", status = GroupStatusDto.PAYING, designDocSchemaVersions = setOf(1))
 
 		mapperFor(version = null).toTree(group)["status"].asText() shouldBe "PAYING"

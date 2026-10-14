@@ -609,7 +609,7 @@ class  FormController(
 	fun matchFormsBy(
 		@RequestBody filter: AbstractFilterDto<FormDto>,
 	): Flux<String> = formService
-		.matchFormsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
@@ -618,7 +618,7 @@ class  FormController(
 	fun matchFormTemplatesBy(
 		@RequestBody filter: AbstractFilterDto<FormTemplateDto>,
 	): Flux<String> = formTemplateService
-		.matchFormTemplatesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
