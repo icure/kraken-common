@@ -17,7 +17,9 @@ import org.taktik.icure.validation.aspect.Fixer
 @Profile("app")
 class BasicCustomEntityDefinitionLogicContext(
 	private val fixer: Fixer,
-) : CustomEntityDefinitionLogicContext {
+) : AbstractCustomEntityDefinitionLogicContext(
+	emptyMap()
+) {
 	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
 		if (entity.rev != null) throw IllegalArgumentException("Cannot create an entity with revision.")
 		EntityIdValidation.checkValidForCreation(entity.id)
@@ -46,5 +48,9 @@ class BasicCustomEntityDefinitionLogicContext(
 				} else null
 			}
 		}
+	}
+
+	override suspend fun cleanupPurgedEntity(purgedEntity: CustomEntityBase) {
+		// Nothing to do
 	}
 }

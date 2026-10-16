@@ -3,6 +3,8 @@ package org.taktik.icure.asynclogic.impl.customentities
 import com.icure.cardinal.customentities.config.CustomEntityDefinition
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
+import org.taktik.icure.asyncdao.CustomEntityDAO
+import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogicHelper
 import org.taktik.icure.entities.CustomEntityBase
 
 @Service
@@ -26,11 +28,25 @@ class CustomEntityDefinitionLogicContextFactory(
 		return ContextChain.of(allContexts)
 	}
 
-	private class ContextChain private constructor(
-		val contexts: List<CustomEntityDefinitionLogicContext>
-	) : CustomEntityDefinitionLogicContext {
+	private class ContextChain(
+		val contexts: List<AbstractCustomEntityDefinitionLogicContext>
+	) : AbstractCustomEntityDefinitionLogicContext(
+		kotlin.run {
+			val mergedHelpers = mutableMapOf<CustomEntityLogicContextHelper.Key<*>, Any>()
+			contexts.forEach { ctx ->
+				val duplicate = ctx.helpers.keys.firstOrNull {
+					it in mergedHelpers.keys
+				}
+				check (duplicate == null) {
+					"Duplicate helper key in merged context: $duplicate"
+				}
+				mergedHelpers.putAll(ctx.helpers)
+			}
+			mergedHelpers
+		}
+	) {
 		companion object {
-			fun of(contexts: List<CustomEntityDefinitionLogicContext>): CustomEntityDefinitionLogicContext =
+			fun of(contexts: List<AbstractCustomEntityDefinitionLogicContext>): CustomEntityDefinitionLogicContext =
 				if (contexts.size == 1) contexts.first() else ContextChain(contexts)
 		}
 

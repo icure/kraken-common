@@ -3,7 +3,10 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.entities.CustomEntityBase
+import org.taktik.icure.entities.requests.BulkShareOrUpdateMetadataParams
+import org.taktik.icure.entities.requests.EntityBulkShareResult
 
 interface CustomEntityLogic {
 	suspend fun createCustomEntity(entityType: String, entity: CustomEntityBase): CustomEntityBase
@@ -26,4 +29,12 @@ interface CustomEntityLogic {
 
 	suspend fun purgeCustomEntity(entityType: String, id: String, rev: String): DocIdentifier
 	fun purgeCustomEntities(entityType: String, identifiers: Collection<IdAndRev>): Flow<DocIdentifier>
+
+	/**
+	 * Equivalent to [EntityWithSecureDelegationsLogic.bulkShareOrUpdateMetadata]
+	 */
+	fun bulkShareOrUpdateMetadata(
+		entityType: String,
+		requests: BulkShareOrUpdateMetadataParams,
+	): Flow<EntityBulkShareResult<CustomEntityBase>>
 }

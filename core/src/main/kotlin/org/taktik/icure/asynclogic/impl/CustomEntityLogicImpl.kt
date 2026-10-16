@@ -2,7 +2,6 @@ package org.taktik.icure.asynclogic.impl
 
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -18,11 +17,15 @@ import org.taktik.icure.asyncdao.getEntitiesWithExpectedRev
 import org.taktik.icure.asyncdao.getEntityWithExpectedRev
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CustomEntityLogic
+import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContext
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContextFactory
+import org.taktik.icure.asynclogic.impl.customentities.CustomEntityLogicContextHelper
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
+import org.taktik.icure.entities.requests.BulkShareOrUpdateMetadataParams
+import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.utils.toMap
@@ -35,6 +38,7 @@ class CustomEntityLogicImpl(
 	val datastoreInstanceProvider: DatastoreInstanceProvider,
 	val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	val customEntityContextFactory: CustomEntityDefinitionLogicContextFactory,
+	val exchangeDataMapLogic: ExchangeDataMapLogic
 ) : CustomEntityLogic {
 	private suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
@@ -283,5 +287,21 @@ class CustomEntityLogicImpl(
 		dao.purge(datastoreInfo, entitiesById.values).filterSuccessfulUpdates().onEach {
 			cleanupPurgedEntity(checkNotNull(entitiesById[it.id]))
 		}
+	}
+
+	override fun bulkShareOrUpdateMetadata(
+		entityType: String,
+		requests: BulkShareOrUpdateMetadataParams
+	): Flow<EntityBulkShareResult<CustomEntityBase>> = flowWithDefinitionContext(entityType) {
+		val helper = requireHelper(CustomEntityLogicContextHelper.EncryptionMetadata)
+		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
+		helper.doBulkShareOrUpdateMetadata(
+			requests = requests,
+			entities = dao.getEntities(datastoreInfo, requests.requestsByEntityId.keys).onEach {
+				require (it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
+			}.toList().associateBy { it.id },
+			doSaveBulk = { dao.saveBulk(datastoreInfo, it) },
+			doCreateExchangeDataMapById = { exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(it) }
+		)
 	}
 }

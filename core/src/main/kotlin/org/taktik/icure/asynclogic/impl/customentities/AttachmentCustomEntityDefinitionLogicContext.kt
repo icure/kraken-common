@@ -9,7 +9,11 @@ import org.taktik.icure.entities.CustomEntityBase
 @Profile("app")
 class AttachmentCustomEntityDefinitionLogicContext(
 	private val attachmentModificationLogic: CustomEntityDataAttachmentModificationLogic,
-) : CustomEntityDefinitionLogicContext {
+) : AbstractCustomEntityDefinitionLogicContext(
+	buildMap {
+		put(CustomEntityLogicContextHelper.Attachment, attachmentModificationLogic)
+	}
+) {
 	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
 		require(entity.dataAttachments.isEmpty() && entity.deletedAttachments.isEmpty()) {
 			"New ${entity.entityTypeId} can't provide any attachment information."

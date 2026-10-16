@@ -7,13 +7,21 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogicHelper
+import org.taktik.icure.asynclogic.impl.customentities.CustomEntityLogicContextHelper.EncryptionMetadata
 import org.taktik.icure.entities.CustomEntityBase
 
 @Service
 @Profile("app")
-class EncryptableCustomEntityDefinitionLogicContext : CustomEntityDefinitionLogicContext {
-	private val helper = EntityWithEncryptionMetadataLogicHelper<CustomEntityBase, CustomEntityDAO> {
-		copy(securityMetadata = it)
+class EncryptableCustomEntityDefinitionLogicContext : AbstractCustomEntityDefinitionLogicContext(
+	CustomEntityLogicContextHelper.build {
+		put(EncryptionMetadata, helper)
+	}
+) {
+
+	companion object {
+		private val helper = EntityWithEncryptionMetadataLogicHelper<CustomEntityBase, CustomEntityDAO> {
+			copy(securityMetadata = it)
+		}
 	}
 
 	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
@@ -42,4 +50,8 @@ class EncryptableCustomEntityDefinitionLogicContext : CustomEntityDefinitionLogi
 				!helper.hasLegacyEncryptionMetadata(it)
 			}
 		).toList()
+
+	override suspend fun cleanupPurgedEntity(purgedEntity: CustomEntityBase) {
+		// Nothing to do
+	}
 }
