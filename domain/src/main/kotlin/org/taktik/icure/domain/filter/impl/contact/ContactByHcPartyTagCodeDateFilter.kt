@@ -28,6 +28,13 @@ data class ContactByHcPartyTagCodeDateFilter(
 		}
 	}
 
+	override val isHeavyFilter: Boolean
+		get() = tagType == null &&
+			tagCode == null &&
+			codeType == null &&
+			codeCode == null &&
+			startOfContactOpeningDate == null &&
+			endOfContactOpeningDate == null
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

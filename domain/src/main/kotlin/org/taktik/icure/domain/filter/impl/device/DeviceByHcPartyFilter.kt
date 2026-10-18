@@ -8,8 +8,11 @@ data class DeviceByHcPartyFilter(
 	override val desc: String? = null,
 	override val responsibleId: String? = null,
 ) : AbstractFilter<Device>,
-	org.taktik.icure.domain.filter.device.DeviceByHcPartyFilter {
+	org.taktik.icure.domain.filter.device.DeviceByHcPartyFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

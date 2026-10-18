@@ -12,8 +12,11 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 data class AllPricingFilter(
 	override val desc: String? = null,
 ) : AbstractFilter<Tarification>,
-	Filters.AllFilter<String, Tarification> {
+	Filters.AllFilter<String, Tarification>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

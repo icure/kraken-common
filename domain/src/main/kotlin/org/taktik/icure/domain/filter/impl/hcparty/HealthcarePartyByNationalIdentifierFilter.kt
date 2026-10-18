@@ -10,8 +10,11 @@ data class HealthcarePartyByNationalIdentifierFilter(
 	override val descending: Boolean? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<HealthcareParty>,
-	HealthcarePartyByNationalIdentifierFilter {
+	HealthcarePartyByNationalIdentifierFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = searchValue.length <= 2
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
