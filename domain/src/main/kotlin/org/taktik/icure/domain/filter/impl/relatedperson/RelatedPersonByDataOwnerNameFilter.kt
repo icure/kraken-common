@@ -8,6 +8,7 @@ import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 
 data class RelatedPersonByDataOwnerNameFilter(
 	override val desc: String? = null,
@@ -18,7 +19,7 @@ data class RelatedPersonByDataOwnerNameFilter(
 {
 
 	override val isHeavyFilter: Boolean
-		get() = (name?.length ?: 0) <= 2
+		get() = isHeavySearchString(name)
 	override val canBeUsedInWebsocket = true
 
 	// The data owner id is coalesced in the resolve

@@ -21,6 +21,7 @@ import org.taktik.icure.db.sanitize
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 
 data class HealthcarePartyByNameFilter(
 	override val desc: String? = null,
@@ -31,7 +32,7 @@ data class HealthcarePartyByNameFilter(
 {
 
 	override val isHeavyFilter: Boolean
-		get() = name.length <= 2
+		get() = isHeavySearchString(name)
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
