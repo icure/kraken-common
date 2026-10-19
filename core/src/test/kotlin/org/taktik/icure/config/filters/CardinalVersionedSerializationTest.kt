@@ -133,15 +133,15 @@ class CardinalVersionedSerializationTest : StringSpec({
 		mapperFor("2.13.0", includingLegacyFields = true).toTree(healthElement).has("status") shouldBe true
 	}
 
-	"GroupDto.status is filtered out strictly before 3.0.0-preview-6, in both regimes".config(enabled = false) {
+	"GroupDto.status is filtered out strictly before 2.13.5, in both regimes" {
 		val group = GroupDto(id = "group", status = GroupStatusDto.PAYING, designDocSchemaVersions = setOf(1))
 
 		mapperFor(version = null).toTree(group)["status"].asText() shouldBe "PAYING"
-		listOf("2.0.0", "2.7.0", "2.13.0", "3.0.0-preview-5").forEach { version ->
+		listOf("2.0.0", "2.7.0", "2.13.0", "2.13.4").forEach { version ->
 			mapperFor(version, includingLegacyFields = false).toTree(group).has("status") shouldBe false
 			mapperFor(version, includingLegacyFields = true).toTree(group).has("status") shouldBe false
 		}
-		listOf("3.0.0-preview-6", "3.0.0").forEach { version ->
+		listOf("2.13.5", "3.0.0-preview-5", "3.0.0").forEach { version ->
 			mapperFor(version, includingLegacyFields = false).toTree(group).let {
 				it["status"].asText() shouldBe "PAYING"
 				// The policies of the previous versions still apply
@@ -150,8 +150,8 @@ class CardinalVersionedSerializationTest : StringSpec({
 			mapperFor(version, includingLegacyFields = true).toTree(group)["status"].asText() shouldBe "PAYING"
 		}
 		// The policies of the other DTOs are carried over to the new version
-		mapperFor("3.0.0-preview-6", includingLegacyFields = false).toTree(HealthElementDto(id = "he", status = 7)).has("status") shouldBe false
-		mapperFor("3.0.0-preview-6", includingLegacyFields = false).toTree(InsuranceDto(id = "ins", privateInsurance = true)).has("privateInsurance") shouldBe false
-		mapperFor("3.0.0-preview-6", includingLegacyFields = false).toTree(DocumentDto(id = "doc", mainAttachmentStoredDataSize = 123L)).has("mainAttachmentStoredDataSize") shouldBe true
+		mapperFor("2.13.5", includingLegacyFields = false).toTree(HealthElementDto(id = "he", status = 7)).has("status") shouldBe false
+		mapperFor("2.13.5", includingLegacyFields = false).toTree(InsuranceDto(id = "ins", privateInsurance = true)).has("privateInsurance") shouldBe false
+		mapperFor("2.13.5", includingLegacyFields = false).toTree(DocumentDto(id = "doc", mainAttachmentStoredDataSize = 123L)).has("mainAttachmentStoredDataSize") shouldBe true
 	}
 })

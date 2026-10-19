@@ -3,9 +3,8 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.fold
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
@@ -107,35 +106,16 @@ class DeviceDAOImpl(
 		healthcarePartyId: String,
 	): Map<String, Map<String, Map<String, String>>> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val result =
-			client
-				.queryView<String, List<String>>(
-					createQuery(
-						datastoreInformation = datastoreInformation,
-						legacyView = "by_delegate_aes_exchange_keys".main(),
-						configurationView = "by_delegate_aes_exchange_keys"
-					)
-						.key(healthcarePartyId)
-						.includeDocs(false),
-				).map { it.key to it.value }
-
-		return result.fold(emptyMap()) { acc, (key, value) ->
-			if (key != null && value != null) {
-				acc +
-					(
-						value[0] to
-							(acc[value[0]] ?: emptyMap()).let {
-								it +
-									(
-										value[1].let { v -> v.substring((v.length - 32).coerceAtLeast(0)) }
-											to (it[value[1]] ?: emptyMap()).let { dels -> dels + (value[2] to value[3]) }
-										)
-							}
-						)
-			} else {
-				acc
-			}
-		}
+		return client
+			.queryView<String, AesExchangeKeyViewValue>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_delegate_aes_exchange_keys".main(),
+					configurationView = "by_delegate_aes_exchange_keys"
+				)
+					.key(healthcarePartyId)
+					.includeDocs(false),
+			).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
 	@View(

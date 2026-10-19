@@ -713,8 +713,8 @@ internal class HealthElementDAOImpl(
 				.reduce(true)
 				.group(true)
 				.keys(chunk)
-			client.queryView<String, ComplexKey>(query).collect {
-				latestDocForHealthElement[it.key!!] = it.value!!.components[1] as String
+			client.queryView<String, LatestHealthElementVersionValue>(query).collect {
+				latestDocForHealthElement[it.key!!] = it.value!!.documentId
 			}
 		}
 		healthElements.forEach {
