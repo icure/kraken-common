@@ -5,40 +5,60 @@ import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfigura
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
 import com.icure.cardinal.errorreporting.MapperScopePathProvider
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.context.annotation.Profile
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.codec.multipart.FilePart
+import org.springframework.http.server.reactive.ServerHttpResponse
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asyncservice.CustomEntityService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.exceptions.NotFoundRequestException
+import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.CustomEntityBaseDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
+import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
+import org.taktik.icure.services.external.rest.v2.dto.requests.customentity.CustomEntityBulkAttachmentUpdateOptions
+import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.CustomEntityBaseV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapCustomFromDto
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CustomEntityBaseBulkShareResultV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.utils.enforceSize
 import org.taktik.icure.utils.injectCachedReactorContext
+import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -56,6 +76,7 @@ class CustomEntityController(
 	private val reactorCacheInjector: ReactorCacheInjector,
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
+	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
 ) {
 	private suspend inline fun <T> withCustomConfig(
 		entityType: String,
@@ -76,6 +97,31 @@ class CustomEntityController(
 		crossinline block: (customEntityDefinition: CustomEntityDefinition) -> Flow<T>,
 	): Flow<T> = flow {
 		emitAll(withCustomConfig(entityType) { _, customEntityDefinition -> block(customEntityDefinition) })
+	}
+
+	private inline fun <T> withDelegationBasedDefinitionFlow(
+		entityType: String,
+		crossinline block: (customEntityDefinition: CustomEntityDefinition) -> Flow<T>,
+	): Flow<T> = withCustomDefinitionFlow(entityType) { customEntityDefinition ->
+		require(customEntityDefinition.accessControl == CustomEntityDefinition.AccessControl.DelegationBased) {
+			"Custom entity type $entityType does not support delegations and/or encryption"
+		}
+		block(customEntityDefinition)
+	}
+
+	/**
+	 * Attachment endpoints are only available if the entity supports attachments and they are not disabled.
+	 * Note: even if attachments are disabled, the modification of entities still preserves the existing attachments
+	 * information, this is handled by the logic.
+	 */
+	private suspend inline fun <T> withAttachmentsEnabled(
+		entityType: String,
+		block: (customEntityDefinition: CustomEntityDefinition) -> T,
+	): T = withCustomDefinition(entityType) { customEntityDefinition ->
+		require(customEntityDefinition.attachmentsConfiguration?.disable == false) {
+			"Attachments are not enabled for custom entity type $entityType"
+		}
+		block(customEntityDefinition)
 	}
 
 	private suspend inline fun <T> mappingCustom(
@@ -149,7 +195,7 @@ class CustomEntityController(
 		}
 		if (customEntityDefinition.attachmentsConfiguration == null) {
 			require (
-				entity.dataAttachments.isEmpty() && entity.deletedAttachments.isEmpty()
+				entity.dataAttachments.isEmpty()
 			) {
 				"Custom entity type $customEntityType does not support attachments"
 			}
@@ -301,4 +347,206 @@ class CustomEntityController(
 			identifiers = entityIds.ids.map(idWithRevV2Mapper::map)
 		).map(docIdentifierV2Mapper::map)
 	}.injectCachedReactorContext(reactorCacheInjector, 100)
+
+	@Operation(description = "Shares one or more custom entities with one or more data owners.")
+	@PutMapping("/{entityType}/bulkSharedMetadataUpdate")
+	fun bulkShare(
+		@PathVariable entityType: String,
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<CustomEntityBaseDto>> = withDelegationBasedDefinitionFlow(entityType) {
+		customEntityService.bulkShareOrUpdateMetadata(
+			entityType = entityType,
+			requests = entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+		).toDtoUpdateResult(entityType)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(description = "Shares one or more custom entities with one or more data owners but does not return the updated entity.")
+	@PutMapping("/{entityType}/bulkSharedMetadataUpdateMinimal")
+	fun bulkShareMinimal(
+		@PathVariable entityType: String,
+		@RequestBody request: BulkShareOrUpdateMetadataParamsDto,
+	): Flux<EntityBulkShareResultDto<Nothing>> = withDelegationBasedDefinitionFlow(entityType) {
+		customEntityService.bulkShareOrUpdateMetadata(
+			entityType = entityType,
+			requests = entityShareOrMetadataUpdateRequestV2Mapper.map(request),
+		).map(bulkShareResultV2Mapper::mapMinimal)
+	}.injectCachedReactorContext(reactorCacheInjector, 50)
+
+	@Operation(
+		summary = "Retrieve an attachment of a custom entity",
+		description = "Get the attachment with the provided key for a custom entity",
+	)
+	@GetMapping("/{entityType}/{entityId}/attachments/{key}")
+	fun getAttachment(
+		@PathVariable entityType: String,
+		@PathVariable entityId: String,
+		@Parameter(description = "Key of the attachment to retrieve")
+		@PathVariable key: String,
+		@RequestParam(required = false) fileName: String?,
+		response: ServerHttpResponse,
+	): Mono<Void> = response.writeWith(
+		flow {
+			withAttachmentsEnabled(entityType) {
+				val (entity, attachment) = customEntityService.getAttachment(entityType = entityType, entityId = entityId, attachmentKey = key)
+				response.headers["Content-Type"] = entity.dataAttachments.getValue(key).mimeTypeOrDefault
+				response.headers["Content-Disposition"] = "attachment; filename=\"${fileName ?: key}\""
+				emitAll(attachment)
+			}
+		}.injectReactorContext(),
+	)
+
+	@Operation(
+		summary = "Creates or modifies an attachment of a custom entity",
+		description = "Creates or modifies the attachment with the provided key for a custom entity and returns the modified entity afterward",
+	)
+	@PutMapping("/{entityType}/{entityId}/attachments/{key}", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+	fun setAttachment(
+		@PathVariable entityType: String,
+		@PathVariable entityId: String,
+		@Parameter(description = "Key of the attachment to update")
+		@PathVariable key: String,
+		@Parameter(
+			description = "Revision of the latest known version of the entity. If the revision does not match the current version of the entity the method will fail with CONFLICT status",
+		)
+		@RequestParam(required = true) rev: String,
+		@Parameter(description = "Utis for the attachment")
+		@RequestParam(required = false) utis: List<String>?,
+		@RequestParam(required = false) compressionAlgorithm: String?,
+		@RequestParam(required = false) triedCompressionAlgorithmsVersion: String?,
+		@RequestParam(required = false) realDataSize: Long?,
+		@Schema(type = "string", format = "binary")
+		@RequestBody payload: Flow<DataBuffer>,
+		@RequestHeader(name = HttpHeaders.CONTENT_LENGTH, required = false) lengthHeader: Long?,
+		@RequestParam(required = false) encrypted: Boolean?,
+	): Mono<CustomEntityBaseDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		withAttachmentsEnabled(entityType) {
+			val attachmentSize = lengthHeader ?: throw ResponseStatusException(
+				HttpStatus.BAD_REQUEST,
+				"Attachment size must be specified in the content-length header",
+			)
+			updateAttachmentsWrappingExceptions(
+				entityType = entityType,
+				entityId = entityId,
+				entityRev = rev,
+				changes = mapOf(
+					key to DataAttachmentChange.CreateOrUpdate(
+						data = payload,
+						size = attachmentSize,
+						utis = utis,
+						dataIsEncrypted = encrypted ?: false,
+						compressionAlgorithm = compressionAlgorithm,
+						triedCompressionAlgorithmsVersion = triedCompressionAlgorithmsVersion,
+						realDataSize = realDataSize
+					),
+				),
+			)
+		}
+	}
+
+	@Operation(
+		summary = "Deletes an attachment of a custom entity",
+		description = "Delete the attachment with the provided key for a custom entity and returns the modified entity afterward",
+	)
+	@DeleteMapping("/{entityType}/{entityId}/attachments/{key}")
+	fun deleteAttachment(
+		@PathVariable entityType: String,
+		@PathVariable entityId: String,
+		@Parameter(description = "Key of the attachment to delete")
+		@PathVariable key: String,
+		@Parameter(
+			description = "Revision of the latest known version of the entity. If the revision does not match the current version of the entity the method will fail with CONFLICT status",
+		)
+		@RequestParam(required = true) rev: String,
+	): Mono<CustomEntityBaseDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		withAttachmentsEnabled(entityType) {
+			updateAttachmentsWrappingExceptions(
+				entityType = entityType,
+				entityId = entityId,
+				entityRev = rev,
+				changes = mapOf(key to DataAttachmentChange.Delete),
+			)
+		}
+	}
+
+	@Operation(
+		summary = "Creates, modifies, or delete the attachments of a custom entity",
+		description = "Batch operation to modify multiple attachments of a custom entity at once",
+	)
+	@PutMapping("/{entityType}/{entityId}/attachments", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+	fun setAttachments(
+		@PathVariable entityType: String,
+		@Parameter(description = "Id of the entity to update")
+		@PathVariable entityId: String,
+		@Parameter(
+			description = "Revision of the latest known version of the entity. If the revision does not match the current version of the entity the method will fail with CONFLICT status",
+		)
+		@RequestParam(required = true) rev: String,
+		@Parameter(description = "Describes the operations to execute with this update.")
+		@RequestPart("options", required = true) options: CustomEntityBulkAttachmentUpdateOptions,
+		@Parameter(description = "New attachments (to create or update). The file name will be used as the attachment key.")
+		@RequestPart("attachments", required = false) attachments: Flux<FilePart>?,
+	): Mono<CustomEntityBaseDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		withAttachmentsEnabled(entityType) {
+			val attachmentsByKey: Map<String, FilePart> =
+				attachments?.asFlow()?.toList()?.let { partsList ->
+					partsList.associateBy { it.filename() }.also { partsMap ->
+						require(partsList.size == partsMap.size) {
+							"Duplicate keys for new attachments ${partsList.groupingBy { it.filename() }.eachCount().filter { it.value > 1 }.keys}"
+						}
+					}
+				} ?: emptyMap()
+			require(attachmentsByKey.values.all { it.headers().contentType != null }) {
+				"Each attachment part must specify a ${HttpHeaders.CONTENT_TYPE} header."
+			}
+			require(attachmentsByKey.keys.containsAll(options.updateAttachmentsMetadata.keys)) {
+				"Missing attachments for metadata: ${options.updateAttachmentsMetadata.keys - attachmentsByKey.keys}"
+			}
+			require(attachmentsByKey.isNotEmpty() || options.deleteAttachments.isNotEmpty()) { "Nothing to do" }
+			updateAttachmentsWrappingExceptions(
+				entityType = entityType,
+				entityId = entityId,
+				entityRev = rev,
+				changes = options.deleteAttachments.associateWith { DataAttachmentChange.Delete } +
+					attachmentsByKey.mapValues { (key, value) ->
+						makeMultipartAttachmentUpdate("attachment $key", value, options.updateAttachmentsMetadata[key])
+					},
+			)
+		}
+	}
+
+	private fun makeMultipartAttachmentUpdate(
+		name: String,
+		part: FilePart,
+		metadata: BulkAttachmentUpdateOptions.AttachmentMetadata?,
+	): DataAttachmentChange.CreateOrUpdate {
+		val size = part.headers().contentLength.takeIf { it > 0 } ?: throw ResponseStatusException(
+			HttpStatus.BAD_REQUEST,
+			"Missing size information for $name: you must provide the size of the attachment in bytes using a Content-Length part header.",
+		)
+		return DataAttachmentChange.CreateOrUpdate(
+			data = part.content().asFlow().enforceSize(size),
+			size = size,
+			utis = metadata?.utis,
+			dataIsEncrypted = metadata?.dataIsEncrypted ?: false,
+			compressionAlgorithm = metadata?.compressionAlgorithm,
+			triedCompressionAlgorithmsVersion = metadata?.triedCompressionAlgorithmsVersion,
+			realDataSize = metadata?.realDataSize
+		)
+	}
+
+	private suspend fun updateAttachmentsWrappingExceptions(
+		entityType: String,
+		entityId: String,
+		entityRev: String,
+		changes: Map<String, DataAttachmentChange>,
+	): CustomEntityBaseDto = try {
+		checkNotNull(
+			customEntityService.updateAttachments(entityType = entityType, entityId = entityId, entityRev = entityRev, changes = changes)
+		) { "Could not update $entityType $entityId" }.toDto(entityType)
+	} catch (_: ObjectStorageException) {
+		throw ResponseStatusException(
+			HttpStatus.SERVICE_UNAVAILABLE,
+			"One or more attachments must be stored using the object storage service, but the service is currently unavailable.",
+		)
+	}
 }

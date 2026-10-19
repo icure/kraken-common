@@ -11,8 +11,12 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.exception.CouchDbException
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
+import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asyncdao.ReceiptDAO
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentLoader
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityObjectStorage
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityObjectStorageMigration
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorage
@@ -23,6 +27,7 @@ import org.taktik.icure.asynclogic.objectstorage.ReceiptDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.ReceiptObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.ReceiptObjectStorageMigration
 import org.taktik.icure.asynclogic.objectstorage.contentBytesOfNullable
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
@@ -120,6 +125,24 @@ class ReceiptDataAttachmentLoaderImpl(
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
 ) : ReceiptDataAttachmentLoader,
 	DataAttachmentLoader<Receipt> by DataAttachmentLoaderImpl(
+		dao,
+		objectStorage,
+		objectStorageMigration,
+		objectStorageProperties,
+		datastoreInstanceProvider,
+		false
+	)
+
+@Service("customEntityDataAttachmentLoader")
+@Profile("app")
+class CustomEntityDataAttachmentLoaderImpl(
+	dao: CustomEntityDAO,
+	objectStorage: CustomEntityObjectStorage,
+	objectStorageMigration: CustomEntityObjectStorageMigration,
+	objectStorageProperties: ObjectStorageProperties,
+	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+) : CustomEntityDataAttachmentLoader,
+	DataAttachmentLoader<CustomEntityBase> by DataAttachmentLoaderImpl(
 		dao,
 		objectStorage,
 		objectStorageMigration,

@@ -1,5 +1,8 @@
 package org.taktik.icure.config.filters
 
+import org.taktik.icure.services.external.rest.v2.dto.embed.DeletedAttachmentDto
+import org.taktik.icure.services.external.rest.v2.dto.ReceiptDto
+import org.taktik.icure.FilteringVersions
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.StringSpec
@@ -41,6 +44,20 @@ private fun mapperFor(version: String?, includingLegacyFields: Boolean = false):
 private fun ObjectMapper.toTree(value: Any): JsonNode = this.valueToTree(value)
 
 class CardinalVersionedSerializationTest : StringSpec({
+	"deleted attachments of documents and receipts are omitted starting from the generic entities version, in both default and legacy-compatible mappers, even if not empty" {
+		val deletedAttachments = listOf(DeletedAttachmentDto(couchDbAttachmentId = "old", key = "key", deletionTime = 1))
+		listOf(
+			DocumentDto(id = "doc", deletedAttachments = deletedAttachments),
+			ReceiptDto(id = "receipt", deletedAttachments = deletedAttachments),
+		).forEach { dto ->
+			mapperFor(version = null).toTree(dto).has("deletedAttachments") shouldBe true
+			listOf(false, true).forEach { includingLegacyFields ->
+				mapperFor("2.13.0", includingLegacyFields).toTree(dto).has("deletedAttachments") shouldBe true
+				mapperFor(FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION, includingLegacyFields).toTree(dto).has("deletedAttachments") shouldBe false
+			}
+		}
+	}
+
 	"a field annotated with SerializationPolicy(Since(Filtered) -> Since(ActiveField)) is filtered out only strictly before the ActiveField version, in both default and legacy-compatible mappers" {
 		val document = DocumentDto(id = "doc", mainAttachmentStoredDataSize = 123L)
 

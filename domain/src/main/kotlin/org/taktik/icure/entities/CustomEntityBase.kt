@@ -41,7 +41,10 @@ data class CustomEntityBase(
 	override val customisedModelVersion: Int? = null,
 	override val extensions: RawJson.JsonObject? = null,
 	override val dataAttachments: Map<String, DataAttachment> = emptyMap(),
-	override val deletedAttachments: List<DeletedAttachment> = emptyList(),
+	/**
+	 * Always empty: deleted attachments are never tracked for custom entities (see [HasDataAttachments.deletedAttachments]).
+	 */
+	override val deletedAttachments: List<Nothing> = emptyList(),
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
@@ -108,8 +111,8 @@ data class CustomEntityBase(
 			dataAttachments = newDataAttachments
 		)
 
-	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): CustomEntityBase =
-		copy(
-			deletedAttachments = newDeletedAttachments
-		)
+	override fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): CustomEntityBase {
+		require(newDeletedAttachments.isEmpty()) { "Deleted attachments are never tracked for custom entities" }
+		return this
+	}
 }

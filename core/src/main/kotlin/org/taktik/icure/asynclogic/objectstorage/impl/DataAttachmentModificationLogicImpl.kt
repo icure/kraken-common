@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic.objectstorage.impl
 
+import org.taktik.icure.config.CardinalVersionConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.codec.digest.DigestUtils
@@ -30,15 +31,37 @@ import org.taktik.icure.utils.toByteArray
 import java.nio.ByteBuffer
 import java.util.UUID
 
+/**
+ * @param attachmentChangesValidation the validation used by [ensureValidAttachmentChanges] for this type of entity.
+ */
 abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	private val dao: AttachmentManagementDAO<T>,
 	private val icureObjectStorage: IcureObjectStorage<T>,
 	private val objectStorageProperties: ObjectStorageProperties,
 	private val datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	private val cardinalVersionConfig: CardinalVersionConfig,
+	private val attachmentChangesValidation: AttachmentChangesValidation,
 ) : DataAttachmentModificationLogic<T> {
+	/**
+	 * Which changes to the attachment information are allowed by [ensureValidAttachmentChanges].
+	 */
+	enum class AttachmentChangesValidation {
+		/**
+		 * Changes to the non-id attachment information (e.g. utis) are allowed. Kept for retro-compatibility of
+		 * entities that already supported it (e.g. documents).
+		 */
+		Legacy,
+
+		/**
+		 * No attachment information can be changed: it can only change together with the actual attachment, through
+		 * [updateAttachments]. Changes to attachments with a key in the `lenientKeys` are ignored instead of rejected.
+		 */
+		Strict,
+	}
+
 	suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 
-	override fun ensureValidAttachmentChanges(
+	override suspend fun ensureValidAttachmentChanges(
 		currEntity: T,
 		newEntity: T,
 		lenientKeys: Set<String>,
@@ -48,14 +71,27 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		}
 		val currentAttachments = currEntity.dataAttachments
 		val newAttachments = newEntity.dataAttachments
+		val validatedDataAttachments = (currentAttachments.keys + newAttachments.keys)
+			.mapNotNull { key ->
+				validateOneChange(currentAttachments[key], newAttachments[key], key !in lenientKeys, key)
+					?.let { key to it }
+			}.toMap()
+		val allowedDataAttachments = when (attachmentChangesValidation) {
+			AttachmentChangesValidation.Legacy -> validatedDataAttachments
+			AttachmentChangesValidation.Strict -> {
+				val changedKeys = (validatedDataAttachments.keys + currentAttachments.keys).filter {
+					it !in lenientKeys && validatedDataAttachments[it] != currentAttachments[it]
+				}
+				require(changedKeys.isEmpty()) {
+					"Attachment information can only be changed through the attachment methods (changed attachments: $changedKeys)"
+				}
+				currentAttachments
+			}
+		}
 		return newEntity
-			.withDataAttachments(
-				(currentAttachments.keys + newAttachments.keys)
-					.mapNotNull { key ->
-						validateOneChange(currentAttachments[key], newAttachments[key], key !in lenientKeys, key)
-							?.let { key to it }
-					}.toMap(),
-			).also {
+			.withOmittedDeletedAttachmentsRestored(currEntity, cardinalVersionConfig.deletedAttachmentsMayBeOmitted())
+			.withDataAttachments(allowedDataAttachments)
+			.also {
 				require(it.deletedAttachments == currEntity.deletedAttachments) {
 					"Deleted attachments information can't be changed manually."
 				}
@@ -389,12 +425,15 @@ class DocumentDataAttachmentModificationLogicImpl(
 	icureObjectStorage: DocumentObjectStorage,
 	objectStorageProperties: ObjectStorageProperties,
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	cardinalVersionConfig: CardinalVersionConfig,
 ) : DocumentDataAttachmentModificationLogic,
 	DataAttachmentModificationLogic<Document> by object : DataAttachmentModificationLogicImpl<Document>(
 		dao,
 		icureObjectStorage,
 		objectStorageProperties,
 		datastoreInstanceProvider,
+		cardinalVersionConfig,
+		AttachmentChangesValidation.Legacy,
 	) {
 		override fun Document.updateAttachmentInformation(
 			rev: String,
@@ -415,12 +454,15 @@ class CustomEntityDataAttachmentModificationLogicImpl(
 	icureObjectStorage: CustomEntityObjectStorage,
 	objectStorageProperties: ObjectStorageProperties,
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
+	cardinalVersionConfig: CardinalVersionConfig,
 ) : CustomEntityDataAttachmentModificationLogic,
 	DataAttachmentModificationLogic<CustomEntityBase> by object : DataAttachmentModificationLogicImpl<CustomEntityBase>(
 		dao,
 		icureObjectStorage,
 		objectStorageProperties,
 		datastoreInstanceProvider,
+		cardinalVersionConfig,
+		AttachmentChangesValidation.Strict,
 	) {
 		override fun CustomEntityBase.updateAttachmentInformation(
 			rev: String,
@@ -428,7 +470,11 @@ class CustomEntityDataAttachmentModificationLogicImpl(
 			dataAttachments: Map<String, DataAttachment>,
 			deletedAttachments: List<DeletedAttachment>,
 		): CustomEntityBase = this
-			.copy(rev = rev, attachments = attachments, deletedAttachments = deletedAttachments)
+			.copy(
+				rev = rev,
+				attachments = attachments,
+				// Implied `deletedAttachments = emptyList()`: deleted attachments are never tracked for custom entities (always empty), see CustomEntityBase.deletedAttachments
+			)
 			.withDataAttachments(dataAttachments)
 
 		override fun CustomEntityBase.updateRevision(rev: String) = copy(rev = rev)

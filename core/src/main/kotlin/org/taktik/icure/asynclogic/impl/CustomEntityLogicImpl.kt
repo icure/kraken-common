@@ -1,5 +1,6 @@
 package org.taktik.icure.asynclogic.impl
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -9,18 +10,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import org.springframework.context.annotation.Profile
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asyncdao.getEntitiesWithExpectedRev
-import org.taktik.icure.asyncdao.getEntityWithExpectedRev
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
 import org.taktik.icure.asynclogic.CustomEntityLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContext
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityDefinitionLogicContextFactory
 import org.taktik.icure.asynclogic.impl.customentities.CustomEntityLogicContextHelper
+import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
+import org.taktik.icure.asynclogic.objectstorage.contentFlowOfNullable
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.CustomEntityBase
@@ -42,12 +45,62 @@ class CustomEntityLogicImpl(
 ) : CustomEntityLogic {
 	private suspend fun getInstanceAndGroup(): IDatastoreInformation = datastoreInstanceProvider.getInstanceAndGroup()
 
+	/*
+	 * This logic may be used directly, without passing through the controller or service: all inputs, including the
+	 * entity type, must be validated here.
+	 *
+	 * Handling of entities of the wrong type:
+	 * - Single methods taking only an id fail with an error if the entity is of the wrong type.
+	 * - Bulk methods taking only ids ignore entities of the wrong type, as if they did not exist (same behaviour as
+	 *   bulk methods of builtin entities).
+	 * - Methods taking the full entity always fail if the stored entity is of the wrong type, regardless of single/bulk.
+	 * Errors never reveal the actual type of the entity.
+	 */
+
+	private fun requireExpectedType(entity: CustomEntityBase, entityType: String) {
+		require(entity.entityTypeId == entityType) { wrongTypeMessage(entity.id) }
+	}
+
+	private fun wrongTypeMessage(id: String) = "Entity $id is not of expected type."
+
+	/**
+	 * Get a full entity by id, failing if it is of the wrong type. This includes builtin entities: the dao would fail
+	 * with a deserialization exception which reveals implementation details (and possibly the actual type).
+	 */
+	private suspend fun doGetCustomEntity(
+		datastoreInfo: IDatastoreInformation,
+		entityType: String,
+		id: String,
+	): CustomEntityBase? = try {
+		dao.get(datastoreInfo, id)
+	} catch (e: JsonMappingException) {
+		// Avoid leaking information about the actual type of the entity.
+		// Depending on the builtin entity, deserialization may fail for different reasons (missing required properties,
+		// mismatching java_type, ...): use the stubs view, which only includes custom entities, to verify if the entity
+		// is not a custom entity, or if it is a custom entity that can't be deserialized.
+		if (dao.getCustomEntityMetadataStub(datastoreInfo, id) == null) throw IllegalArgumentException(wrongTypeMessage(id)) else throw e
+	}?.also { requireExpectedType(it, entityType) }
+
+	private suspend fun doGetCustomEntityWithExpectedRev(
+		datastoreInfo: IDatastoreInformation,
+		entityType: String,
+		id: String,
+		rev: String?,
+	): CustomEntityBase {
+		val retrieved = doGetCustomEntity(datastoreInfo, entityType, id)
+			?: throw NotFoundRequestException("Entity with id $id not found")
+		if (rev != null && retrieved.rev != rev) {
+			throw ConflictRequestException("Revision does not match for entity with id $id")
+		}
+		return retrieved
+	}
+
 	private suspend inline fun <T> withDefinitionContext(
 		entityType: String,
 		entities: List<CustomEntityBase>,
 		block: suspend CustomEntityDefinitionLogicContext.() -> T,
 	): T {
-		entities.forEach { check(it.entityTypeId == entityType) } // Should have been already checked by caller
+		entities.forEach { requireExpectedType(it, entityType) }
 		return withDefinitionContext(entityType, block)
 	}
 
@@ -56,17 +109,22 @@ class CustomEntityLogicImpl(
 		entity: CustomEntityBase,
 		block: suspend CustomEntityDefinitionLogicContext.() -> T,
 	): T {
-		check(entity.entityTypeId == entityType) // Should have been already checked by caller
+		requireExpectedType(entity, entityType)
 		return withDefinitionContext(entityType, block)
 	}
 
 	private suspend inline fun <T> withDefinitionContext(
 		entityType: String,
 		block: suspend CustomEntityDefinitionLogicContext.() -> T,
-	): T {
-		val definition = checkNotNull(customEntitiesConfigurationProvider.getConfigForCurrentUser()?.customEntities[entityType]) // Should have been already checked by caller
-		return customEntityContextFactory.getContextFor(definition).block()
-	}
+	): T = customEntityContextFactory.getContextFor(getDefinition(entityType)).block()
+
+	/**
+	 * Get the definition of the custom entity type, failing if it doesn't exist or is disabled (consistently with
+	 * the controller, a disabled custom entity is treated as non-existing).
+	 */
+	private suspend fun getDefinition(entityType: String) =
+		customEntitiesConfigurationProvider.getConfigForCurrentUser()?.customEntities[entityType]?.takeIf { !it.disabled }
+			?: throw NotFoundRequestException("No custom entity config found for $entityType")
 
 	private inline fun <T> flowWithDefinitionContext(
 		entityType: String,
@@ -90,7 +148,7 @@ class CustomEntityLogicImpl(
 	override suspend fun createCustomEntity(
 		entityType: String,
 		entity: CustomEntityBase,
-	): CustomEntityBase = withDefinitionContext(entityType) {
+	): CustomEntityBase = withDefinitionContext(entityType, entity) {
 		dao.create(getInstanceAndGroup(), validateAndMapForCreation(entity))
 	}
 
@@ -105,59 +163,66 @@ class CustomEntityLogicImpl(
 	override suspend fun getCustomEntity(
 		entityType: String,
 		id: String,
-	): CustomEntityBase? =
-		dao.get(getInstanceAndGroup(), id)?.also {
-			require (it.entityTypeId == entityType) {
-				"Entity ${it.id} is not of expected type."
-			}
-		}
+	): CustomEntityBase? {
+		getDefinition(entityType)
+		return doGetCustomEntity(getInstanceAndGroup(), entityType, id)
+	}
 
 	override fun getCustomEntities(
 		entityType: String,
 		ids: List<String>,
 	): Flow<CustomEntityBase> = flow {
-		dao.getEntities(getInstanceAndGroup(), ids).collect {
-			require (it.entityTypeId == entityType) {
-				"Entity ${it.id} is not of expected type."
-			}
-			emit(it)
-		}
+		getDefinition(entityType)
+		emitAll(dao.getEntities(getInstanceAndGroup(), ids).filter { it.entityTypeId == entityType })
 	}
 
 	override suspend fun getCustomEntityMetadataStub(
 		entityType: String,
 		id: String,
-	): CustomEntityBase? =
-		doGetCustomEntityMetadataStub(getInstanceAndGroup(), entityType, id)
+	): CustomEntityBase? {
+		getDefinition(entityType)
+		return doGetCustomEntityMetadataStub(getInstanceAndGroup(), entityType, id)
+	}
 
 	private suspend fun doGetCustomEntityMetadataStub(
 		datastoreInfo: IDatastoreInformation,
 		entityType: String,
 		id: String,
 	): CustomEntityBase? =
+		// No need to handle builtin entities: the stubs view only includes custom entities
 		dao.getCustomEntityMetadataStub(
 			datastoreInfo,
 			id
-		)?.also {
-			require (it.entityTypeId == entityType) {
-				"Entity ${it.id} is not of expected type."
-			}
-		}
+		)?.also { requireExpectedType(it, entityType) }
 
-	override fun getCustomEntitiesMetadataStub(
+	override fun getCustomEntitiesMetadataStubStrict(
 		entityType: String,
 		ids: List<String>,
 	): Flow<CustomEntityBase> = flow {
-		doGetCustomEntitiesMetadataStubs(
-			getInstanceAndGroup(),
-			entityType,
-			ids
-		).collect {
-			emit(it)
-		}
+		getDefinition(entityType)
+		emitAll(doGetCustomEntitiesMetadataStubsStrict(getInstanceAndGroup(), entityType, ids))
 	}
 
-	private fun doGetCustomEntitiesMetadataStubs(
+	override fun getCustomEntitiesMetadataStubLenient(
+		entityType: String,
+		ids: List<String>,
+	): Flow<CustomEntityBase> = flow {
+		getDefinition(entityType)
+		emitAll(doGetCustomEntitiesMetadataStubsLenient(getInstanceAndGroup(), entityType, ids))
+	}
+
+	private fun doGetCustomEntitiesMetadataStubsStrict(
+		datastoreInfo: IDatastoreInformation,
+		entityType: String,
+		ids: List<String>,
+	): Flow<CustomEntityBase> =
+		// No need to handle builtin entities: the stubs view only includes custom entities
+		dao.getCustomEntitiesMetadataStubs(
+			datastoreInfo,
+			ids
+		).onEach { requireExpectedType(it, entityType) }
+
+	private fun doGetCustomEntitiesMetadataStubsLenient(
 		datastoreInfo: IDatastoreInformation,
 		entityType: String,
 		ids: List<String>,
@@ -165,11 +230,7 @@ class CustomEntityLogicImpl(
 		dao.getCustomEntitiesMetadataStubs(
 			datastoreInfo,
 			ids
-		).onEach {
-			require (it.entityTypeId == entityType) {
-				"Entity ${it.id} is not of expected type."
-			}
-		}
+		).filter { it.entityTypeId == entityType }
 
 	override suspend fun modifyCustomEntity(
 		entityType: String,
@@ -194,12 +255,13 @@ class CustomEntityLogicImpl(
 	override fun modifyCustomEntities(
 		entityType: String,
 		entities: List<CustomEntityBase>,
-	): Flow<CustomEntityBase> = flowWithDefinitionContext(entityType) {
+	): Flow<CustomEntityBase> = flowWithDefinitionContext(entityType, entities) {
 		val datastoreInfo = getInstanceAndGroup()
 		dao.saveBulk(
 			datastoreInfo,
 			filterAndMapValidModifications(
-				currentEntitiesStubs = doGetCustomEntitiesMetadataStubs(
+				// Full entities in input: fail if any of them is stored with a different type
+				currentEntitiesStubs = doGetCustomEntitiesMetadataStubsStrict(
 					datastoreInfo,
 					entityType,
 					entities.map { it.id }
@@ -214,19 +276,18 @@ class CustomEntityLogicImpl(
 		id: String,
 		rev: String?,
 	): CustomEntityBase {
-		val entity = dao.getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
-		require(entity.entityTypeId == entityType) { "Entity $id is not of expected type." }
-		return dao.remove(getInstanceAndGroup(), entity)
+		getDefinition(entityType)
+		val datastoreInfo = getInstanceAndGroup()
+		return dao.remove(datastoreInfo, doGetCustomEntityWithExpectedRev(datastoreInfo, entityType, id, rev))
 	}
 
 	override fun deleteCustomEntities(
 		entityType: String,
 		identifiers: Collection<IdAndRev>,
 	): Flow<CustomEntityBase> = flow {
+		getDefinition(entityType)
 		val datastoreInfo = getInstanceAndGroup()
-		val entities = dao.getEntitiesWithExpectedRev(datastoreInfo, identifiers).onEach {
-			require(it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
-		}
+		val entities = dao.getEntitiesWithExpectedRev(datastoreInfo, identifiers).filter { it.entityTypeId == entityType }
 		emitAll(dao.remove(datastoreInfo, entities).filterSuccessfulUpdates())
 	}
 
@@ -235,19 +296,18 @@ class CustomEntityLogicImpl(
 		id: String,
 		rev: String?,
 	): CustomEntityBase {
-		val entity = dao.getEntityWithExpectedRev(getInstanceAndGroup(), id, rev)
-		require(entity.entityTypeId == entityType) { "Entity $id is not of expected type." }
-		return dao.unRemove(getInstanceAndGroup(), entity)
+		getDefinition(entityType)
+		val datastoreInfo = getInstanceAndGroup()
+		return dao.unRemove(datastoreInfo, doGetCustomEntityWithExpectedRev(datastoreInfo, entityType, id, rev))
 	}
 
 	override fun undeleteCustomEntities(
 		entityType: String,
 		identifiers: Collection<IdAndRev>,
 	): Flow<CustomEntityBase> = flow {
+		getDefinition(entityType)
 		val datastoreInfo = getInstanceAndGroup()
-		val entities = dao.getEntitiesWithExpectedRev(datastoreInfo, identifiers).onEach {
-			require(it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
-		}
+		val entities = dao.getEntitiesWithExpectedRev(datastoreInfo, identifiers).filter { it.entityTypeId == entityType }
 		emitAll(dao.unRemove(datastoreInfo, entities).filterSuccessfulUpdates())
 	}
 
@@ -260,7 +320,6 @@ class CustomEntityLogicImpl(
 		val entity = doGetCustomEntityMetadataStub(datastoreInfo, entityType, id)?.also {
 			if (it.rev != rev) throw ConflictRequestException("Revision does not match for entity with id $id")
 		} ?: throw NotFoundRequestException("Entity with id $id not found")
-		require(entity.entityTypeId == entityType) { "Entity $id is not of expected type." }
 		dao.purge(datastoreInfo, entity).also { cleanupPurgedEntity(entity) }
 	}
 
@@ -273,13 +332,11 @@ class CustomEntityLogicImpl(
 		}
 		val datastoreInfo = getInstanceAndGroup()
 		val expectedRevById = identifiers.associate { it.id to it.rev }
-		val entitiesById = doGetCustomEntitiesMetadataStubs(
+		val entitiesById = doGetCustomEntitiesMetadataStubsLenient(
 			datastoreInfo,
 			entityType,
 			identifiers.map { it.id }
-		).onEach {
-			require(it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
-		}.filter {
+		).filter {
 			it.rev == expectedRevById[it.id]
 		}.map {
 			it.id to it
@@ -297,11 +354,36 @@ class CustomEntityLogicImpl(
 		val datastoreInfo = datastoreInstanceProvider.getInstanceAndGroup()
 		helper.doBulkShareOrUpdateMetadata(
 			requests = requests,
-			entities = dao.getEntities(datastoreInfo, requests.requestsByEntityId.keys).onEach {
-				require (it.entityTypeId == entityType) { "Entity ${it.id} is not of expected type." }
+			entities = dao.getEntities(datastoreInfo, requests.requestsByEntityId.keys).filter {
+				it.entityTypeId == entityType
 			}.toList().associateBy { it.id },
 			doSaveBulk = { dao.saveBulk(datastoreInfo, it) },
 			doCreateExchangeDataMapById = { exchangeDataMapLogic.createOrUpdateExchangeDataMapBatchById(it) }
 		)
+	}
+
+	override suspend fun getAttachment(
+		entityType: String,
+		entity: CustomEntityBase,
+		attachmentKey: String,
+	): Flow<DataBuffer> = withDefinitionContext(entityType, entity) {
+		// Helper only available if attachments are supported and enabled
+		requireHelper(CustomEntityLogicContextHelper.AttachmentLoader).contentFlowOfNullable(entity, attachmentKey)
+			?: throw NotFoundRequestException("Entity ${entity.id} has no attachment with key $attachmentKey")
+	}
+
+	override suspend fun updateAttachments(
+		entityType: String,
+		entityId: String,
+		entityRev: String,
+		changes: Map<String, DataAttachmentChange>,
+	): CustomEntityBase? = withDefinitionContext(entityType) {
+		// Helper only available if attachments are supported and enabled
+		val helper = requireHelper(CustomEntityLogicContextHelper.AttachmentModification)
+		// Ensures the entity exists and is of the expected type, revision is checked by the helper.
+		// Loading the full entity, since the helper will need it as well (may be served by the cache)
+		doGetCustomEntity(getInstanceAndGroup(), entityType, entityId)
+			?: throw NotFoundRequestException("Entity $entityId does not exist")
+		helper.updateAttachments(entityId, entityRev, changes)
 	}
 }

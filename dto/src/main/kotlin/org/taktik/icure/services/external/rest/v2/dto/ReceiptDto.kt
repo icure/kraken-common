@@ -16,6 +16,10 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto
+import org.taktik.icure.FilteringVersions
+import org.taktik.icure.dto.annotations.filtering.Since
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Omit
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -68,7 +72,10 @@ data class ReceiptDto(
 	/** Map of blob type to attachment id for the receipt. */
 	@ActiveField val attachmentIds: Map<ReceiptBlobTypeDto, String> = emptyMap(),
 	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val attachmentInfos: Map<ReceiptBlobTypeDto, DataAttachmentDto> = emptyMap(),
-	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) @ActiveField val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
+	@SerializationPolicy(
+		Since(FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION, Omit::class)
+	)
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY) val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** List of references (e.g., nipReference, errorCode, errorPath, tarification, invoice UUID). */
 	@ActiveField val references: List<String> = emptyList(), // nipReference:027263GFF152, errorCode:186, errorPath:/request/transaction, org.taktik.icure.services.external.rest.v2.dto;tarification:id, org.taktik.entities.InvoiceDto:UUID
 	// The ICureDocumentDto (InvoiceDto, ContactDto, ...) this document is linked to

@@ -2,6 +2,7 @@ package org.taktik.icure.asynclogic.objectstorage
 
 import kotlinx.coroutines.flow.Flow
 import org.springframework.core.io.buffer.DataBuffer
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
@@ -77,3 +78,5 @@ interface DocumentDataAttachmentLoader : DataAttachmentLoader<Document> {
 }
 
 interface ReceiptDataAttachmentLoader : DataAttachmentLoader<Receipt>
+
+interface CustomEntityDataAttachmentLoader : DataAttachmentLoader<CustomEntityBase>

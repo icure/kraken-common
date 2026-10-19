@@ -2,6 +2,7 @@ package org.taktik.icure.asynclogic.impl.customentities
 
 import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogicHelper
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentModificationLogic
 import org.taktik.icure.entities.CustomEntityBase
 
@@ -18,9 +19,14 @@ object CustomEntityLogicContextHelper {
 			"This method can only be used with delegation-based custom entities"
 	}
 
-	data object Attachment : Key<CustomEntityDataAttachmentModificationLogic> {
+	data object AttachmentModification : Key<CustomEntityDataAttachmentModificationLogic> {
 		override val errorMessageInvalid get() =
-			"This entity does not support attachments"
+			"This entity does not support attachments, or attachments are disabled"
+	}
+
+	data object AttachmentLoader : Key<CustomEntityDataAttachmentLoader> {
+		override val errorMessageInvalid get() =
+			"This entity does not support attachments, or attachments are disabled"
 	}
 
 	@JvmInline

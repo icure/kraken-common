@@ -2,50 +2,24 @@ package org.taktik.icure.asynclogic.impl.customentities
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
+import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentModificationLogic
-import org.taktik.icure.entities.CustomEntityBase
 
+/**
+ * Context for custom entities with attachments enabled: provides the helpers for the attachment-specific methods.
+ */
 @Service
 @Profile("app")
 class AttachmentCustomEntityDefinitionLogicContext(
-	private val attachmentModificationLogic: CustomEntityDataAttachmentModificationLogic,
-) : AbstractCustomEntityDefinitionLogicContext(
+	attachmentModificationLogic: CustomEntityDataAttachmentModificationLogic,
+	attachmentLoader: CustomEntityDataAttachmentLoader,
+) : AbstractAttachmentCustomEntityDefinitionLogicContext(
 	buildMap {
-		put(CustomEntityLogicContextHelper.Attachment, attachmentModificationLogic)
-	}
+		put(CustomEntityLogicContextHelper.AttachmentModification, attachmentModificationLogic)
+		put(CustomEntityLogicContextHelper.AttachmentLoader, attachmentLoader)
+	},
+	attachmentModificationLogic,
 ) {
-	override suspend fun validateAndMapForCreation(entity: CustomEntityBase): CustomEntityBase {
-		require(entity.dataAttachments.isEmpty() && entity.deletedAttachments.isEmpty()) {
-			"New ${entity.entityTypeId} can't provide any attachment information."
-		}
-		return entity
-	}
-
-	override suspend fun checkAndMapValidModification(
-		currentEntityStub: CustomEntityBase,
-		updatedEntity: CustomEntityBase,
-	) =
-		attachmentModificationLogic.ensureValidAttachmentChanges(
-			currEntity = currentEntityStub,
-			newEntity = updatedEntity,
-			lenientKeys = emptySet()
-		)
-
-	override suspend fun filterAndMapValidModifications(
-		currentEntitiesStubs: Collection<CustomEntityBase>,
-		updatedEntities: Collection<CustomEntityBase>,
-	): Collection<CustomEntityBase> {
-		val currentEntitiesStubsById = currentEntitiesStubs.associateBy { it.id }
-		return updatedEntities.mapNotNull {
-			currentEntitiesStubsById[it.id]?.let { matchingCurrent ->
-				kotlin.runCatching {
-					checkAndMapValidModification(currentEntityStub = matchingCurrent, updatedEntity = it)
-				}.getOrNull()
-			}
-		}
-	}
-
-	override suspend fun cleanupPurgedEntity(purgedEntity: CustomEntityBase) {
-		attachmentModificationLogic.cleanupPurgedEntityAttachments(purgedEntity)
-	}
+	override fun invalidAttachmentChangeMessage(entityType: String): String =
+		"Attachment information of $entityType can only be changed through the attachment methods"
 }

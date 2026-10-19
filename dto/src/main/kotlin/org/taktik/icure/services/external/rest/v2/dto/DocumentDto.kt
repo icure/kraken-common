@@ -16,6 +16,7 @@
  *     <https://www.gnu.org/licenses/>.
  */
 package org.taktik.icure.services.external.rest.v2.dto
+import org.taktik.icure.FilteringVersions
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import io.swagger.v3.oas.annotations.media.Schema
@@ -150,7 +151,9 @@ data class DocumentDto(
 	/** Information on past attachments for this document. */
 	@param:Schema(description = "Information on past attachments for this document")
 	@CardinalMetadataProperty
-	@ActiveField
+	@SerializationPolicy(
+		Since(FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION, Omit::class)
+	)
 	val deletedAttachments: List<DeletedAttachmentDto> = emptyList(),
 	/** The encrypted attachment content as bytes. */
 	@Deprecated("This field is deprecated for the use with Cardinal SDK")

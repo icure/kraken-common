@@ -12,18 +12,24 @@ import org.taktik.icure.entities.CustomEntityBase
 class CustomEntityDefinitionLogicContextFactory(
 	val basicCustomEntityDefinitionLogicContext: BasicCustomEntityDefinitionLogicContext,
 	val encryptableCustomEntityDefinitionLogicContext: EncryptableCustomEntityDefinitionLogicContext,
-	val attachmentCustomEntityDefinitionLogicContext: AttachmentCustomEntityDefinitionLogicContext
+	val attachmentCustomEntityDefinitionLogicContext: AttachmentCustomEntityDefinitionLogicContext,
+	val disabledAttachmentsCustomEntityDefinitionLogicContext: DisabledAttachmentsCustomEntityDefinitionLogicContext,
 ) {
 	fun getContextFor(
 		customEntityDefinition: CustomEntityDefinition,
 	): CustomEntityDefinitionLogicContext {
-		val allContexts = listOfNotNull(
+		val attachmentsConfiguration = customEntityDefinition.attachmentsConfiguration
+		val allContexts = listOf(
 			basicCustomEntityDefinitionLogicContext,
 			when (customEntityDefinition.accessControl) {
 				CustomEntityDefinition.AccessControl.DelegationBased -> encryptableCustomEntityDefinitionLogicContext
-				CustomEntityDefinition.AccessControl.RoleBased -> null
+				CustomEntityDefinition.AccessControl.RoleBased -> NonEncryptableCustomEntityDefinitionLogicContext
 			},
-			if (customEntityDefinition.attachmentsConfiguration != null) attachmentCustomEntityDefinitionLogicContext else null,
+			when {
+				attachmentsConfiguration == null -> NoAttachmentsCustomEntityDefinitionLogicContext
+				attachmentsConfiguration.disable -> disabledAttachmentsCustomEntityDefinitionLogicContext
+				else -> attachmentCustomEntityDefinitionLogicContext
+			},
 		)
 		return ContextChain.of(allContexts)
 	}

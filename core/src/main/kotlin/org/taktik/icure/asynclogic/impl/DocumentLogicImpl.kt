@@ -139,7 +139,7 @@ open class DocumentLogicImpl(
 		)
 	}
 
-	protected fun ensureValidAttachmentChanges(
+	protected suspend fun ensureValidAttachmentChanges(
 		updatedDocument: Document,
 		baseline: Document,
 		strict: Boolean,

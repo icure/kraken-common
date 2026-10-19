@@ -2,6 +2,7 @@ package org.taktik.icure.asynclogic.objectstorage
 
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Receipt
 import org.taktik.icure.entities.base.HasDataAttachments
@@ -51,8 +52,15 @@ private class NoObjectStorageMigration<T : HasDataAttachments<T>> : IcureObjectS
 
 interface DocumentObjectStorageMigration : IcureObjectStorageMigration<Document>
 interface ReceiptObjectStorageMigration : IcureObjectStorageMigration<Receipt>
+interface CustomEntityObjectStorageMigration : IcureObjectStorageMigration<CustomEntityBase>
 @Service
 @Profile("app")
 class ReceiptObjectStorageMigrationImpl :
 	ReceiptObjectStorageMigration,
 	IcureObjectStorageMigration<Receipt> by NoObjectStorageMigration()
+
+@Service
+@Profile("app")
+class CustomEntityObjectStorageMigrationImpl :
+	CustomEntityObjectStorageMigration,
+	IcureObjectStorageMigration<CustomEntityBase> by NoObjectStorageMigration()
