@@ -18,12 +18,11 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 
 	/**
 	 * History of all deleted attachments, automatically updated by the server when an attachment is replaced or
-	 * deleted, and never changed by the user.
+	 * deleted. It can't be changed by the user: entities provided by the user must always contain the stored value.
 	 *
 	 * This field is being phased out:
-	 * - For [Document] and Receipt it is kept for retro-compatibility, but starting from Cardinal
-	 *   `FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION` it is not included anymore in the dto, and an empty
-	 *   list in input is replaced with the stored value.
+	 * - For [Document] and Receipt it is kept for retro-compatibility. Clients (e.g. the Cardinal SDK) may hide it to
+	 *   the user, but must always send back the stored value.
 	 * - Entities that got data attachments after them (e.g. custom entities) don't use it at all: it is never updated.
 	 *
 	 * Reasons:
@@ -49,21 +48,4 @@ interface HasDataAttachments<T : HasDataAttachments<T>> : StoredDocument {
 	fun withDataAttachments(newDataAttachments: Map<String, DataAttachment>): T
 
 	fun withDeletedAttachments(newDeletedAttachments: List<DeletedAttachment>): T
-
-	/**
-	 * If [deletedAttachmentsMayBeOmitted] (the user uses a version of Cardinal that doesn't include the deleted
-	 * attachments in the dto) and this entity, provided by the user, has no deleted attachments, returns a copy of this
-	 * entity with the deleted attachments of [currentEntity]; else returns this entity as is.
-	 *
-	 * This can't be abused to change the deleted attachments, since the user-provided value is never used: the only
-	 * possible outcomes are keeping the stored value, or the user-provided value being validated as usual (e.g.
-	 * rejected if different from the stored value).
-	 */
-	fun withOmittedDeletedAttachmentsRestored(currentEntity: T, deletedAttachmentsMayBeOmitted: Boolean): T =
-		@Suppress("UNCHECKED_CAST")
-		if (deletedAttachmentsMayBeOmitted && deletedAttachments.isEmpty()) {
-			withDeletedAttachments(currentEntity.deletedAttachments)
-		} else {
-			this as T
-		}
 }

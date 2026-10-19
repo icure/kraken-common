@@ -30,9 +30,6 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
 	 * triggering an [IllegalArgumentException].
 	 * - Passing a null [DataAttachment.storedDataSize] will be allowed regardless of the current corresponding value,
 	 *   in that case the value is overridden with what was already stored
-	 * - Passing an empty [HasDataAttachments.deletedAttachments] will be allowed if the user is using a version of
-	 *   Cardinal that doesn't include them in the dto, in that case the value is overridden with what was already
-	 *   stored (see [HasDataAttachments.deletedAttachments])
 	 *
 	 * @param currEntity the current value of the entity being updated
 	 * @param newEntity the new desired value for the entity
@@ -40,7 +37,7 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
 	 * @return an updated version of newEntity which does not have any invalid change.
 	 * @throws IllegalArgumentException if there are invalid changes not related to lenient keys.
 	 */
-	suspend fun ensureValidAttachmentChanges(currEntity: T, newEntity: T, lenientKeys: Set<String>): T
+	fun ensureValidAttachmentChanges(currEntity: T, newEntity: T, lenientKeys: Set<String>): T
 
 	/**
 	 * Updates an entity attachments, also performing any side-tasks necessary for the appropriate

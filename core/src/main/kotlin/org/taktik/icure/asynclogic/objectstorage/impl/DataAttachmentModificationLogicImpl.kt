@@ -1,6 +1,5 @@
 package org.taktik.icure.asynclogic.objectstorage.impl
 
-import org.taktik.icure.config.CardinalVersionConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.codec.digest.DigestUtils
@@ -39,7 +38,6 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	private val icureObjectStorage: IcureObjectStorage<T>,
 	private val objectStorageProperties: ObjectStorageProperties,
 	private val datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
-	private val cardinalVersionConfig: CardinalVersionConfig,
 	private val attachmentChangesValidation: AttachmentChangesValidation,
 ) : DataAttachmentModificationLogic<T> {
 	/**
@@ -61,7 +59,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 
 	suspend fun getInstanceAndGroup() = datastoreInstanceProvider.getInstanceAndGroup()
 
-	override suspend fun ensureValidAttachmentChanges(
+	override fun ensureValidAttachmentChanges(
 		currEntity: T,
 		newEntity: T,
 		lenientKeys: Set<String>,
@@ -89,7 +87,6 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 			}
 		}
 		return newEntity
-			.withOmittedDeletedAttachmentsRestored(currEntity, cardinalVersionConfig.deletedAttachmentsMayBeOmitted())
 			.withDataAttachments(allowedDataAttachments)
 			.also {
 				require(it.deletedAttachments == currEntity.deletedAttachments) {
@@ -425,14 +422,12 @@ class DocumentDataAttachmentModificationLogicImpl(
 	icureObjectStorage: DocumentObjectStorage,
 	objectStorageProperties: ObjectStorageProperties,
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
-	cardinalVersionConfig: CardinalVersionConfig,
 ) : DocumentDataAttachmentModificationLogic,
 	DataAttachmentModificationLogic<Document> by object : DataAttachmentModificationLogicImpl<Document>(
 		dao,
 		icureObjectStorage,
 		objectStorageProperties,
 		datastoreInstanceProvider,
-		cardinalVersionConfig,
 		AttachmentChangesValidation.Legacy,
 	) {
 		override fun Document.updateAttachmentInformation(
@@ -454,14 +449,12 @@ class CustomEntityDataAttachmentModificationLogicImpl(
 	icureObjectStorage: CustomEntityObjectStorage,
 	objectStorageProperties: ObjectStorageProperties,
 	datastoreInstanceProvider: org.taktik.icure.datastore.DatastoreInstanceProvider,
-	cardinalVersionConfig: CardinalVersionConfig,
 ) : CustomEntityDataAttachmentModificationLogic,
 	DataAttachmentModificationLogic<CustomEntityBase> by object : DataAttachmentModificationLogicImpl<CustomEntityBase>(
 		dao,
 		icureObjectStorage,
 		objectStorageProperties,
 		datastoreInstanceProvider,
-		cardinalVersionConfig,
 		AttachmentChangesValidation.Strict,
 	) {
 		override fun CustomEntityBase.updateAttachmentInformation(

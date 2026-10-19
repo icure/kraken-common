@@ -1,8 +1,4 @@
 package org.taktik.icure.services.external.rest.v2.dto
-import org.taktik.icure.FilteringVersions
-import org.taktik.icure.dto.annotations.filtering.Since
-import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
-import org.taktik.icure.dto.annotations.filtering.Omit
 
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.dto.annotations.filtering.ActiveField
@@ -38,10 +34,7 @@ data class CustomEntityBaseDto(
 	/**
 	 * Always empty: deleted attachments are never tracked for custom entities.
 	 */
-	@SerializationPolicy(
-		Since(FilteringVersions.GENERIC_ENTITIES_CARDINAL_MIN_VERSION, Omit::class)
-	)
-	val deletedAttachments: List<Nothing> = emptyList(),
+	@ActiveField val deletedAttachments: List<Nothing> = emptyList(),
 ) : HasEncryptionMetadataDto,
 	StoredDocumentDto,
 	ICureDocumentDto<String>,

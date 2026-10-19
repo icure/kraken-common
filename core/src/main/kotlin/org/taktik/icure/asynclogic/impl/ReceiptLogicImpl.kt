@@ -4,9 +4,6 @@
 
 package org.taktik.icure.asynclogic.impl
 
-import kotlinx.coroutines.flow.toList
-import org.taktik.icure.datastore.IDatastoreInformation
-import org.taktik.icure.config.CardinalVersionConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -54,41 +51,11 @@ open class ReceiptLogicImpl(
 	filters: Filters,
 	merger: Merger<Receipt>,
 	@param:Qualifier("receiptDataAttachmentLoader") private val attachmentLoader: ReceiptDataAttachmentLoader,
-	private val cardinalVersionConfig: CardinalVersionConfig,
 ) : EntityWithEncryptionMetadataLogic<Receipt, ReceiptDAO>(fixer, sessionLogic, datastoreInstanceProvider, exchangeDataMapLogic, filters),
 	ConflictResolutionLogic<Receipt> by ConflictResolutionLogicImpl(receiptDAO, merger, datastoreInstanceProvider),
 	CustomFilteringLogic by CustomFilteringLogicImpl(dao = receiptDAO, datastoreInstanceProvider = datastoreInstanceProvider),
 	ReceiptLogic
 {
-	/**
-	 * Restores the stored deleted attachments in receipts provided by users of a Cardinal version that doesn't include
-	 * them in the dto (see [org.taktik.icure.entities.base.HasDataAttachments.deletedAttachments]).
-	 *
-	 * Needed only because, unlike documents, receipt modification doesn't validate the attachment information through
-	 * [org.taktik.icure.asynclogic.objectstorage.DataAttachmentModificationLogic.ensureValidAttachmentChanges].
-	 * TODO if we switch to full validation of the receipt attachment information like for documents this special
-	 *  handling can be removed: omitted deleted attachments are already restored by the shared attachment modification
-	 *  logic.
-	 */
-	protected suspend fun restoreOmittedDeletedAttachments(
-		datastoreInformation: IDatastoreInformation,
-		receipts: Collection<Receipt>,
-	): List<Receipt> {
-		val receiptsWithoutDeletedAttachments = receipts.filter { it.deletedAttachments.isEmpty() }
-		if (receiptsWithoutDeletedAttachments.isEmpty() || !cardinalVersionConfig.deletedAttachmentsMayBeOmitted()) return receipts.toList()
-		val currentById = receiptDAO.getEntities(datastoreInformation, receiptsWithoutDeletedAttachments.map { it.id }).toList().associateBy { it.id }
-		return receipts.map { receipt ->
-			currentById[receipt.id]?.let { receipt.withOmittedDeletedAttachmentsRestored(it, deletedAttachmentsMayBeOmitted = true) } ?: receipt
-		}
-	}
-
-	override suspend fun modifyEntity(entity: Receipt): Receipt =
-		super.modifyEntity(restoreOmittedDeletedAttachments(getInstanceAndGroup(), listOf(entity)).single())
-
-	override fun modifyEntities(entities: Collection<Receipt>): Flow<Receipt> = flow {
-		emitAll(super.modifyEntities(restoreOmittedDeletedAttachments(getInstanceAndGroup(), entities)))
-	}
-
 	override suspend fun createReceipt(receipt: Receipt) = createEntity(receipt)
 
 	override fun entityWithUpdatedSecurityMetadata(
