@@ -4,7 +4,9 @@
 package org.taktik.icure.asynclogic.impl.filter
 
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.reactor.ReactorContext
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
@@ -12,10 +14,12 @@ import org.springframework.context.ApplicationContextAware
 import org.springframework.web.server.ServerWebExchange
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.properties.ObservabilityProperties
 import org.taktik.icure.utils.addServerTimingHeader
 import java.io.Serializable
+import java.util.TreeSet
 
 class Filters : ApplicationContextAware {
 	private var applicationContext: ApplicationContext? = null
@@ -64,5 +68,30 @@ class Filters : ApplicationContextAware {
 				methodCallStart = startTime
 			)
 		}
+	}
+
+	/**
+	 * Resolves [filter] and returns the ids of the page defined by [paginationOffset]. The ids are sorted, the page
+	 * starts from [PaginationOffset.startDocumentId] (included) if set, and it contains one more id than
+	 * [PaginationOffset.limit], to be used as start key of the next page.
+	 *
+	 * @param filter the [AbstractFilter] to resolve.
+	 * @param datastoreInformation the [IDatastoreInformation] of the database where to resolve the filter.
+	 * @param paginationOffset the [PaginationOffset] that defines the page.
+	 * @return a [Flow] containing the ids of the page.
+	 */
+	fun resolvePage(
+		filter: AbstractFilter<*>,
+		datastoreInformation: IDatastoreInformation,
+		paginationOffset: PaginationOffset<Nothing>,
+	): Flow<String> = flow {
+		val ids = resolve(filter, datastoreInformation).toSet(TreeSet())
+		val sortedIds =
+			if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
+				ids.dropWhile { it != paginationOffset.startDocumentId }
+			} else {
+				ids
+			}
+		sortedIds.take(paginationOffset.limit + 1).forEach { emit(it) } // Fetching one more entity for the start key of the next page
 	}
 }

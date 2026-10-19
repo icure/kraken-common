@@ -6,7 +6,6 @@ package org.taktik.icure.asynclogic
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
@@ -57,7 +56,6 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 	 * @return a [Flow] of [PaginationElement] containing the [User]s.
 	 */
 	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<PaginationElement>
-	fun filterUsers(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<User>): Flow<ViewQueryResultEvent>
 
 	// endregion
 

@@ -14,8 +14,11 @@ data class MaintenanceTaskByHcPartyAndTypeFilter(
 	override val healthcarePartyId: String? = null,
 	override val type: String,
 ) : AbstractFilter<MaintenanceTask>,
-	MaintenanceTaskByHcPartyAndTypeFilter {
+	MaintenanceTaskByHcPartyAndTypeFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

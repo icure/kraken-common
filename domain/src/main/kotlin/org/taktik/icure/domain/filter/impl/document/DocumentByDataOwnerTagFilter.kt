@@ -11,7 +11,11 @@ class DocumentByDataOwnerTagFilter(
 	override val tagCode: String?,
 	override val desc: String?,
 ) : AbstractFilter<Document>,
-	DocumentByDataOwnerTagFilter {
+	DocumentByDataOwnerTagFilter
+{
+
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

@@ -78,10 +78,6 @@ interface ContactLogic :
 	): List<LabelledOccurence>
 
 	fun listContactsByHcPartyAndFormIds(hcPartyId: String, ids: List<String>): Flow<Contact>
-	fun filterContacts(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Contact>,
-	): Flow<ViewQueryResultEvent>
 
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
 

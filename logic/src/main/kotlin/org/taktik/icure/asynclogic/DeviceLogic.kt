@@ -1,8 +1,6 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.ViewQueryResultEvent
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 
 interface DeviceLogic : EntityPersister<Device>, ConflictResolutionLogic<Device> {
@@ -19,6 +17,4 @@ interface DeviceLogic : EntityPersister<Device>, ConflictResolutionLogic<Device>
 	suspend fun getHcPartyKeysForDelegate(deviceId: String): Map<String, String>
 
 	suspend fun getAesExchangeKeysForDelegate(healthcarePartyId: String): Map<String, Map<String, Map<String, String>>>
-
-	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 }

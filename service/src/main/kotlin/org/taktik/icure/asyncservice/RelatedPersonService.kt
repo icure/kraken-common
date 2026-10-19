@@ -7,20 +7,18 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.RelatedPerson
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface RelatedPersonService :
 	EntityWithSecureDelegationsService<RelatedPerson>,
-	EntityWithConflictResolutionService<RelatedPerson> {
+	EntityWithConflictResolutionService<RelatedPerson>,
+	EntityWithFilterService<RelatedPerson> {
 	suspend fun createRelatedPerson(relatedPerson: RelatedPerson): RelatedPerson
 	fun createRelatedPersons(relatedPersons: List<RelatedPerson>): Flow<RelatedPerson>
 
@@ -76,30 +74,6 @@ interface RelatedPersonService :
 	 */
 	suspend fun undeleteRelatedPerson(id: String, rev: String): RelatedPerson
 	fun undeleteRelatedPersons(relatedPersonIds: List<IdAndRev>): Flow<RelatedPerson>
-
-	/**
-	 * Retrieves all the [RelatedPerson]s matching the provided [filter], in a format for pagination.
-	 * This method will filter out all the [RelatedPerson]s that the current user is not allowed to access.
-	 *
-	 * @param paginationOffset a [PaginationOffset] for pagination.
-	 * @param filter a [FilterChain] to filter the related persons.
-	 * @return a [Flow] of [ViewQueryResultEvent]s.
-	 */
-	fun filterRelatedPersons(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<RelatedPerson>,
-	): Flow<ViewQueryResultEvent>
-
-	/**
-	 * Retrieves the ids of the [RelatedPerson]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [RelatedPerson].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchRelatedPersonsBy(filter: AbstractFilter<RelatedPerson>): Flow<String>
 
 	fun createEntities(entities: Flow<RelatedPerson>): Flow<RelatedPerson>
 	fun modifyEntities(entities: Flow<RelatedPerson>): Flow<RelatedPerson>

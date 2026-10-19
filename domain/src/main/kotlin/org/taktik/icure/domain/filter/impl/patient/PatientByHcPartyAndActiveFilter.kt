@@ -12,8 +12,11 @@ data class PatientByHcPartyAndActiveFilter(
 	override val active: Boolean = false,
 	override val healthcarePartyId: String? = null,
 ) : AbstractFilter<Patient>,
-	org.taktik.icure.domain.filter.patient.PatientByHcPartyAndActiveFilter {
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyAndActiveFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

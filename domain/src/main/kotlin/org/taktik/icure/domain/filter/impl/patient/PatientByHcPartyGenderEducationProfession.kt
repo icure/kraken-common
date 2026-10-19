@@ -15,8 +15,11 @@ data class PatientByHcPartyGenderEducationProfession(
 	override val education: String? = null,
 	override val profession: String? = null,
 ) : AbstractFilter<Patient>,
-	org.taktik.icure.domain.filter.patient.PatientByHcPartyGenderEducationProfession {
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyGenderEducationProfession
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()
