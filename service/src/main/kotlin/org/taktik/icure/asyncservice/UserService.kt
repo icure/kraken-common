@@ -90,6 +90,7 @@ interface UserService : EntityWithConflictResolutionService<User> {
 	fun modifyUsers(users: List<User>): Flow<User>
 
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
+	suspend fun removeProperties(userId: String, propertyTypeIdentifiers: Set<String>): User?
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?
 

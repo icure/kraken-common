@@ -65,6 +65,7 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 
 	suspend fun modifyUser(modifiedUser: User): EnhancedUser
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
+	suspend fun removeProperties(userId: String, propertyTypeIdentifiers: Set<String>): User?
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?
 

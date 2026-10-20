@@ -301,6 +301,15 @@ open class UserLogicImpl(
 		return modifyUser(user.copy(properties = updatedProperties))
 	}
 
+	override suspend fun removeProperties(
+		userId: String,
+		propertyTypeIdentifiers: Set<String>,
+	): User? {
+		val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+		val updatedProperties = user.properties.filterNot { it.type?.identifier in propertyTypeIdentifiers }.toSet()
+		return if (updatedProperties.size == user.properties.size) user else modifyUser(user.copy(properties = updatedProperties))
+	}
+
 	override fun getUsers(ids: List<String>): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation, ids), false))
