@@ -327,6 +327,22 @@ class UserController(
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Modify a User property failed.")
 	}
 
+	@Operation(
+		summary = "Delete User properties",
+		description = "Delete the properties of a User whose property type identifier matches one of the provided identifiers. The return value is the modified user.",
+	)
+	@DeleteMapping("/{userId}/properties")
+	fun deleteProperties(
+		@PathVariable userId: String,
+		@Parameter(description = "The identifiers of the property types of the properties to delete")
+		@RequestParam(required = true) propertyTypeIdentifiers: List<String>,
+	): Mono<UserDto> = mono {
+		userService
+			.removeProperties(userId, propertyTypeIdentifiers.toSet())
+			?.let(userV2Mapper::mapOmittingSecrets)
+			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delete User properties failed.")
+	}
+
 	@Operation(summary = "Request a new temporary token for authentication")
 	@PostMapping("/token/{userId}/{key}")
 	fun getToken(
