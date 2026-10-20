@@ -908,10 +908,12 @@ class ContactDAOImpl(
 			ComplexKey.emptyObject(),
 		)
 
+		// The data owner view and the configuration view emit for both legacy delegations and secure delegations, once per
+		// data owner and document, so they must be queried alone: counts reduced from several views cannot be deduplicated.
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "service_by_hcparty_code".main(),
-			configurationView = "service_by_all_delegates_code"
+			legacyView = if (daoConfig.useDataOwnerPartition) "service_by_data_owner_code" to DATA_OWNER_PARTITION else "service_by_hcparty_code".main(),
+			configurationView = "service_by_all_delegates_code",
 		).startKey(from).endKey(to).includeDocs(false).reduce(true).group(true).groupLevel(3)
 
 		emitAll(client.queryView<Array<String>, Long>(viewQuery).map { Pair(ComplexKey.of(*(it.key as Array<String>)), it.value) })
