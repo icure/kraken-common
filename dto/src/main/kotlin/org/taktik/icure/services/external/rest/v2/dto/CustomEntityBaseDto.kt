@@ -1,6 +1,7 @@
 package org.taktik.icure.services.external.rest.v2.dto
 
 import com.icure.cardinal.entities.RawJson
+import org.taktik.icure.CardinalMetadataProperty
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
@@ -30,11 +31,15 @@ data class CustomEntityBaseDto(
 	override val codes: Set<CodeStubDto> = emptySet(),
 	override val customisedModelVersion: Int? = null,
 	override val extensions: RawJson.JsonObject? = null,
-	@ActiveField val dataAttachments: Map<String, DataAttachmentDto> = emptyMap(),
+	@ActiveField
+	@CardinalMetadataProperty
+	val dataAttachments: Map<String, DataAttachmentDto> = emptyMap(),
 	/**
 	 * Always empty: deleted attachments are never tracked for custom entities.
 	 */
-	@ActiveField val deletedAttachments: List<Nothing> = emptyList(),
+	@ActiveField
+	@CardinalMetadataProperty
+	val deletedAttachments: List<Nothing> = emptyList(),
 ) : HasEncryptionMetadataDto,
 	StoredDocumentDto,
 	ICureDocumentDto<String>,
