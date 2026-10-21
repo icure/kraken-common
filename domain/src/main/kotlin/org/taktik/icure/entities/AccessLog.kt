@@ -11,13 +11,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.icure.cardinal.entities.RawJson
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.Encryptable
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.mergers.annotations.Mergeable

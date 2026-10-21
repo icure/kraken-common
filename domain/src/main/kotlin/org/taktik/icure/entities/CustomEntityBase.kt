@@ -13,11 +13,11 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.DeletedAttachment
+import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
 import org.taktik.icure.validation.AutoFix
-import org.taktik.icure.validation.NotNull
 import org.taktik.icure.validation.ValidCode
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -54,11 +54,17 @@ data class CustomEntityBase(
 	 * rules on how to perform the entity validation and access control.
 	 */
 	val entityTypeId: String,
+	/**
+	 * Custom entity base is encryptable but de-facto all encryptable information is only in the extensions, so there is
+	 * never going to be anything in this encrypted self.
+	 */
+	override val encryptedSelf: Nothing? = null,
 ) : HasEncryptionMetadata,
 	StoredICureDocument,
 	CustomisableRoot,
 	HasDataAttachments<CustomEntityBase>,
-	Extendable {
+	Extendable,
+	Encryptable {
 	override fun withEncryptionMetadata(
 		secretForeignKeys: Set<String>,
 		cryptedForeignKeys: Map<String, Set<Delegation>>,

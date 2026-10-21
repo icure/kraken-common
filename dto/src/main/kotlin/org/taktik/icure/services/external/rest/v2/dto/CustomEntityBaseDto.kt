@@ -11,6 +11,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 
 data class CustomEntityBaseDto(
@@ -40,11 +41,13 @@ data class CustomEntityBaseDto(
 	@ActiveField
 	@CardinalMetadataProperty
 	val deletedAttachments: List<Nothing> = emptyList(),
+	override val encryptedSelf: Nothing? = null,
 ) : HasEncryptionMetadataDto,
 	StoredDocumentDto,
 	ICureDocumentDto<String>,
 	CustomisableRootDto,
-	ExtendableDto {
+	ExtendableDto,
+	EncryptableDto {
 	override fun withIdRev(
 		id: String?,
 		rev: String,
