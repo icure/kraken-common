@@ -147,7 +147,7 @@ springdocCommon = { group = "org.springdoc", name = "springdoc-openapi-common", 
 springdocKotlin = { group = "org.springdoc", name = "springdoc-openapi-kotlin", version = "1.5.13" }
 springdocWebflux = { group = "org.springdoc", name = "springdoc-openapi-webflux-ui", version = "1.8.0" }
 springmockk = { group = "com.ninja-squad", name = "springmockk", version = "4.0.2" }
-taktikBoot = { group = "com.taktik.boot", name = "spring-boot-starter-gke-logging", version = "3.4.33-gb7f9ffd2e8" }
+taktikBoot = { group = "com.taktik.boot", name = "spring-boot-starter-gke-logging", version = "3.4.127-g69b9581773" }
 taktikCommons = { group = "org.taktik.commons", name = "commons-uti", version = "3.0.286-g5c517a97a0" }
 websocketCommons = { group = "com.icure", name = "kraken-websocket-common", version = "0.1.3-g8941c119ac"}
 kotlinDomApiCompat = { group = "org.jetbrains.kotlin", name = "kotlin-dom-api-compat", version.ref = "kotlin" }
