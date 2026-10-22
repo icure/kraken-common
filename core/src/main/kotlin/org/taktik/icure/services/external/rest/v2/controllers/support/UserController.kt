@@ -353,7 +353,8 @@ class UserController(
 	fun deleteToken(
 		@PathVariable userId: String,
 		@Parameter(description = "The key of the token to delete") @PathVariable key: String,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		// The user retrieved for access control in the service is reused by the logic
 		userV2Mapper.mapOmittingSecrets(userService.deleteAuthenticationToken(userId, key))
 	}
 
@@ -368,7 +369,8 @@ class UserController(
 		@PathVariable userId: String,
 		@Parameter(description = "The keys of the tokens that should not be deleted")
 		@RequestParam(required = false) skip: List<String>?,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
+		// The user retrieved for access control in the service is reused by the logic
 		userV2Mapper.mapOmittingSecrets(userService.deleteAllAuthenticationTokens(userId, skip?.toSet() ?: emptySet()))
 	}
 
