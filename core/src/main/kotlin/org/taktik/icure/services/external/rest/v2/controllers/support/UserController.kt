@@ -343,6 +343,35 @@ class UserController(
 			?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Delete User properties failed.")
 	}
 
+	@Operation(
+		summary = "Deletes an authentication token of a user",
+		description = "Revokes the authentication token with the provided key. Unlike other modifications of the user " +
+			"secrets this does not require an elevated security context, since revoking a token can only reduce the " +
+			"access of the user. The user revision is not required. If no token exists for the key the user is returned unchanged.",
+	)
+	@DeleteMapping("/{userId}/token/{key}")
+	fun deleteToken(
+		@PathVariable userId: String,
+		@Parameter(description = "The key of the token to delete") @PathVariable key: String,
+	): Mono<UserDto> = mono {
+		userV2Mapper.mapOmittingSecrets(userService.deleteAuthenticationToken(userId, key))
+	}
+
+	@Operation(
+		summary = "Deletes all authentication tokens of a user",
+		description = "Revokes all the authentication tokens of the user, except those whose key is provided in the " +
+			"skip parameter. Unlike other modifications of the user secrets this does not require an elevated security " +
+			"context, since revoking tokens can only reduce the access of the user. The user revision is not required.",
+	)
+	@DeleteMapping("/{userId}/token")
+	fun deleteAllTokens(
+		@PathVariable userId: String,
+		@Parameter(description = "The keys of the tokens that should not be deleted")
+		@RequestParam(required = false) skip: List<String>?,
+	): Mono<UserDto> = mono {
+		userV2Mapper.mapOmittingSecrets(userService.deleteAllAuthenticationTokens(userId, skip?.toSet() ?: emptySet()))
+	}
+
 	@Operation(summary = "Request a new temporary token for authentication")
 	@PostMapping("/token/{userId}/{key}")
 	fun getToken(

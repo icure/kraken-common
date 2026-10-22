@@ -91,6 +91,22 @@ interface UserService : EntityWithConflictResolutionService<User> {
 
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
 	suspend fun removeProperties(userId: String, propertyTypeIdentifiers: Set<String>): User?
+
+	/**
+	 * Revokes the authentication token with the provided [key] of the user [userId], if any.
+	 * Differently from other modifications of user secrets this operation does not require an elevated security
+	 * context, since revoking a token can only reduce the access of the user.
+	 * @return the updated user.
+	 */
+	suspend fun deleteAuthenticationToken(userId: String, key: String): User
+
+	/**
+	 * Revokes all the authentication tokens of the user [userId], except those with a key in [keysToSkip].
+	 * Differently from other modifications of user secrets this operation does not require an elevated security
+	 * context, since revoking a token can only reduce the access of the user.
+	 * @return the updated user.
+	 */
+	suspend fun deleteAllAuthenticationTokens(userId: String, keysToSkip: Set<String>): User
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?
 

@@ -66,6 +66,13 @@ interface UserLogic : EntityPersister<User>, ConflictResolutionLogic<User> {
 	suspend fun modifyUser(modifiedUser: User): EnhancedUser
 	suspend fun setProperties(userId: String, properties: List<PropertyStub>): User?
 	suspend fun removeProperties(userId: String, propertyTypeIdentifiers: Set<String>): User?
+
+	/**
+	 * Removes the authentication tokens with the provided [keys] from the user with id [userId].
+	 * Keys not matching any existing token are ignored; if no token is removed the user is returned unchanged.
+	 * @throws org.taktik.icure.exceptions.NotFoundRequestException if the user does not exist.
+	 */
+	suspend fun deleteAuthenticationTokens(userId: String, keys: Set<String>): User
 	suspend fun disableUser(userId: String): User? // TODO use?
 	suspend fun enableUser(userId: String): User? // TODO use?
 

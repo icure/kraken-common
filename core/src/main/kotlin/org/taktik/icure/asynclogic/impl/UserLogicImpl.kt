@@ -310,6 +310,12 @@ open class UserLogicImpl(
 		return if (updatedProperties.size == user.properties.size) user else modifyUser(user.copy(properties = updatedProperties))
 	}
 
+	override suspend fun deleteAuthenticationTokens(userId: String, keys: Set<String>): User {
+		val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+		val updatedTokens = user.authenticationTokens - keys
+		return if (updatedTokens.size == user.authenticationTokens.size) user else modifyUser(user.copy(authenticationTokens = updatedTokens))
+	}
+
 	override fun getUsers(ids: List<String>): Flow<EnhancedUser> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(userEnhancer.enhanceFlow(userDAO.getEntities(datastoreInformation, ids), false))
