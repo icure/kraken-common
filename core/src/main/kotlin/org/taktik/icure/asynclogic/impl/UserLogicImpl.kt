@@ -310,8 +310,18 @@ open class UserLogicImpl(
 		return if (updatedProperties.size == user.properties.size) user else modifyUser(user.copy(properties = updatedProperties))
 	}
 
-	override suspend fun deleteAuthenticationTokens(userId: String, keys: Set<String>): User {
+	override suspend fun deleteAuthenticationToken(userId: String, key: String): User =
+		deleteAuthenticationTokens(userId, setOf(key))
+
+	override suspend fun deleteAllAuthenticationTokens(userId: String, keysToSkip: Set<String>): User {
 		val user = getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found")
+		return deleteAuthenticationTokens(user, user.authenticationTokens.keys - keysToSkip)
+	}
+
+	private suspend fun deleteAuthenticationTokens(userId: String, keys: Set<String>): User =
+		deleteAuthenticationTokens(getUser(userId, false) ?: throw NotFoundRequestException("User with id $userId not found"), keys)
+
+	private suspend fun deleteAuthenticationTokens(user: User, keys: Set<String>): User {
 		val updatedTokens = user.authenticationTokens - keys
 		return if (updatedTokens.size == user.authenticationTokens.size) user else modifyUser(user.copy(authenticationTokens = updatedTokens))
 	}
