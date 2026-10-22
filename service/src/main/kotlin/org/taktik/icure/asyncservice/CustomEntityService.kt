@@ -16,6 +16,12 @@ interface CustomEntityService {
 	suspend fun getCustomEntity(entityType: String, id: String): CustomEntityBase?
 	fun getCustomEntities(entityType: String, ids: List<String>): Flow<CustomEntityBase>
 
+	/**
+	 * Get the metadata stubs (entities without extensions) of the custom entities with the provided ids.
+	 * Entities that the current user can't access, that don't exist, or that are of a different type are ignored.
+	 */
+	fun getCustomEntitiesMetadataStubs(entityType: String, ids: List<String>): Flow<CustomEntityBase>
+
 	suspend fun modifyCustomEntity(entityType: String, entity: CustomEntityBase): CustomEntityBase
 	fun modifyCustomEntities(entityType: String, entities: List<CustomEntityBase>): Flow<CustomEntityBase>
 

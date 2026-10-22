@@ -40,6 +40,7 @@ import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.requests.EntityBulkShareResult
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.CustomEntityBaseDto
+import org.taktik.icure.services.external.rest.v2.dto.IcureStubDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsDto
 import org.taktik.icure.services.external.rest.v2.dto.couchdb.DocIdentifierDto
@@ -49,6 +50,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.customentity.Cust
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.CustomEntityBaseV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CustomEntityBaseBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
@@ -73,6 +75,7 @@ class CustomEntityController(
 	private val docIdentifierV2Mapper: DocIdentifierV2Mapper,
 	private val idWithRevV2Mapper: IdWithRevV2Mapper,
 	private val entityShareOrMetadataUpdateRequestV2Mapper: EntityShareOrMetadataUpdateRequestV2Mapper,
+	private val stubV2Mapper: StubV2Mapper,
 ) {
 	private suspend inline fun <T> withCustomConfig(
 		entityType: String,
@@ -180,6 +183,19 @@ class CustomEntityController(
 			entityType,
 			entityIds.ids
 		).toDto(entityType)
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
+
+	@Operation(summary = "List custom entity stubs found by ids.")
+	@PostMapping("/{entityType}/delegations")
+	fun findCustomEntitiesDelegationsStubsByIds(
+		@PathVariable entityType: String,
+		@RequestBody entityIds: ListOfIdsDto,
+	): Flux<IcureStubDto> = withDelegationBasedDefinitionFlow(entityType) {
+		// Unlike builtin entities, the custom entity metadata stub already includes all the information of the IcureStub
+		customEntityService.getCustomEntitiesMetadataStubs(
+			entityType = entityType,
+			ids = entityIds.ids
+		).map(stubV2Mapper::mapToStub)
 	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PutMapping("/{entityType}")

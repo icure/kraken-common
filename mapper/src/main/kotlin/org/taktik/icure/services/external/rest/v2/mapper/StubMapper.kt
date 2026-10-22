@@ -20,10 +20,13 @@ package org.taktik.icure.services.external.rest.v2.mapper
 
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Mappings
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.Contact
+import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.HealthElement
@@ -51,4 +54,8 @@ interface StubV2Mapper {
 	fun mapToStub(maintenanceTask: MaintenanceTask): IcureStubDto
 	fun mapToStub(patient: Patient): IcureStubDto
 	fun mapToStub(receipt: Receipt): IcureStubDto
+	@Mappings(
+		Mapping(target = "medicalLocationId", ignore = true), // Custom entities have no medical location
+	)
+	fun mapToStub(customEntity: CustomEntityBase): IcureStubDto
 }
