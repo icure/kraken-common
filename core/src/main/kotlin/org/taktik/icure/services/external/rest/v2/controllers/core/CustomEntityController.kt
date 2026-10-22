@@ -3,8 +3,6 @@ package org.taktik.icure.services.external.rest.v2.controllers.core
 import com.icure.cardinal.customentities.config.CustomEntityDefinition
 import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfiguration
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
-import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
-import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Schema
@@ -40,7 +38,6 @@ import org.taktik.icure.asyncservice.CustomEntityService
 import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.entities.CustomEntityBase
 import org.taktik.icure.entities.requests.EntityBulkShareResult
-import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.exceptions.objectstorage.ObjectStorageException
 import org.taktik.icure.services.external.rest.v2.dto.CustomEntityBaseDto
 import org.taktik.icure.services.external.rest.v2.dto.ListOfIdsAndRevDto
@@ -52,10 +49,10 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.customentity.Cust
 import org.taktik.icure.services.external.rest.v2.dto.requests.document.BulkAttachmentUpdateOptions
 import org.taktik.icure.services.external.rest.v2.mapper.CustomEntityBaseV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
-import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapCustomFromDto
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.CustomEntityBaseBulkShareResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.EntityShareOrMetadataUpdateRequestV2Mapper
+import org.taktik.icure.services.external.rest.v2.utils.CustomEntityControllerHelper
 import org.taktik.icure.utils.enforceSize
 import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
@@ -69,8 +66,7 @@ import reactor.core.publisher.Mono
 class CustomEntityController(
 	val mapper: CustomEntityBaseV2Mapper,
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
-	private val scopePathProvider: MapperScopePathProvider,
-	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val controllerHelper: CustomEntityControllerHelper,
 	private val bulkShareResultV2Mapper: CustomEntityBaseBulkShareResultV2Mapper,
 	private val customEntityService: CustomEntityService,
 	private val reactorCacheInjector: ReactorCacheInjector,
@@ -82,8 +78,7 @@ class CustomEntityController(
 		entityType: String,
 		block: (config: VersionedCustomEntitiesConfiguration, customEntityDefinition: CustomEntityDefinition) -> T,
 	): T {
-		val config = customEntitiesConfigurationProvider.getConfigForCurrentUser()
-		val customEntityConfig = config?.customEntities[entityType]?.takeIf { !it.disabled } ?: throw NotFoundRequestException("No custom entity config found for $entityType")
+		val (config, customEntityConfig) = controllerHelper.requireDefinition(customEntitiesConfigurationProvider.getConfigForCurrentUser(), entityType)
 		return block(config, customEntityConfig)
 	}
 
@@ -103,24 +98,15 @@ class CustomEntityController(
 		entityType: String,
 		crossinline block: (customEntityDefinition: CustomEntityDefinition) -> Flow<T>,
 	): Flow<T> = withCustomDefinitionFlow(entityType) { customEntityDefinition ->
-		require(customEntityDefinition.accessControl == CustomEntityDefinition.AccessControl.DelegationBased) {
-			"Custom entity type $entityType does not support delegations and/or encryption"
-		}
+		controllerHelper.requireDelegationBased(customEntityDefinition, entityType)
 		block(customEntityDefinition)
 	}
 
-	/**
-	 * Attachment endpoints are only available if the entity supports attachments and they are not disabled.
-	 * Note: even if attachments are disabled, the modification of entities still preserves the existing attachments
-	 * information, this is handled by the logic.
-	 */
 	private suspend inline fun <T> withAttachmentsEnabled(
 		entityType: String,
 		block: (customEntityDefinition: CustomEntityDefinition) -> T,
 	): T = withCustomDefinition(entityType) { customEntityDefinition ->
-		require(customEntityDefinition.attachmentsConfiguration?.disable == false) {
-			"Attachments are not enabled for custom entity type $entityType"
-		}
+		controllerHelper.requireAttachmentsEnabled(customEntityDefinition, entityType)
 		block(customEntityDefinition)
 	}
 
@@ -129,24 +115,7 @@ class CustomEntityController(
 		dto: CustomEntityBaseDto,
 		block: (mappedEntity: CustomEntityBase, customEntityConfig: CustomEntityDefinition) -> T,
 	): T = withCustomConfig(entityType) { config, customEntityConfig ->
-		validateEntityMetadataWithConfig(dto, customEntityConfig, entityType)
-		return block(
-			mapCustomFromDto(
-				dto = dto,
-				config = config,
-				customEntityTypeId = entityType,
-				doMap = { a, b ->
-					mapper.map(
-						customEntityBaseDto = a,
-						entityTypeId = entityType,
-						mapperExtensionsValidationContext = b
-					)
-				},
-				scopePath = scopePathProvider.getScopePathFor(entityType),
-				builtinValidationConfigsProvider = builtinValidationConfigsProvider,
-			),
-			customEntityConfig
-		)
+		block(controllerHelper.mapFromDto(config, customEntityConfig, entityType, dto), customEntityConfig)
 	}
 
 	private suspend inline fun <T> mappingCustom(
@@ -154,52 +123,7 @@ class CustomEntityController(
 		dtos: List<CustomEntityBaseDto>,
 		block: (mappedEntities: List<CustomEntityBase>, customEntityConfig: CustomEntityDefinition) -> T,
 	): T = withCustomConfig(entityType) { config, customEntityConfig ->
-		dtos.forEach { dto ->
-			validateEntityMetadataWithConfig(dto, customEntityConfig, entityType)
-		}
-		// Can do extra validation here
-		return block(
-			mapCustomFromDto(
-				dtos = dtos,
-				config = config,
-				customEntityTypeId = entityType,
-				doMap = { a, b ->
-					mapper.map(
-						customEntityBaseDto = a,
-						entityTypeId = entityType,
-						mapperExtensionsValidationContext = b
-					)
-				},
-				scopePath = scopePathProvider.getScopePathFor(entityType),
-				builtinValidationConfigsProvider = builtinValidationConfigsProvider,
-			),
-			customEntityConfig
-		)
-	}
-
-	private fun validateEntityMetadataWithConfig(
-		entity: CustomEntityBaseDto,
-		customEntityDefinition: CustomEntityDefinition,
-		customEntityType: String,
-	) {
-		if (customEntityDefinition.accessControl != CustomEntityDefinition.AccessControl.DelegationBased) {
-			require (
-				entity.secretForeignKeys.isEmpty() &&
-					entity.cryptedForeignKeys.isEmpty() &&
-					entity.delegations.isEmpty() &&
-					entity.encryptionKeys.isEmpty() &&
-					entity.securityMetadata == null
-			) {
-				"Custom entity type $customEntityType does not support delegations and/or encryption"
-			}
-		}
-		if (customEntityDefinition.attachmentsConfiguration == null) {
-			require (
-				entity.dataAttachments.isEmpty()
-			) {
-				"Custom entity type $customEntityType does not support attachments"
-			}
-		}
+		block(controllerHelper.mapFromDtos(config, customEntityConfig, entityType, dtos), customEntityConfig)
 	}
 
 	private fun CustomEntityBase.toDto(entityType: String): CustomEntityBaseDto =
