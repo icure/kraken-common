@@ -19,11 +19,14 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 data class GroupDatabasesInfoDto(
 	/** The identifier of the group. */
 	@param:Schema(required = true)
-	@ActiveField val groupId: String,
+	@ActiveField
+	val groupId: String,
 	/** The list of database information entries for this group. */
 	@param:Schema(required = true)
-	@ActiveField val databasesInfo: List<DatabaseInfoDto>,
+	@ActiveField
+	val databasesInfo: List<DatabaseInfoDto>,
 	/** The total GCP storage size in bytes used by this group. */
 	@param:Schema(required = true)
-	@ActiveField val gcpStorageSize: Long,
+	@ActiveField
+	val gcpStorageSize: Long,
 ) : Serializable

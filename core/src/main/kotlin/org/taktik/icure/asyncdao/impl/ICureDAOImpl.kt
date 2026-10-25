@@ -64,5 +64,5 @@ open class ICureDAOImpl(
 		dbIds: List<String>,
 	): Flow<DatabaseInfoWrapper> = client(dbInstanceUri).databaseInfos(dbIds.asFlow())
 
-	private fun client(uri: URI) = ClientImpl(httpClient, uri, "", couchDbCredentialsProvider)
+	protected fun client(uri: URI) = ClientImpl(httpClient, uri, "", couchDbCredentialsProvider)
 }

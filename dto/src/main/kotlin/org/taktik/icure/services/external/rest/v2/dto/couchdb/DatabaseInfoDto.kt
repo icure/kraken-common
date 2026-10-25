@@ -8,6 +8,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.NonEmpty
+import org.taktik.icure.dto.annotations.filtering.NonNull
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -16,23 +21,38 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 data class DatabaseInfoDto(
 	/** The database identifier. */
-	@ActiveField val id: String,
+	@ActiveField
+	val id: String,
 	/** The current update sequence for the database. */
-	@ActiveField val updateSeq: String? = null,
+	@ActiveField
+	val updateSeq: String? = null,
 	/** The size of the database file on disk in bytes. */
-	@ActiveField val fileSize: Long? = null,
+	@ActiveField
+	val fileSize: Long? = null,
 	/** The uncompressed size of the database contents in bytes. */
-	@ActiveField val externalSize: Long? = null,
+	@ActiveField
+	val externalSize: Long? = null,
 	/** The size of live data in the database in bytes. */
-	@ActiveField val activeSize: Long? = null,
+	@ActiveField
+	val activeSize: Long? = null,
 	/** The number of documents in the database. */
-	@ActiveField val docs: Long? = null,
+	@ActiveField
+	val docs: Long? = null,
 	/** The number of shards for the database. */
-	@ActiveField val q: Int? = null,
+	@ActiveField
+	val q: Int? = null,
 	/** The number of replicas of each shard. */
-	@ActiveField val n: Int? = null,
+	@ActiveField
+	val n: Int? = null,
 	/** The number of copies that must be written before a write is considered successful. */
-	@ActiveField val w: Int? = null,
+	@ActiveField
+	val w: Int? = null,
 	/** The number of copies that must be read before a read is considered successful. */
-	@ActiveField val r: Int? = null,
+	@ActiveField
+	val r: Int? = null,
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("2.15.0", NonEmpty::class)
+	)
+	val zones: Set<String> = emptySet(),
 ) : Serializable
