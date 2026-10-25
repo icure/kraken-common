@@ -7,8 +7,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import java.io.Serializable
-import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.NonEmpty
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,4 +32,11 @@ data class GroupDatabasesInfoDto(
 	@param:Schema(required = true)
 	@ActiveField
 	val gcpStorageSize: Long,
-) : Serializable
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("3.0.0", NonEmpty::class)
+	)
+	val objectStorageInfo: Map<String, ObjectStorageInfoDto> = emptyMap(),
+) : Serializable {
+	data class ObjectStorageInfoDto(val size: Long, val region: String?)
+}

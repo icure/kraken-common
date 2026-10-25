@@ -52,7 +52,7 @@ data class DatabaseInfoDto(
 	val r: Int? = null,
 	@SerializationPolicy(
 		Since("2.0.0", Omit::class),
-		Since("2.15.0", NonEmpty::class)
+		Since("3.0.0", NonEmpty::class)
 	)
 	val zones: Set<String> = emptySet(),
 ) : Serializable
