@@ -25,5 +25,6 @@ interface CouchDbProperties {
 		val maxConnections: Int?,
 		val maxIdleTimeMs: Long?,
 		val maxPendingAcquire: Int?,
+		val enabled: Boolean = false
 	)
 }
