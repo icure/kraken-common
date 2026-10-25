@@ -208,6 +208,11 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		emitAll(doGetEntities(datastoreInformation, ids.toList()))
 	}
 
+	override fun findEntitiesByIds(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<ViewQueryResultEvent> = flow {
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		emitAll(client.getForPagination(ids, entityClass))
+	}
+
 	private fun doGetEntities(datastoreInformation: IDatastoreInformation, ids: List<String>): Flow<T> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		if (log.isDebugEnabled) {

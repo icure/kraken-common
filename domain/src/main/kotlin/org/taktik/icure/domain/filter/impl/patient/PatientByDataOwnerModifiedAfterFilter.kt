@@ -12,8 +12,11 @@ data class PatientByDataOwnerModifiedAfterFilter(
 	override val descending: Boolean?,
 	override val desc: String?,
 ) : AbstractFilter<Patient>,
-	PatientByDataOwnerModifiedAfterFilter {
+	PatientByDataOwnerModifiedAfterFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = startDate == null && endDate == null
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

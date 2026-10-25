@@ -450,7 +450,7 @@ class ContactController(
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
-		val contacts = contactService.filterContacts(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+		val contacts = contactService.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 
 		contacts.paginatedList(contactMapper::map, realLimit)
 	}
@@ -460,7 +460,7 @@ class ContactController(
 	fun matchContactsBy(
 		@RequestBody filter: AbstractFilterDto<ContactDto>,
 	) = contactService
-		.matchContactsBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

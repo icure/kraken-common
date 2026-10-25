@@ -10,9 +10,9 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Invoice
 import org.taktik.icure.entities.embed.Delegation
@@ -25,7 +25,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface InvoiceService :
 	EntityWithSecureDelegationsService<Invoice>,
-	EntityWithConflictResolutionService<Invoice> {
+	EntityWithConflictResolutionService<Invoice>,
+	EntityWithFilterService<Invoice> {
 
 	suspend fun createInvoice(invoice: Invoice): Invoice
 
@@ -153,17 +154,6 @@ interface InvoiceService :
 	 * @return a [Flow] containing the successfully created [Invoice]s.
 	 */
 	fun createInvoices(invoices: Collection<Invoice>): Flow<Invoice>
-
-	/**
-	 * Retrieves the ids of the [Invoice]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Invoice].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchInvoicesBy(filter: AbstractFilter<Invoice>): Flow<String>
 
 	/**
 	 * Marks a batch of entities as deleted.

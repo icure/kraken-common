@@ -26,8 +26,11 @@ import org.taktik.icure.entities.base.HasEncryptionMetadata
 data class AllDocumentsFilter(
 	override val desc: String? = null,
 ) : AbstractFilter<Document>,
-	Filters.AllFilter<String, Document> {
+	Filters.AllFilter<String, Document>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

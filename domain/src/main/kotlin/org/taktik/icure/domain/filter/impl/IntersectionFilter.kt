@@ -13,8 +13,11 @@ data class IntersectionFilter<O : Identifiable<String>>(
 	override val desc: String? = null,
 	override val filters: List<AbstractFilter<O>> = listOf(),
 ) : AbstractFilter<O>,
-	Filters.IntersectionFilter<String, O> {
+	Filters.IntersectionFilter<String, O>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = filters.size > 1 || filters.first().isHeavyFilter
 	override val canBeUsedInWebsocket = filters.all { it.canBeUsedInWebsocket }
 	override val requiresSecurityPrecondition: Boolean = filters.any { it.requiresSecurityPrecondition }
 	override fun requestedDataOwnerIds(): Set<String> = filters.flatMap { it.requestedDataOwnerIds() }.toSet()

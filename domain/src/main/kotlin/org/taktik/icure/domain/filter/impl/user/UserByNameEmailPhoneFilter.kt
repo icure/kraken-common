@@ -21,13 +21,17 @@ import org.taktik.icure.db.sanitize
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 
 data class UserByNameEmailPhoneFilter(
 	override val searchString: String,
 	override val desc: String? = null,
 ) : AbstractFilter<User>,
-	org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter {
+	org.taktik.icure.domain.filter.user.UserByNameEmailPhoneFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = isHeavySearchString(searchString)
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

@@ -26,8 +26,11 @@ data class HealthElementByIdsFilter(
 	override val ids: Set<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<HealthElement>,
-	Filters.IdsFilter<String, HealthElement> {
+	Filters.IdsFilter<String, HealthElement>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

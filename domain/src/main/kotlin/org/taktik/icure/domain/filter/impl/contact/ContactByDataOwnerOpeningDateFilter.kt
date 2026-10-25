@@ -12,8 +12,11 @@ data class ContactByDataOwnerOpeningDateFilter(
 	override val descending: Boolean? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<Contact>,
-	ContactByDataOwnerOpeningDateFilter {
+	ContactByDataOwnerOpeningDateFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = startDate == null && endDate == null
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

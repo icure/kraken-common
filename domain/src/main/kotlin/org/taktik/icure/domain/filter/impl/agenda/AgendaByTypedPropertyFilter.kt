@@ -24,6 +24,7 @@ data class AgendaByTypedPropertyFilter(
 		) { "Property in AgendaByTypedPropertyFilter must have only one non-null value" }
 	}
 
+	override val isHeavyFilter: Boolean = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

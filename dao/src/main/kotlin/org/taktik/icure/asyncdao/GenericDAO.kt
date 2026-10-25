@@ -194,6 +194,16 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T>
 
 	/**
+	 * Retrieves a collection of entities from the database by their id, wrapping each of them in a
+	 * [ViewQueryResultEvent] so that the result can be used to build a paginated response. The cache is not used.
+	 *
+	 * @param datastoreInformation the datastore information to get the database client.
+	 * @param ids a [Flow] containing the ids of the entities to retrieve.
+	 * @return a [Flow] of [ViewQueryResultEvent]s containing the found entities.
+	 */
+	fun findEntitiesByIds(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<ViewQueryResultEvent>
+
+	/**
 	 * Soft-deletes a collection of entities by setting their deletionDate field and saving them to the database. If a
 	 * cache is present, then the entities are removed from all the levels of the cache.
 	 *

@@ -92,7 +92,7 @@ class MaintenanceTaskController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		maintenanceTaskService
-			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+			.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 			.paginatedList(maintenanceTaskMapper::map, realLimit)
 	}
 }

@@ -26,8 +26,11 @@ data class ServiceByIdsFilter(
 	override val ids: Set<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<Service>,
-	Filters.IdsFilter<String, Service> {
+	Filters.IdsFilter<String, Service>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

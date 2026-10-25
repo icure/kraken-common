@@ -11,6 +11,7 @@ import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.DeviceLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Device
 import org.taktik.icure.mergers.Merger
@@ -64,21 +65,20 @@ open class DeviceLogicImpl(
 		return deviceDAO.getAesExchangeKeysForDelegate(datastoreInformation, healthcarePartyId)
 	}
 
-	override fun filterDevices(
+	override fun filterEntitiesBy(
+		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<Device>,
-		limit: Int,
-		startDocumentId: String?,
 	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation)
 
 		val sortedIds =
-			if (startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
-				ids.dropWhile { it != startDocumentId }
+			if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
+				ids.dropWhile { it != paginationOffset.startDocumentId }
 			} else {
 				ids
 			}
-		val selectedIds = sortedIds.take(limit + 1) // Fetching one more device for the start key of the next page
+		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more device for the start key of the next page
 		emitAll(
 			deviceDAO.findDevicesByIds(datastoreInformation, selectedIds),
 		)

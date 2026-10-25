@@ -8,8 +8,11 @@ data class UsersByPatientIdFilter(
 	override val patientId: String,
 	override val desc: String? = null,
 ) : AbstractFilter<User>,
-	org.taktik.icure.domain.filter.user.UsersByPatientIdFilter {
+	org.taktik.icure.domain.filter.user.UsersByPatientIdFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
