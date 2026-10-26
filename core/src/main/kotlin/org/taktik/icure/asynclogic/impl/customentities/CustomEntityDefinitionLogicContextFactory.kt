@@ -21,9 +21,9 @@ class CustomEntityDefinitionLogicContextFactory(
 		val attachmentsConfiguration = customEntityDefinition.attachmentsConfiguration
 		val allContexts = listOf(
 			basicCustomEntityDefinitionLogicContext,
-			when (customEntityDefinition.accessControl) {
-				CustomEntityDefinition.AccessControl.DelegationBased -> encryptableCustomEntityDefinitionLogicContext
-				CustomEntityDefinition.AccessControl.RoleBased -> NonEncryptableCustomEntityDefinitionLogicContext
+			when (customEntityDefinition.securityModel) {
+				is CustomEntityDefinition.SecurityModel.DelegationBased -> encryptableCustomEntityDefinitionLogicContext
+				CustomEntityDefinition.SecurityModel.RoleBased -> NonEncryptableCustomEntityDefinitionLogicContext
 			},
 			when {
 				attachmentsConfiguration == null -> NoAttachmentsCustomEntityDefinitionLogicContext
