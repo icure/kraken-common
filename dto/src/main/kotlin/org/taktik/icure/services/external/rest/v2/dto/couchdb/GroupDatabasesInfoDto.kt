@@ -31,12 +31,12 @@ data class GroupDatabasesInfoDto(
 	/** The total GCP storage size in bytes used by this group. */
 	@param:Schema(required = true)
 	@ActiveField
-	val gcpStorageSize: Long,
+	val objectStorageSize: Long,
 	@SerializationPolicy(
 		Since("2.0.0", Omit::class),
 		Since("3.0.0", NonEmpty::class)
 	)
 	val objectStorageInfo: Map<String, ObjectStorageInfoDto> = emptyMap(),
 ) : Serializable {
-	data class ObjectStorageInfoDto(val size: Long, val region: String?)
+	data class ObjectStorageInfoDto(val size: Long, val regions: Set<String>)
 }

@@ -20,7 +20,7 @@ jupiter = "5.12.2"
 kotlinStdlibJdk8 = "1.8.0"
 junit = "1.12.2"
 slf4j = "2.0.17"
-krouch = "1.2.97-feature.add-methods.g2b564a809e"
+krouch = "1.2.96-g840c2c9ce9"
 asyncJacksonHttpClient = "0.2.27-g528cb8c312"
 
 [libraries]
