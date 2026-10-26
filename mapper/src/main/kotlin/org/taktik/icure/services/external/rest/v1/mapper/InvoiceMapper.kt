@@ -24,7 +24,15 @@ interface InvoiceMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(invoiceDto: InvoiceDto): Invoice
-	fun map(invoice: Invoice): InvoiceDto
+
+	fun map(invoice: Invoice): InvoiceDto {
+		require(invoice.extensions == null) { "Invoice has extensions and can't be used with v1 endpoints" }
+		return doMap(invoice)
+	}
+
+	fun doMap(invoice: Invoice): InvoiceDto
 }

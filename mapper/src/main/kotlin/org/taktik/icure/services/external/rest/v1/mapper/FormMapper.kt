@@ -20,7 +20,15 @@ interface FormMapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", ignore = true),
+		Mapping(target = "customisedModelVersion", ignore = true),
 	)
 	fun map(formDto: FormDto): Form
-	fun map(form: Form): FormDto
+
+	fun map(form: Form): FormDto {
+		require(form.extensions == null) { "Form has extensions and can't be used with v1 endpoints" }
+		return doMap(form)
+	}
+
+	fun doMap(form: Form): FormDto
 }

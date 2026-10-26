@@ -18,6 +18,7 @@
 
 package org.taktik.icure.services.external.rest.v2.mapper
 
+import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import org.mapstruct.InjectionStrategy
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
@@ -34,7 +35,8 @@ interface FormV2Mapper {
 		Mapping(target = "attachments", ignore = true),
 		Mapping(target = "conflicts", ignore = true),
 		Mapping(target = "revisionsInfo", ignore = true),
+		Mapping(target = "extensions", expression = "kotlin(mapperExtensionsValidationContext.validateAndMapCurrentExtension(formDto.extensions))"),
 	)
-	fun map(formDto: FormDto): Form
+	fun map(formDto: FormDto, mapperExtensionsValidationContext: MapperExtensionsValidationContext): Form
 	fun map(form: Form): FormDto
 }

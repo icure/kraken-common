@@ -4,6 +4,10 @@
 
 package org.taktik.icure.services.external.rest.v2.controllers.core
 
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +43,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.FormService
 import org.taktik.icure.asyncservice.FormTemplateService
 import org.taktik.icure.cache.ReactorCacheInjector
+import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.conflicts.ConflictResolutionStrategy
 import org.taktik.icure.entities.dao.IdWithValue
 import org.taktik.icure.pagination.PaginatedFlux
@@ -62,6 +67,7 @@ import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareRe
 import org.taktik.icure.services.external.rest.v2.mapper.FormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.FormV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.RawFormTemplateV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionV2Mapper
@@ -103,9 +109,36 @@ class  FormController(
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
 	private val formCustomFilterV2Mapper: FormCustomFilterV2Mapper,
-	private val idWithValueV2Mapper: IdWithValueV2Mapper
+	private val idWithValueV2Mapper: IdWithValueV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
 	private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
+	private suspend fun FormDto.toDomain(): Form =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::form,
+			formV2Mapper::map,
+			scopePathProvider.getScopePathFor("Form"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<FormDto>.toDomain(): List<Form> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::form,
+			formV2Mapper::map,
+			scopePathProvider.getScopePathFor("Form"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Form.toDto(): FormDto = formV2Mapper.map(this)
+
+	private fun Flow<Form>.toDto(): Flow<FormDto> = map { it.toDto() }
 
 	@Operation(summary = "Gets a form")
 	@GetMapping("/{formId}")
@@ -115,7 +148,7 @@ class  FormController(
 		val form =
 			formService.getForm(formId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form fetching failed")
-		formV2Mapper.map(form)
+		form.toDto()
 	}
 
 	@Operation(summary = "Get a list of forms by ids", description = "Keys must be delimited by coma")
@@ -124,7 +157,7 @@ class  FormController(
 		@RequestBody formIds: ListOfIdsDto,
 	): Flux<FormDto> {
 		require(formIds.ids.isNotEmpty()) { "You must specify at least one id." }
-		return formService.getForms(formIds.ids).map(formV2Mapper::map).injectReactorContext()
+		return formService.getForms(formIds.ids).toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Gets the most recent form with the given logicalUuid")
@@ -137,7 +170,7 @@ class  FormController(
 				.listFormsByLogicalUuid(logicalUuid, true)
 				.firstOrNull()
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
-		formV2Mapper.map(form)
+		form.toDto()
 	}
 
 	@Operation(summary = "Gets all forms with given logicalUuid")
@@ -146,7 +179,7 @@ class  FormController(
 		@PathVariable logicalUuid: String,
 	): Flux<FormDto> = formService
 		.listFormsByLogicalUuid(logicalUuid, true)
-		.map { form -> formV2Mapper.map(form) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Gets all forms by uniqueId")
@@ -155,7 +188,7 @@ class  FormController(
 		@PathVariable uniqueId: String,
 	): Flux<FormDto> = formService
 		.listFormsByUniqueId(uniqueId, true)
-		.map { form -> formV2Mapper.map(form) }
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Gets the most recent form with the given uniqueId")
@@ -168,7 +201,7 @@ class  FormController(
 				.listFormsByUniqueId(uniqueId, true)
 				.firstOrNull()
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Form not found")
-		formV2Mapper.map(form)
+		form.toDto()
 	}
 
 	@Operation(summary = "Get a list of forms by parents ids", description = "Keys must be delimited by coma")
@@ -178,7 +211,7 @@ class  FormController(
 		@PathVariable hcPartyId: String,
 	): Flux<FormDto> {
 		val forms = formService.listByHcPartyAndParentId(hcPartyId, formId)
-		return forms.map { formV2Mapper.map(it) }.injectReactorContext()
+		return forms.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Create a form with the current user", description = "Returns an instance of created form.")
@@ -186,8 +219,7 @@ class  FormController(
 	fun createForm(
 		@RequestBody ft: FormDto,
 	): Mono<FormDto> = mono {
-		val form = formService.createForm(formV2Mapper.map(ft))
-		formV2Mapper.map(form)
+		formService.createForm(ft.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modify a form", description = "Returns the modified form.")
@@ -195,8 +227,7 @@ class  FormController(
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
 	): Mono<FormDto> = mono {
-		val modifiedForm = formService.modifyForm(formV2Mapper.map(formDto))
-		formV2Mapper.map(modifiedForm)
+		formService.modifyForm(formDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Deletes multiple Forms")
@@ -235,7 +266,7 @@ class  FormController(
 		@PathVariable formId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<FormDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		formV2Mapper.map(formService.undeleteForm(formId, rev))
+		formService.undeleteForm(formId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -244,7 +275,7 @@ class  FormController(
 	): Flux<FormDto> = formService
 		.undeleteForms(
 			formIds.ids.map(idWithRevV2Mapper::map),
-		).map(formV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{formId}")
@@ -268,13 +299,17 @@ class  FormController(
 	@PutMapping("/batch")
 	fun modifyForms(
 		@RequestBody formDtos: List<FormDto>,
-	): Flux<FormDto> = formService.modifyForms(formDtos.map { formV2Mapper.map(it) }).map { formV2Mapper.map(it) }.injectReactorContext()
+	): Flux<FormDto> = flow {
+		emitAll(formService.modifyForms(formDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of forms", description = "Returns the created forms.")
 	@PostMapping("/batch")
 	fun createForms(
 		@RequestBody formDtos: List<FormDto>,
-	): Flux<FormDto> = formService.createForms(formDtos.map { formV2Mapper.map(it) }).map { formV2Mapper.map(it) }.injectReactorContext()
+	): Flux<FormDto> = flow {
+		emitAll(formService.createForms(formDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listFormIdsByDataOwnerPatientOpeningDate instead")
@@ -289,7 +324,7 @@ class  FormController(
 	): Flux<FormDto> {
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }
 		val formsList = formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, healthElementId, planOfActionId, formTemplateId)
-		return formsList.map { contact -> formV2Mapper.map(contact) }.injectReactorContext()
+		return formsList.toDto().injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
@@ -304,7 +339,7 @@ class  FormController(
 		@RequestParam(required = false) formTemplateId: String?,
 	): Flux<FormDto> {
 		val formsList = formService.listFormsByHCPartyAndPatient(hcPartyId, secretPatientKeys, healthElementId, planOfActionId, formTemplateId)
-		return formsList.map { contact -> formV2Mapper.map(contact) }.injectReactorContext()
+		return formsList.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Find Forms ids by data owner id, patient secret keys and opening date")
@@ -641,7 +676,7 @@ class  FormController(
 		@RequestParam entityId: String,
 	): Flux<FormDto> =
 		formService.getConflictsFor(entityId)
-			.map(formV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -649,10 +684,10 @@ class  FormController(
 		@RequestBody request: ConflictResolutionRequestDto<FormDto>
 	): Mono<ConflictResolutionResultDto<FormDto>> = mono {
 		val result = formService.declareConflictWinner(
-			entity = formV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, formV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

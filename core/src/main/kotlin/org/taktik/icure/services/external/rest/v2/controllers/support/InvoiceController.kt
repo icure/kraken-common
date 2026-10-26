@@ -6,9 +6,14 @@ package org.taktik.icure.services.external.rest.v2.controllers.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
+import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
+import com.icure.cardinal.customentities.util.ExtendableBuiltinEntityValidatorMapperConfigsProvider
+import com.icure.cardinal.errorreporting.MapperScopePathProvider
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -64,6 +69,7 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.chain.FilterChain
 import org.taktik.icure.services.external.rest.v2.dto.requests.BulkShareOrUpdateMetadataParamsDto
 import org.taktik.icure.services.external.rest.v2.dto.requests.EntityBulkShareResultDto
 import org.taktik.icure.services.external.rest.v2.mapper.IdWithRevV2Mapper
+import org.taktik.icure.services.external.rest.v2.mapper.MappersWithCustomExtensions.mapFromDtoWithExtension
 import org.taktik.icure.services.external.rest.v2.mapper.InvoiceV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.StubV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
@@ -109,15 +115,41 @@ class InvoiceController(
 	private val mergeResultV2Mapper: MergeResultV2Mapper,
 	private val conflictResolutionStrategyV2Mapper: ConflictResolutionStrategyV2Mapper,
 	private val invoiceCustomFilterV2Mapper: InvoiceCustomFilterV2Mapper,
-	private val idWithValueV2Mapper: IdWithValueV2Mapper
+	private val idWithValueV2Mapper: IdWithValueV2Mapper,
+	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
+	private val scopePathProvider: MapperScopePathProvider,
+	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 ) {
+	private suspend fun InvoiceDto.toDomain(): Invoice =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::invoice,
+			invoiceV2Mapper::map,
+			scopePathProvider.getScopePathFor("Invoice"),
+			builtinValidationConfigsProvider,
+		)
+
+	private suspend fun List<InvoiceDto>.toDomain(): List<Invoice> =
+		mapFromDtoWithExtension(
+			this,
+			{ customEntitiesConfigurationProvider.getConfigForCurrentUser() },
+			StandardRootEntitiesExtensionConfig::invoice,
+			invoiceV2Mapper::map,
+			scopePathProvider.getScopePathFor("Invoice"),
+			builtinValidationConfigsProvider,
+		)
+
+	private fun Invoice.toDto(): InvoiceDto = invoiceV2Mapper.map(this)
+
+	private fun Flow<Invoice>.toDto(): Flow<InvoiceDto> = map { it.toDto() }
+
 	@Operation(summary = "Creates an invoice")
 	@PostMapping
 	fun createInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice = invoiceService.createInvoice(invoiceV2Mapper.map(invoiceDto))
-		invoiceV2Mapper.map(invoice)
+		invoiceService.createInvoice(invoiceDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Delete multiple Invoices")
@@ -156,7 +188,7 @@ class InvoiceController(
 		@PathVariable invoiceId: String,
 		@RequestParam(required = true) rev: String,
 	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
-		invoiceV2Mapper.map(invoiceService.undeleteInvoice(invoiceId, rev))
+		invoiceService.undeleteInvoice(invoiceId, rev).toDto()
 	}
 
 	@PostMapping("/undelete/batch")
@@ -165,7 +197,7 @@ class InvoiceController(
 	): Flux<InvoiceDto> = invoiceService
 		.undeleteInvoices(
 			invoiceIds.ids.map(idWithRevV2Mapper::map),
-		).map(invoiceV2Mapper::map)
+		).toDto()
 		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@DeleteMapping("/purge/{invoiceId}")
@@ -193,7 +225,7 @@ class InvoiceController(
 		val invoice =
 			invoiceService.getInvoice(invoiceId)
 				?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice fetching failed")
-		invoiceV2Mapper.map(invoice)
+		invoice.toDto()
 	}
 
 	@Operation(summary = "Gets an invoice")
@@ -204,7 +236,7 @@ class InvoiceController(
 		require(invoiceIds.ids.isNotEmpty()) { "You must specify at least one id" }
 		return invoiceService
 			.getInvoices(invoiceIds.ids)
-			.map { invoiceV2Mapper.map(it) }
+			.toDto()
 			.injectReactorContext()
 	}
 
@@ -213,9 +245,7 @@ class InvoiceController(
 	fun modifyInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice = invoiceService.modifyInvoice(invoiceV2Mapper.map(invoiceDto))
-
-		invoiceV2Mapper.map(invoice)
+		invoiceService.modifyInvoice(invoiceDto.toDomain()).toDto()
 	}
 
 	@Operation(summary = "Modifies an invoice")
@@ -223,9 +253,7 @@ class InvoiceController(
 	fun reassignInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
 	): Mono<InvoiceDto> = mono {
-		val invoice = invoiceV2Mapper.map(invoiceDto).let { it.reassign(it.invoicingCodes, uuidGenerator) }
-
-		invoiceV2Mapper.map(invoice)
+		invoiceDto.toDomain().let { it.reassign(it.invoicingCodes, uuidGenerator) }.toDto()
 	}
 
 	@Operation(summary = "Gets all invoices for author at date")
@@ -234,13 +262,13 @@ class InvoiceController(
 		@PathVariable invoiceId: String,
 		@RequestBody ids: ListOfIdsDto,
 	): Mono<InvoiceDto> = mono {
-		invoiceV2Mapper.map(
+		(
 			invoiceService.mergeInvoices(
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
 				ids.ids,
 				invoiceService.getInvoice(invoiceId),
-			) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice $invoiceId not found"),
-		)
+			) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invoice $invoiceId not found")
+		).toDto()
 	}
 
 	@Operation(summary = "Gets all invoices for author at date")
@@ -258,7 +286,7 @@ class InvoiceController(
 					it,
 					scheme,
 					forcedValue,
-				)?.let(invoiceV2Mapper::map)
+				)?.toDto()
 		}
 	}
 
@@ -287,7 +315,7 @@ class InvoiceController(
 				invoiceId,
 				gracePeriod,
 			)
-		emitAll(invoices.map { invoiceV2Mapper.map(it) })
+		emitAll(invoices.toDto())
 	}.injectReactorContext()
 
 	@Operation(summary = "Remove an invoice of an user")
@@ -305,7 +333,7 @@ class InvoiceController(
 
 			val invoices = invoiceService.removeCodes(userId, secretPatientKeys, serviceId, tarificationIds)
 
-			return invoices.map { invoiceV2Mapper.map(it) }.injectReactorContext()
+			return invoices.toDto().injectReactorContext()
 		}
 	}
 
@@ -333,7 +361,7 @@ class InvoiceController(
 			)
 		return invoiceService
 			.findInvoicesByAuthor(hcPartyId, fromDate, toDate, paginationOffset)
-			.mapElements<Invoice, InvoiceDto>(invoiceV2Mapper::map)
+			.mapElements<Invoice, InvoiceDto> { it.toDto() }
 			.asPaginatedFlux()
 	}
 
@@ -351,7 +379,7 @@ class InvoiceController(
 		val secretPatientKeys = secretFKeys.split(',').map { it.trim() }.toSet()
 		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys)
 
-		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
+		return elementList.toDto().injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
@@ -364,7 +392,7 @@ class InvoiceController(
 	): Flux<InvoiceDto> {
 		val elementList = invoiceService.listInvoicesByHcPartyAndPatientSfks(hcPartyId, secretPatientKeys.toSet())
 
-		return elementList.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
+		return elementList.toDto().injectReactorContext()
 	}
 
 	@Suppress("DEPRECATION")
@@ -437,7 +465,7 @@ class InvoiceController(
 		@PathVariable groupId: String,
 	): Flux<InvoiceDto> {
 		val invoices = invoiceService.listInvoicesByHcPartyAndGroupId(hcPartyId, groupId)
-		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
+		return invoices.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "List invoices by type, sent or unsent", description = "Keys have to delimited by coma")
@@ -459,7 +487,7 @@ class InvoiceController(
 				from,
 				to,
 			)
-		return invoices.map { el -> invoiceV2Mapper.map(el) }.injectReactorContext()
+		return invoices.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Gets all invoices for author at date")
@@ -470,7 +498,7 @@ class InvoiceController(
 		emitAll(
 			invoiceService
 				.listInvoicesByHcPartyContacts(sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!, HashSet(contactIds.ids))
-				.map { invoiceV2Mapper.map(it) },
+				.toDto(),
 		)
 	}.injectReactorContext()
 
@@ -484,7 +512,7 @@ class InvoiceController(
 				.listInvoicesByHcPartyAndRecipientIds(
 					sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
 					recipientIds.split(',').toSet(),
-				).map { invoiceV2Mapper.map(it) },
+				).toDto(),
 		)
 	}.injectReactorContext()
 
@@ -494,7 +522,7 @@ class InvoiceController(
 		@RequestParam(required = false) userIds: String?,
 	): Flux<InvoiceDto> = invoiceService
 		.getInvoicesForUsersAndInsuranceIds(userIds?.split(','))
-		.map(invoiceV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Gets all invoices for author at date")
@@ -503,7 +531,7 @@ class InvoiceController(
 		@RequestParam(required = false) userIds: String?,
 	): Flux<InvoiceDto> = invoiceService
 		.getUnsentInvoicesForUsersAndInsuranceIds(userIds?.split(','))
-		.map(invoiceV2Mapper::map)
+		.toDto()
 		.injectReactorContext()
 
 	@Operation(summary = "Gets all invoices for author at date")
@@ -517,7 +545,7 @@ class InvoiceController(
 					hcPartyId
 						?: sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
 					setOf<String?>(null),
-				).map { invoiceV2Mapper.map(it) },
+				).toDto(),
 		)
 	}.injectReactorContext()
 
@@ -532,7 +560,7 @@ class InvoiceController(
 					hcPartyId
 						?: sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
 					setOf<String?>(null),
-				).map { invoiceV2Mapper.map(it) },
+				).toDto(),
 		)
 	}.injectReactorContext()
 
@@ -540,7 +568,7 @@ class InvoiceController(
 	@GetMapping("/byIds/{invoiceIds}")
 	fun listInvoicesByIds(
 		@PathVariable invoiceIds: String,
-	): Flux<InvoiceDto> = invoiceService.getInvoices(invoiceIds.split(',')).map { invoiceV2Mapper.map(it) }.injectReactorContext()
+	): Flux<InvoiceDto> = invoiceService.getInvoices(invoiceIds.split(',')).toDto().injectReactorContext()
 
 	@Operation(summary = "Get all invoices by author, by sending mode, by status and by date")
 	@GetMapping("/byHcpartySendingModeStatusDate/{hcPartyId}")
@@ -552,9 +580,7 @@ class InvoiceController(
 		@RequestParam(required = false) to: Long?,
 	): Flux<InvoiceDto> = invoiceService
 		.listInvoicesByHcPartySendingModeStatus(hcPartyId, sendingMode, status, from, to)
-		.map {
-			invoiceV2Mapper.map(it)
-		}.injectReactorContext()
+		.toDto().injectReactorContext()
 
 	@Operation(summary = "Get all the invoice ids for a data owner and a decision reference")
 	@GetMapping("/byDecisionReference", produces = [APPLICATION_JSON_VALUE])
@@ -569,9 +595,7 @@ class InvoiceController(
 		@PathVariable serviceIds: String,
 	): Flux<InvoiceDto> = invoiceService
 		.listInvoicesByServiceIds(serviceIds.split(',').toSet())
-		.map {
-			invoiceV2Mapper.map(it)
-		}.injectReactorContext()
+		.toDto().injectReactorContext()
 
 	@Operation(summary = "Gets all invoices per status")
 	@PostMapping("/allHcpsByStatus/{status}")
@@ -582,9 +606,7 @@ class InvoiceController(
 		@RequestBody hcpIds: ListOfIdsDto,
 	): Flux<InvoiceDto> = invoiceService
 		.listInvoicesHcpsByStatus(status, from, to, hcpIds.ids)
-		.map {
-			invoiceV2Mapper.map(it)
-		}.injectReactorContext()
+		.toDto().injectReactorContext()
 
 	@Operation(summary = "Get the list of all used tarifications frequencies in invoices")
 	@GetMapping("/codes/{minOccurrences}")
@@ -605,7 +627,7 @@ class InvoiceController(
 		@RequestBody filterChain: FilterChain<InvoiceDto>,
 	): Flux<InvoiceDto> {
 		val invoices = invoiceService.filter(filterChainV2Mapper.tryMap(filterChain).orThrow())
-		return invoices.map { element -> invoiceV2Mapper.map(element) }.injectReactorContext()
+		return invoices.toDto().injectReactorContext()
 	}
 
 	@Operation(summary = "Get ids of Invoices matching the provided filter for the current user.")
@@ -621,21 +643,17 @@ class InvoiceController(
 	@PutMapping("/batch")
 	fun modifyInvoices(
 		@RequestBody invoiceDtos: List<InvoiceDto>,
-	): Flux<InvoiceDto> = invoiceService
-		.modifyInvoices(
-			invoiceDtos.map(invoiceV2Mapper::map),
-		).map(invoiceV2Mapper::map)
-		.injectReactorContext()
+	): Flux<InvoiceDto> = flow {
+		emitAll(invoiceService.modifyInvoices(invoiceDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(summary = "Create a batch of invoices", description = "Returns the created invoices.")
 	@PostMapping("/batch")
 	fun createInvoices(
 		@RequestBody invoiceDtos: List<InvoiceDto>,
-	): Flux<InvoiceDto> = invoiceService
-		.createInvoices(
-			invoiceDtos.map(invoiceV2Mapper::map),
-		).map(invoiceV2Mapper::map)
-		.injectReactorContext()
+	): Flux<InvoiceDto> = flow {
+		emitAll(invoiceService.createInvoices(invoiceDtos.toDomain()).toDto())
+	}.injectReactorContext()
 
 	@Operation(description = "Shares one or more invoices with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
@@ -672,7 +690,7 @@ class InvoiceController(
 		@RequestParam entityId: String,
 	): Flux<InvoiceDto> =
 		invoiceService.getConflictsFor(entityId)
-			.map(invoiceV2Mapper::map)
+			.toDto()
 			.injectReactorContext()
 
 	@PostMapping("/conflicts/winner")
@@ -680,10 +698,10 @@ class InvoiceController(
 		@RequestBody request: ConflictResolutionRequestDto<InvoiceDto>
 	): Mono<ConflictResolutionResultDto<InvoiceDto>> = mono {
 		val result = invoiceService.declareConflictWinner(
-			entity = invoiceV2Mapper.map(request.document),
+			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
 		)
-		conflictResolutionV2Mapper.map(result, invoiceV2Mapper::map)
+		conflictResolutionV2Mapper.map(result) { it.toDto() }
 	}
 
 	@PostMapping("/conflicts/solve")

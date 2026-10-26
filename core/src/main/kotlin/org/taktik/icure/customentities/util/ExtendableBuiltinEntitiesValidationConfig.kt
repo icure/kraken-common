@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.`annotation`.Bean
 import org.springframework.context.`annotation`.Configuration
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.LinkQualification
 import org.taktik.icure.entities.base.ParticipantType
 import org.taktik.icure.entities.embed.Address
@@ -34,6 +33,7 @@ import org.taktik.icure.entities.embed.PartnerType
 import org.taktik.icure.entities.embed.PartnershipStatus
 import org.taktik.icure.entities.embed.PartnershipType
 import org.taktik.icure.entities.embed.PatientHealthCarePartyType
+import org.taktik.icure.entities.embed.PaymentType
 import org.taktik.icure.entities.embed.PersonName
 import org.taktik.icure.entities.embed.PersonNameUse
 import org.taktik.icure.entities.embed.PersonalStatus
@@ -47,7 +47,6 @@ import org.taktik.icure.entities.embed.TelecomType
 import org.taktik.icure.entities.embed.TimeSeries
 import org.taktik.icure.entities.embed.TypedValuesType
 import org.taktik.icure.services.`external`.rest.v2.dto.base.CodeStubDto
-import org.taktik.icure.services.`external`.rest.v2.dto.base.DataOwnerGroupLinkTypeDto
 import org.taktik.icure.services.`external`.rest.v2.dto.base.IdentifierDto
 import org.taktik.icure.services.`external`.rest.v2.dto.base.LinkQualificationDto
 import org.taktik.icure.services.`external`.rest.v2.dto.base.ParticipantTypeDto
@@ -77,6 +76,7 @@ import org.taktik.icure.services.`external`.rest.v2.dto.embed.PartnerTypeDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PartnershipStatusDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PartnershipTypeDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PatientHealthCarePartyTypeDto
+import org.taktik.icure.services.`external`.rest.v2.dto.embed.PaymentTypeDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PersonNameDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PersonNameUseDto
 import org.taktik.icure.services.`external`.rest.v2.dto.embed.PersonalStatusDto
@@ -181,7 +181,7 @@ public class ExtendableBuiltinEntitiesValidationConfig {
             addMapperForBuiltinEnum<MembershipTypeDto, MembershipType>()
             addMapperForBuiltinEnum<TelecomTypeDto, TelecomType>()
             addMapperForBuiltinEnum<LateralityDto, Laterality>()
-            addMapperForBuiltinEnum<DataOwnerGroupLinkTypeDto, DataOwnerGroupLinkType>()
+            addMapperForBuiltinEnum<PaymentTypeDto, PaymentType>()
             addMapperForBuiltinEnum<GenderDto, Gender>()
             addMapperForBuiltinEnum<PersonalStatusDto, PersonalStatus>()
             addMapperForBuiltinEnum<HealthcarePartyStatusDto, HealthcarePartyStatus>()
