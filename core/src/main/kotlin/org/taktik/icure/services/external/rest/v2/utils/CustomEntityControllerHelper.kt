@@ -39,7 +39,7 @@ class CustomEntityControllerHelper(
 		customEntityDefinition: CustomEntityDefinition,
 		entityType: String,
 	) {
-		require(customEntityDefinition.accessControl == CustomEntityDefinition.AccessControl.DelegationBased) {
+		require(customEntityDefinition.securityModel is CustomEntityDefinition.SecurityModel.DelegationBased) {
 			"Custom entity type $entityType does not support delegations and/or encryption"
 		}
 	}
@@ -112,7 +112,7 @@ class CustomEntityControllerHelper(
 		customEntityDefinition: CustomEntityDefinition,
 		customEntityType: String,
 	) {
-		if (customEntityDefinition.accessControl != CustomEntityDefinition.AccessControl.DelegationBased) {
+		if (customEntityDefinition.securityModel !is CustomEntityDefinition.SecurityModel.DelegationBased) {
 			require (
 				entity.secretForeignKeys.isEmpty() &&
 					entity.cryptedForeignKeys.isEmpty() &&
