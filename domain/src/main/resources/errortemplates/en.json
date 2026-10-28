@@ -79,6 +79,7 @@
   "GED-CONFIG-CUSTOM-DUPLICATEREF": "{{path}}: Multiple custom entities use the same object definition `{{ref}}` as data definition",
   "GED-CUSTOM-EXTENDS": "{{path}}: Object definition `{{ref}}` extends builtin entity `{{extended}}` and therefore can't be used for custom entities",
   "GED-CUSTOM-ENCRYPTIONSECURITYMODEL": "{{path}}: Object definition `{{ref}}` is encryptable, but only custom entities with `DelegationBased` security model can be encryptable",
+  "GED-CUSTOM-DELEGATIONNOTENCRYPTABLE": "{{path}}: Object definition `{{ref}}` is not encryptable, but custom entities with `DelegationBased` security model must be encryptable: encrypt some properties or set `forceEncryptable` to true",
   "GED-CUSTOM-LINK-MULTIPLE": "{{path}}: Currently at most one encrypted link is allowed, including disabled links",
   "GED-CUSTOM-LINK-QUALIFIER": "{{path}}: Invalid encrypted link qualifier `{{qualifier}}`: must be made only of characters A-Z, a-z, 0-9 or _, and be between 1 and 16 characters long",
   "GED-CUSTOM-LINK-TARGETREF": "{{path}}: Encrypted link target entity `{{target}}` not found",
