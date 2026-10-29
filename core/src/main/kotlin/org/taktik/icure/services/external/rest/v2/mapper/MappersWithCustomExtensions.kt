@@ -42,7 +42,7 @@ object MappersWithCustomExtensions {
 				if (nullTopElementsCount > 0) {
 					nullTopElementsCount++
 				} else {
-					val nextDefinition = nonNullDefinitionsStack.last().builtinExtension?.extendedBuiltinProperties[propertyName]?.let {
+					val nextDefinition = nonNullDefinitionsStack.last().builtinExtension?.builtinProperties[propertyName]?.extensionDefinition?.let {
 						resolutionContext.resolveRequiredObjectReference(it)
 					}
 					if (nextDefinition != null) {
