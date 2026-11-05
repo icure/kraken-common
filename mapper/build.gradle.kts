@@ -7,10 +7,7 @@ plugins {
     alias(coreLibs.plugins.kotlinAllOpen)
 }
 
-val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
-
 group = "org.taktik.icure"
-version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
     ksp(group = "io.icure", name = "kmap", version = coreLibs.versions.kmap.orNull)

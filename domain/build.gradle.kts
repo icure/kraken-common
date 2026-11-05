@@ -7,10 +7,7 @@ plugins {
 	alias(coreLibs.plugins.ksp)
 }
 
-val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
-
 group = "org.taktik.icure"
-version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 tasks.withType<Test> {
 	useJUnitPlatform()

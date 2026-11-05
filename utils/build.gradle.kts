@@ -6,10 +6,7 @@ plugins {
     alias(coreLibs.plugins.mavenRepository)
 }
 
-val gitVersion: String? = providers.gradleProperty("gitVersion").orNull
-
 group = "org.taktik.icure"
-version = gitVersion ?: "0.0.1-SNAPSHOT"
 
 dependencies {
     api("com.icure:utils-multiplatform")
