@@ -26,7 +26,7 @@ data class DesignDocSchema(
 	 * The custom views in [viewsByEntity] that do NOT include the data owner id (or secret access key) in the view key.
 	 * The key of the view is the entity name, the value the name of the views.
 	 */
-	val viewsNotByDataOwner: Map<String, Set<String>>,
+	val viewsNotByDataOwner: Map<String, Set<String>> = emptyMap(),
 	val customViewsVersion: Int? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = mapOf(),
@@ -44,7 +44,7 @@ data class DesignDocSchema(
 			@JsonProperty("_id") id: String,
 			@JsonProperty("_rev") rev: String?,
 			viewsByEntity: Map<String, Map<String, Int>>,
-			viewsNotByDataOwner: Map<String, Set<String>>,
+			viewsNotByDataOwner: Map<String, Set<String>>? = null,
 			deletionDate: Long? = null,
 			customViewsVersion: Int? = null,
 			@JsonProperty("_attachments") attachments: Map<String, Attachment>? = mapOf(),
@@ -63,7 +63,7 @@ data class DesignDocSchema(
 				version = version,
 				viewsByEntity = viewsByEntity,
 				customViewsVersion = customViewsVersion,
-				viewsNotByDataOwner = viewsNotByDataOwner,
+				viewsNotByDataOwner = viewsNotByDataOwner ?: emptyMap(),
 				deletionDate = deletionDate,
 				attachments = attachments,
 				revisionsInfo = revisionsInfo,
