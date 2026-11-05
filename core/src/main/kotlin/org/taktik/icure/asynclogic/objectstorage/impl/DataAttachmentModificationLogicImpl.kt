@@ -1,12 +1,12 @@
 package org.taktik.icure.asynclogic.objectstorage.impl
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import org.apache.commons.codec.digest.DigestUtils
 import org.springframework.context.annotation.Profile
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
 import org.taktik.couchdb.entity.Attachment
+import org.taktik.couchdb.entity.AttachmentUpload
 import org.taktik.icure.asyncdao.AttachmentManagementDAO
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
@@ -14,7 +14,6 @@ import org.taktik.icure.asynclogic.objectstorage.DataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentObjectStorage
 import org.taktik.icure.asynclogic.objectstorage.IcureObjectStorage
-import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Document
 import org.taktik.icure.entities.base.HasDataAttachments
 import org.taktik.icure.entities.embed.DeletedAttachment
@@ -23,7 +22,6 @@ import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.properties.ObjectStorageProperties
 import org.taktik.icure.utils.toByteArray
-import java.nio.ByteBuffer
 import java.util.UUID
 
 abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
@@ -123,22 +121,18 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 			)
 		}
 		val tasks = dataAttachmentUpdateInfos.flatMap { it.value.tasks }
-		// 2. Pre-store object storage attachment and store couchdb attachments
-		val updatedRev =
-			createCouchdbAttachments(
-				entityId = entityId,
-				initialRev = currEntity.rev!!,
-				tasks = tasks,
-				datastoreInformation = datastoreInformation,
-			)
+		// 2. Pre-store object storage attachments
 		preStoreObjectStorageAttachments(
 			currEntity,
 			tasks,
 		)
 		/*
-		 * 3. Update entity with:
+		 * 3. Update entity, in a single revision, with:
 		 * - Updated data attachment information
-		 * - Deleted unused or obsolete couchdb attachments
+		 * - The content of new couchdb attachments
+		 * - Deleted unused or obsolete couchdb attachments (they are left out of the entity attachments)
+		 * Writing everything at once means a failed update leaves the entity at its current revision, so the client can
+		 * retry with the same revision.
 		 */
 		val updatedDataAttachmentsInfo =
 			(currEntity.dataAttachments.keys + dataAttachmentUpdateInfos.keys)
@@ -165,16 +159,21 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 			updatedDataAttachmentsInfo.values.mapNotNull { it.couchDbAttachmentId }.associateWith {
 				Attachment(isStub = true)
 			}
+		val couchDbUploads =
+			tasks.filterIsInstance<AttachmentTask.UploadCouchDb>().associate {
+				it.attachmentId to AttachmentUpload.of(it.mimeType, it.data)
+			}
 		return dao
-			.save(
+			.saveWithAttachments(
 				datastoreInformation,
 				currEntity.updateAttachmentInformation(
-					rev = updatedRev,
+					rev = currEntity.rev!!,
 					attachments = newAttachments,
 					dataAttachments = updatedDataAttachmentsInfo,
 					deletedAttachments = updatedDeletedAttachmentsInfo,
 				),
-			)?.also {
+				couchDbUploads,
+			).also {
 				// 4. Schedule upload for new object storage attachment and schedule deletion for obsolete object storage attachments
 				scheduleObjectStorageTasks(it, tasks)
 			}
@@ -240,16 +239,13 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		).let { dataAttachment ->
 			Pair(
 				dataAttachment,
-				if (entity.attachments?.keys?.contains(attachmentId) == true) {
-					// Attachment was successfully uploaded in a previous request but we failed to fully update the entity data attachment metadata
-					null
-				} else {
-					AttachmentTask.UploadCouchDb(
-						attachmentId,
-						bytes,
-						if (change.dataIsEncrypted) "application/octet-stream" else dataAttachment.mimeTypeOrDefault,
-					)
-				},
+				// Uploaded even if a couchdb attachment with this id is already there (left by an update that failed before
+				// attachments and entity were written together): the upload replaces it with the same content.
+				AttachmentTask.UploadCouchDb(
+					attachmentId,
+					bytes,
+					if (change.dataIsEncrypted) "application/octet-stream" else dataAttachment.mimeTypeOrDefault,
+				),
 			)
 		}
 	} else {
@@ -310,22 +306,6 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	protected abstract fun T.updateRevision(rev: String): T
 
 	private val DataAttachmentChange.isDelete get() = this === DataAttachmentChange.Delete
-
-	private suspend fun createCouchdbAttachments(
-		entityId: String,
-		initialRev: String,
-		tasks: List<AttachmentTask>,
-		datastoreInformation: IDatastoreInformation,
-	): String = tasks.filterIsInstance<AttachmentTask.UploadCouchDb>().fold(initialRev) { latestRev, task ->
-		dao.createAttachment(
-			datastoreInformation,
-			entityId,
-			task.attachmentId,
-			latestRev,
-			task.mimeType,
-			flowOf(ByteBuffer.wrap(task.data)),
-		)
-	}
 
 	private suspend fun preStoreObjectStorageAttachments(
 		entity: T,
