@@ -122,6 +122,7 @@ open class FormLogicImpl(
 
 	override suspend fun modifyForm(form: Form) = fix(form, isCreate = false) { fixedForm ->
 		checkValidityForModification(fixedForm)
+		checkValidEntityChange(fixedForm, currentEntity = null)
 		val datastoreInformation = getInstanceAndGroup()
 		formDAO.save(datastoreInformation, if (fixedForm.created == null) fixedForm.copy(created = form.created) else fixedForm)
 	}
