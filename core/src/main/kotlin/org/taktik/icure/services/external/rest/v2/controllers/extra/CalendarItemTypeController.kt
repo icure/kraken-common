@@ -249,7 +249,7 @@ class CalendarItemTypeController(
 	@PutMapping
 	fun modifyCalendarItemType(
 		@RequestBody calendarItemTypeDto: CalendarItemTypeDto,
-	): Mono<CalendarItemTypeDto> = mono {
+	): Mono<CalendarItemTypeDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		calendarItemTypeService
 		.modifyCalendarItemType(calendarItemTypeDto.toDomain()).toDto()
 	}
@@ -262,7 +262,7 @@ class CalendarItemTypeController(
 		emitAll(calendarItemTypeService.modifyCalendarItemTypes(
 			calendarItemTypeDtos.toDomain()
 		).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
 	fun getConflictingEntitiesIds(): Flux<String> =
@@ -279,7 +279,7 @@ class CalendarItemTypeController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<CalendarItemTypeDto>
-	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = mono {
+	): Mono<ConflictResolutionResultDto<CalendarItemTypeDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = calendarItemTypeService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -300,5 +300,5 @@ class CalendarItemTypeController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

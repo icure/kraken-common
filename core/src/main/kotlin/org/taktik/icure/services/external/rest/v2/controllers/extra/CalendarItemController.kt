@@ -249,7 +249,7 @@ class CalendarItemController(
 	@PutMapping
 	fun modifyCalendarItem(
 		@RequestBody calendarItemDto: CalendarItemDto,
-	): Mono<CalendarItemDto> = mono {
+	): Mono<CalendarItemDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val calendarItem = calendarItemService.modifyCalendarItem(calendarItemDto.toDomain())
 		calendarItem.toDto()
 	}
@@ -260,7 +260,7 @@ class CalendarItemController(
 		@RequestBody calendarItemDtos: List<CalendarItemDto>,
 	): Flux<CalendarItemDto> = flow {
 		emitAll(calendarItemService.modifyCalendarItems(calendarItemDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Get CalendarItems by Period and HcPartyId")
 	@PostMapping("/byPeriodAndHcPartyId")
@@ -505,7 +505,7 @@ class CalendarItemController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<CalendarItemDto>
-	): Mono<ConflictResolutionResultDto<CalendarItemDto>> = mono {
+	): Mono<ConflictResolutionResultDto<CalendarItemDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = calendarItemService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -526,7 +526,7 @@ class CalendarItemController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchCalendarItemByCustomFilter(

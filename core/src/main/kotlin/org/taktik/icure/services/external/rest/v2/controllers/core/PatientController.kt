@@ -732,7 +732,7 @@ class PatientController(
 	): Flux<IdWithRevDto> = flow {
 		val patients = patientService.modifyPatients(patientDtos.toDomain().toList())
 		emitAll(patients.map { p -> IdWithRevDto(id = p.id, rev = p.rev) })
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify patients in bulk", description = "Returns the id and _rev of modified patients")
 	@PutMapping("/batch/minimal")
@@ -752,13 +752,13 @@ class PatientController(
 	) = flow {
 		val patients = patientService.modifyPatients(patientDtos.toDomain().toList())
 		emitAll(mapResult(patients))
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Modify a patient", description = "No particular return value. It's just a message.")
 	@PutMapping
 	fun modifyPatient(
 		@RequestBody patientDto: PatientDto,
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.modifyPatient(patientDto.toDomain()).toDto()
 	}
 
@@ -769,7 +769,7 @@ class PatientController(
 		@Parameter(description = "The referral id. Accepts 'none' for referral removal.") @PathVariable referralId: String,
 		@Parameter(description = "Optional value for start of referral") @RequestParam(required = false) start: Long?,
 		@Parameter(description = "Optional value for end of referral") @RequestParam(required = false) end: Long?,
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		patientService.getPatient(patientId)?.let {
 			patientService
 				.modifyPatientReferral(
@@ -871,7 +871,7 @@ class PatientController(
 		updatedInto: PatientDto,
 		@RequestParam(required = false)
 		omitEncryptionKeysOfFrom: Boolean? = null,
-	): Mono<PatientDto> = mono {
+	): Mono<PatientDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		require(intoId == updatedInto.id) {
 			"The id of the `into` patient in the path variable must be the same as the id of the `into` patient in the request body"
 		}
@@ -898,7 +898,7 @@ class PatientController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<PatientDto>
-	): Mono<ConflictResolutionResultDto<PatientDto>> = mono {
+	): Mono<ConflictResolutionResultDto<PatientDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = patientService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -919,7 +919,7 @@ class PatientController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchPatientsByCustomFilter(

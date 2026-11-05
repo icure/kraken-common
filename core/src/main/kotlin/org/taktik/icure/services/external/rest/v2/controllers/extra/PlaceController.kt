@@ -29,6 +29,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.PlaceService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.SharedPaginationConfig
 import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionConfig
 import com.icure.cardinal.customentities.util.CachedCustomEntitiesConfigurationProvider
@@ -56,6 +57,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResol
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.ConflictResolutionStrategyV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.conflicts.MergeResultV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.couchdb.DocIdentifierV2Mapper
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -76,6 +78,7 @@ class PlaceController(
 	private val customEntitiesConfigurationProvider: CachedCustomEntitiesConfigurationProvider,
 	private val scopePathProvider: MapperScopePathProvider,
 	private val builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 	private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -218,7 +221,7 @@ class PlaceController(
 	@PutMapping
 	fun modifyPlace(
 		@RequestBody placeDto: PlaceDto,
-	): Mono<PlaceDto> = mono {
+	): Mono<PlaceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		placeService.modifyPlace(placeDto.toDomain()).toDto()
 	}
 
@@ -228,7 +231,7 @@ class PlaceController(
 		@RequestBody placeDtos: List<PlaceDto>,
 	): Flux<PlaceDto> = flow {
 		emitAll(placeService.modifyPlaces(placeDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@GetMapping("/conflicts", produces = [APPLICATION_JSON_VALUE])
 	fun getConflictingEntitiesIds(): Flux<String> =
@@ -245,7 +248,7 @@ class PlaceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<PlaceDto>
-	): Mono<ConflictResolutionResultDto<PlaceDto>> = mono {
+	): Mono<ConflictResolutionResultDto<PlaceDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = placeService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -266,5 +269,5 @@ class PlaceController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

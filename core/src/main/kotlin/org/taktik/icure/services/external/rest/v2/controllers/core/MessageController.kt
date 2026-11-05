@@ -428,7 +428,7 @@ class MessageController(
 	@PutMapping
 	fun modifyMessage(
 		@RequestBody messageDto: MessageDto,
-	): Mono<MessageDto> = mono {
+	): Mono<MessageDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		messageService.modifyMessage(messageDto.toDomain()).toDto()
 	}
 
@@ -442,14 +442,14 @@ class MessageController(
 				.modifyMessages(messageDtos.toDomain())
 				.toDto()
 		)
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Set status bits for given list of Messages")
 	@PutMapping("/status/{status}")
 	fun setMessagesStatusBits(
 		@PathVariable status: Int,
 		@RequestBody messageIds: ListOfIdsDto,
-	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).toDto().injectReactorContext()
+	): Flux<MessageDto> = messageService.setStatus(messageIds.ids, status).toDto().injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Set read status for given list of Messages")
 	@PutMapping("/readstatus")
@@ -467,7 +467,7 @@ class MessageController(
 					).toDto(),
 			)
 		}
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(description = "Shares one or more messages with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
@@ -537,7 +537,7 @@ class MessageController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<MessageDto>
-	): Mono<ConflictResolutionResultDto<MessageDto>> = mono {
+	): Mono<ConflictResolutionResultDto<MessageDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = messageService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -558,7 +558,7 @@ class MessageController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchMessagesByCustomFilter(
