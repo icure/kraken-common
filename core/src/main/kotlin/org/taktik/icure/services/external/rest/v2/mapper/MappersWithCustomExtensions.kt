@@ -4,6 +4,7 @@ import com.icure.cardinal.customentities.config.StandardRootEntitiesExtensionCon
 import com.icure.cardinal.customentities.config.StandardRootEntityExtensionConfig
 import com.icure.cardinal.customentities.config.VersionedCustomEntitiesConfiguration
 import com.icure.cardinal.customentities.config.VersionedObjectDefinitionReference
+import com.icure.cardinal.customentities.config.singleExtensionOrNull
 import com.icure.cardinal.customentities.config.typing.ObjectDefinition
 import com.icure.cardinal.customentities.mapping.MapperExtensionsValidationContext
 import com.icure.cardinal.customentities.util.CustomEntityConfigResolutionContext
@@ -151,13 +152,13 @@ object MappersWithCustomExtensions {
 	suspend inline fun validateBuiltinModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion: Int?,
 		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
-		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> Map<String, StandardRootEntityExtensionConfig>?,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
 	): MapperExtensionsValidationContext = validateModelVersionAndGetMapperExtensionsValidationContext(
 		dtoModelVersion = dtoModelVersion,
 		getCustomEntitiesConfigForRequest = getCustomEntitiesConfigForRequest,
-		getExtension = { it.extensions.getExtension() },
+		getExtension = { it.extensions.getExtension().singleExtensionOrNull() },
 		scopePath = scopePath,
 		builtinValidationConfigsProvider = builtinValidationConfigsProvider,
 	)
@@ -207,7 +208,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO : CustomisableRootDto, OBJ> mapFromDtoWithExtension(
 		dto: DTO,
 		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
-		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> Map<String, StandardRootEntityExtensionConfig>?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,
@@ -223,7 +224,7 @@ object MappersWithCustomExtensions {
 	suspend inline fun <DTO, OBJ> mapFromDtoWithExtension(
 		dtos: List<DTO>,
 		getCustomEntitiesConfigForRequest: suspend () -> VersionedCustomEntitiesConfiguration?,
-		getExtension: StandardRootEntitiesExtensionConfig.() -> StandardRootEntityExtensionConfig?,
+		getExtension: StandardRootEntitiesExtensionConfig.() -> Map<String, StandardRootEntityExtensionConfig>?,
 		doMap: (DTO, MapperExtensionsValidationContext) -> OBJ,
 		scopePath: ScopePath?,
 		builtinValidationConfigsProvider: ExtendableBuiltinEntityValidatorMapperConfigsProvider,

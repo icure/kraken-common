@@ -71,6 +71,7 @@
   "GED-STRING-WEMPTY": "{{path}}: String length validation only allows empty strings",
   "GED-CONFIG-EXT-ROOTREF": "{{path}}: Invalid root extension, object definition `{{ref}}` not found",
   "GED-CONFIG-EXT-ROOTBASE": "{{path}}: Invalid root extension, object definition `{{ref}}` must be an extension for {{expectedBaseEntity}}",
+  "GED-CONFIG-EXT-MULTIPLE": "{{path}}: Only one extension per builtin entity type is currently supported",
   "GED-CONFIG-EXT-EMBEDDEDBASE": "{{path}}: Invalid extension for {{embeddedEntityName}}, object definition `{{ref}}` must be an extension for {{embeddedEntityName}}",
   "GED-CONFIG-DUPID": "{{path}}: Duplicate type identifier `{{id}}` found in configuration",
   "GED-CONFIG-DUPIDGENERATED": "{{path}}: Type identifier `{{id}}` conflicts with an automatically generated type name (`Decrypted<X>` and `Encrypted<X>` are generated for each encryptable type `X`)",
