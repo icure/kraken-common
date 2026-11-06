@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("com.icure.kotlin-library-conventions")
 
@@ -30,4 +29,5 @@ dependencies {
     implementation(coreLibs.jakartaServlet)
     implementation(coreLibs.guava)
     implementation(coreLibs.bouncyCastleBcprov)
+    implementation(coreLibs.commonsCodec)
 }
