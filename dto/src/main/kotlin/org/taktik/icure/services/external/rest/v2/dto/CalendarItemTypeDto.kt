@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.swagger.v3.oas.annotations.media.Schema
 import com.icure.cardinal.entities.RawJson
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
@@ -70,9 +70,10 @@ data class CalendarItemTypeDto(
 	@ActiveField
 	val publicProperties: Set<PropertyStubDto>? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 	override fun withIdRev(
 		id: String?,

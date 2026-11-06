@@ -13,7 +13,7 @@ import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.mergers.annotations.Mergeable
 
@@ -44,9 +44,10 @@ data class CalendarItemType(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	init {

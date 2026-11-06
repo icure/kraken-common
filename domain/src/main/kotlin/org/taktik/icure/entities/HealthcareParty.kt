@@ -23,7 +23,7 @@ import org.taktik.icure.entities.base.Person
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.FlatRateTarification
 import org.taktik.icure.entities.embed.Gender
@@ -185,6 +185,7 @@ data class HealthcareParty(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Named,
@@ -194,7 +195,7 @@ data class HealthcareParty(
 	HasTags,
 	HasCodes,
 	HasIdentifier,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	init {

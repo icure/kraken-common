@@ -28,7 +28,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.MessageReadStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
@@ -153,13 +153,14 @@ data class MessageDto(
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEncryptionMetadataDto,
 	EncryptableDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 	companion object {
 		const val STATUS_LABO_RESULT = 1 shl 0

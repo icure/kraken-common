@@ -25,7 +25,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
 import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -45,10 +45,11 @@ data class PlaceDto(
 	/** The address of the place. */
 	@ActiveField val address: AddressDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	NamedDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 	override fun withIdRev(
 		id: String?,

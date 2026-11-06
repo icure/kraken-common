@@ -21,7 +21,7 @@ import org.taktik.icure.entities.embed.DocumentLocation
 import org.taktik.icure.entities.embed.DocumentStatus
 import org.taktik.icure.entities.embed.DocumentType
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
 import org.taktik.icure.entities.objectstorage.DataAttachment
@@ -146,13 +146,14 @@ data class Document(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	HasEncryptionMetadata,
 	HasDataAttachments<Document>,
 	Encryptable,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 	companion object {
 		fun mainAttachmentKeyFromId(id: String) = id

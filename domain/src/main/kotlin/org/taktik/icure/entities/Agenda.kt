@@ -17,7 +17,7 @@ import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.AgendaSlottingAlgorithm
 import org.taktik.icure.entities.embed.EmbeddedTimeTableItem
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.ResourceGroupAllocationSchedule
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.Right
@@ -338,9 +338,10 @@ data class Agenda(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	HasMedicalLocation,
 	Extendable {
 

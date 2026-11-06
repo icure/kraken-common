@@ -18,7 +18,7 @@ import org.taktik.icure.entities.embed.Address
 import org.taktik.icure.entities.embed.CalendarItemTag
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.FlowItem
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.embed.SecurityMetadata
@@ -105,12 +105,13 @@ data class CalendarItem(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	HasEncryptionMetadata,
 	Encryptable,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	init {

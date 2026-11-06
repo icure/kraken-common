@@ -30,6 +30,7 @@ interface HealthcarePartyMapper {
 		Mapping(target = "publicProperties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
 		Mapping(target = "customisedModelVersion", ignore = true),
+		Mapping(target = "customisedTypeId", ignore = true),
 	)
 	fun map(healthcarePartyDto: HealthcarePartyDto): HealthcareParty
 

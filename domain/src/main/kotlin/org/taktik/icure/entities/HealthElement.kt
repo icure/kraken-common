@@ -19,7 +19,7 @@ import org.taktik.icure.entities.embed.CareTeamMember
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.Encryptable
 import org.taktik.icure.entities.embed.Episode
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.HealthElementAsserter
 import org.taktik.icure.entities.embed.HealthElementQualifiedLink
 import org.taktik.icure.entities.embed.Identifier
@@ -150,12 +150,13 @@ data class HealthElement(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	HasEncryptionMetadata,
 	Encryptable,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)
 	override fun withDeletionDate(deletionDate: Long?) = this.copy(deletionDate = deletionDate)

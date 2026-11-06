@@ -32,7 +32,7 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.AnnotationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DelegationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.EpisodeDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementAsserterDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.HealthElementQualifiedLinkDto
@@ -140,6 +140,7 @@ data class HealthElementDto(
 	/** The security metadata of the entity. */
 	override val securityMetadata: SecurityMetadataDto? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
@@ -147,7 +148,7 @@ data class HealthElementDto(
 	HasEncryptionMetadataDto,
 	EncryptableDto,
 	HasEndOfLifeDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 	override fun withIdRev(
 		id: String?,
