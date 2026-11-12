@@ -31,6 +31,7 @@ import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
+import org.taktik.couchdb.entity.AttachmentUpload
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.entity.EntityExceptionBehaviour
@@ -329,6 +330,37 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 				}
 			}
 		} catch (e: CouchDbException) {
+			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
+			throw e
+		}
+	}
+
+	/**
+	 * Creates or updates [entity] and writes [attachments] in a single request, so that the entity and its attachments
+	 * are stored in the same revision. Implements `AttachmentManagementDAO.saveWithAttachments` for the DAOs that
+	 * manage attachments.
+	 */
+	suspend fun saveWithAttachments(
+		datastoreInformation: IDatastoreInformation,
+		entity: T,
+		attachments: Map<String, AttachmentUpload>,
+	): T {
+		if (attachments.isEmpty()) return save(datastoreInformation, entity)
+		val client = couchDbDispatcher.getClient(datastoreInformation)
+		try {
+			return beforeSave(datastoreInformation, entity).let { e ->
+				if (e.rev == null) {
+					client.createWithAttachments(e, entityClass, attachments)
+				} else {
+					client.updateWithAttachments(e, entityClass, attachments)
+				}.let {
+					afterSave(datastoreInformation, it, e).also { saved ->
+						cacheChain?.putInCache(datastoreInformation.getFullIdFor(saved.id), saved)
+					}
+				}
+			}
+		} catch (e: Exception) {
+			// The write may have reached some replicas whatever the error, so the cached revision can't be trusted.
 			cacheChain?.evictFromCache(datastoreInformation.getFullIdFor(entity.id))
 			throw e
 		}

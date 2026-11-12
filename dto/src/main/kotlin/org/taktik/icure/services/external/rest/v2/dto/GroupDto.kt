@@ -71,7 +71,8 @@ data class GroupDto(
 	@param:Schema(
 		description = "List of entities that have to be collected from a shared database. Only Code and tarification can be set at this point.",
 	/** List of entities that have to be collected from a shared database. */
-	) @ActiveField val sharedEntities: Map<String, String> = emptyMap(),
+	) @ActiveField
+	val sharedEntities: Map<String, String> = emptyMap(),
 	/** Minimum version of Kraken required to access API. */
 	@param:Schema(description = "Minimum version of Kraken required to access API") @ActiveField val minimumKrakenVersion: String? = null,
 	@param:JsonInclude(
@@ -95,8 +96,10 @@ data class GroupDto(
 	/** A user-chosen identifier for the applications for which this group holds data. */
 	@param:JsonAlias("projectId")
 	@SdkName("projectId")
-	@ActiveField val applicationId: String? = null,
-	@ActiveField val templates: TemplatesConfigurationDto? = null,
+	@ActiveField
+	val applicationId: String? = null,
+	@ActiveField
+	val templates: TemplatesConfigurationDto? = null,
 	/**
 	 * The versions of the custom design doc schema applied to the group.
 	 */
