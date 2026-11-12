@@ -21,6 +21,7 @@ interface CalendarItemTypeMapper {
 		Mapping(target = "publicProperties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
 		Mapping(target = "customisedModelVersion", ignore = true),
+		Mapping(target = "customisedTypeId", ignore = true),
 	)
 	fun map(calendarItemTypeDto: CalendarItemTypeDto): CalendarItemType
 

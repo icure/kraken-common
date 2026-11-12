@@ -35,7 +35,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.NamedDto
 import org.taktik.icure.services.external.rest.v2.dto.base.PersonDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AddressDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FinancialInstitutionInformationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.FlatRateTarificationDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GenderDto
@@ -225,6 +225,7 @@ data class HealthcarePartyDto(
 	/** Public keys for OAEP with SHA-256 encryption. */
 	override val publicKeysForOaepWithSha256: Set<SpkiHexStringDto> = emptySet(),
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	NamedDto,
@@ -234,7 +235,7 @@ data class HealthcarePartyDto(
 	HasCodesDto,
 	HasTagsDto,
 	HasIdentifierDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 	override fun withIdRev(
 		id: String?,

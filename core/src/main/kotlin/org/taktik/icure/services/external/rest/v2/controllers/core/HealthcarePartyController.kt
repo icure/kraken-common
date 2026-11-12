@@ -427,7 +427,7 @@ class HealthcarePartyController(
 	@PutMapping
 	fun modifyHealthcareParty(
 		@RequestBody healthcarePartyDto: HealthcarePartyDto,
-	): Mono<HealthcarePartyDto> = mono {
+	): Mono<HealthcarePartyDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		healthcarePartyService.modifyHealthcareParty(healthcarePartyDto.toDomain()).toDto()
 	}
 
@@ -437,7 +437,7 @@ class HealthcarePartyController(
 		@RequestBody healthcareParties: List<HealthcarePartyDto>,
 	): Flux<HealthcarePartyDto> = flow {
 		emitAll(healthcarePartyService.modifyHealthcareParties(healthcareParties.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Get the ids of the HealthcareParties matching the provided filter.")
 	@PostMapping("/match", produces = [APPLICATION_JSON_VALUE])
@@ -481,7 +481,7 @@ class HealthcarePartyController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<HealthcarePartyDto>
-	): Mono<ConflictResolutionResultDto<HealthcarePartyDto>> = mono {
+	): Mono<ConflictResolutionResultDto<HealthcarePartyDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = healthcarePartyService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -502,5 +502,5 @@ class HealthcarePartyController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

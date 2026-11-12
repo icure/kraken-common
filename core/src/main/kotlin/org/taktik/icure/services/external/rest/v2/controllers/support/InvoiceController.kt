@@ -244,7 +244,7 @@ class InvoiceController(
 	@PutMapping
 	fun modifyInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
-	): Mono<InvoiceDto> = mono {
+	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceService.modifyInvoice(invoiceDto.toDomain()).toDto()
 	}
 
@@ -252,7 +252,7 @@ class InvoiceController(
 	@PostMapping("/reassign")
 	fun reassignInvoice(
 		@RequestBody invoiceDto: InvoiceDto,
-	): Mono<InvoiceDto> = mono {
+	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceDto.toDomain().let { it.reassign(it.invoicingCodes, uuidGenerator) }.toDto()
 	}
 
@@ -261,7 +261,7 @@ class InvoiceController(
 	fun mergeTo(
 		@PathVariable invoiceId: String,
 		@RequestBody ids: ListOfIdsDto,
-	): Mono<InvoiceDto> = mono {
+	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		(
 			invoiceService.mergeInvoices(
 				sessionLogic.getCurrentSessionContext().getHealthcarePartyId()!!,
@@ -277,7 +277,7 @@ class InvoiceController(
 		@PathVariable invoiceId: String,
 		@RequestParam scheme: String,
 		@RequestParam forcedValue: String,
-	): Mono<InvoiceDto> = mono {
+	): Mono<InvoiceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		invoiceService.getInvoice(invoiceId)?.let {
 			invoiceService
 				.validateInvoice(
@@ -316,7 +316,7 @@ class InvoiceController(
 				gracePeriod,
 			)
 		emitAll(invoices.toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Remove an invoice of an user")
 	@PostMapping("/byauthor/{userId}/service/{serviceId}")
@@ -333,7 +333,7 @@ class InvoiceController(
 
 			val invoices = invoiceService.removeCodes(userId, secretPatientKeys, serviceId, tarificationIds)
 
-			return invoices.toDto().injectReactorContext()
+			return invoices.toDto().injectCachedReactorContext(reactorCacheInjector, 100)
 		}
 	}
 
@@ -645,7 +645,7 @@ class InvoiceController(
 		@RequestBody invoiceDtos: List<InvoiceDto>,
 	): Flux<InvoiceDto> = flow {
 		emitAll(invoiceService.modifyInvoices(invoiceDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Create a batch of invoices", description = "Returns the created invoices.")
 	@PostMapping("/batch")
@@ -696,7 +696,7 @@ class InvoiceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<InvoiceDto>
-	): Mono<ConflictResolutionResultDto<InvoiceDto>> = mono {
+	): Mono<ConflictResolutionResultDto<InvoiceDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = invoiceService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -717,7 +717,7 @@ class InvoiceController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchInvoiceByCustomFilter(

@@ -29,6 +29,7 @@ abstract class CalendarItemMapper {
 		Mapping(target = "properties", ignore = true),
 		Mapping(target = "extensions", ignore = true),
 		Mapping(target = "customisedModelVersion", ignore = true),
+		Mapping(target = "customisedTypeId", ignore = true),
 	)
 	abstract fun map(calendarItemDto: CalendarItemDto): CalendarItem
 

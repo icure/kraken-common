@@ -20,6 +20,7 @@ interface PlaceMapper {
 		Mapping(target = "revisionsInfo", ignore = true),
 		Mapping(target = "extensions", ignore = true),
 		Mapping(target = "customisedModelVersion", ignore = true),
+		Mapping(target = "customisedTypeId", ignore = true),
 	)
 	fun map(placeDto: PlaceDto): Place
 

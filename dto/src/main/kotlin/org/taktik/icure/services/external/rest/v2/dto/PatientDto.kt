@@ -31,7 +31,7 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.handlers.JacksonLenientCollectionDeserializer
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.CryptoActorDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasEncryptionMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasIdentifierDto
@@ -393,6 +393,7 @@ data class PatientDto(
 	override val dataOwnerGroups: List<Nothing> = emptyList(),
 	override val groupLinkType: Nothing? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocumentDto,
 	ICureDocumentDto<String>,
@@ -402,7 +403,7 @@ data class PatientDto(
 	EncryptableDto,
 	HasIdentifierDto,
 	CryptoActorDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto
 	{
 	override fun withIdRev(

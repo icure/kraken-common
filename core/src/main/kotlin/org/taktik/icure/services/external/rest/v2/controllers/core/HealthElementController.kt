@@ -336,7 +336,7 @@ class HealthElementController(
 	@PutMapping
 	fun modifyHealthElement(
 		@RequestBody healthElementDto: HealthElementDto,
-	): Mono<HealthElementDto> = mono {
+	): Mono<HealthElementDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val modifiedHealthElement =
 			healthElementService.modifyHealthElement(healthElementDto.toDomain())
 		modifiedHealthElement.toDto()
@@ -351,7 +351,7 @@ class HealthElementController(
 			healthElementDtos.toDomain().asFlow()
 		)
 		emitAll(hes.toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Create a batch of healthcare elements", description = "Returns the created healthcare elements.")
 	@PostMapping("/batch")
@@ -433,7 +433,7 @@ class HealthElementController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<HealthElementDto>
-	): Mono<ConflictResolutionResultDto<HealthElementDto>> = mono {
+	): Mono<ConflictResolutionResultDto<HealthElementDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = healthElementService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -454,7 +454,7 @@ class HealthElementController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchHealthElementsByCustomFilter(

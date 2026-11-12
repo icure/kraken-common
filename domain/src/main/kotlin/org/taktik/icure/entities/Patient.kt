@@ -26,7 +26,7 @@ import org.taktik.icure.entities.embed.Annotation
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.entities.embed.EmploymentInfo
 import org.taktik.icure.entities.embed.Encryptable
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.FinancialInstitutionInformation
 import org.taktik.icure.entities.embed.Gender
 import org.taktik.icure.entities.embed.Identifier
@@ -224,6 +224,7 @@ data class Patient(
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
@@ -233,7 +234,7 @@ data class Patient(
 	CryptoActor,
 	DataOwner,
 	Encryptable,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

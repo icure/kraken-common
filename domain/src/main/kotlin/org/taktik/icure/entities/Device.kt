@@ -31,7 +31,7 @@ import org.taktik.icure.entities.base.HasMedicalLocation
 import org.taktik.icure.entities.base.DataOwnerGroupLink
 import org.taktik.icure.entities.base.DataOwnerGroupLinkType
 import org.taktik.icure.entities.base.Named
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredICureDocument
 import org.taktik.icure.entities.embed.Identifier
@@ -138,13 +138,14 @@ data class Device(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredICureDocument,
 	HasMedicalLocation,
 	Named,
 	CryptoActor,
 	DataOwner,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	init {

@@ -237,7 +237,7 @@ class RelatedPersonController(
 	@PutMapping
 	fun modifyRelatedPerson(
 		@RequestBody relatedPersonDto: RelatedPersonDto,
-	): Mono<RelatedPersonDto> = mono {
+	): Mono<RelatedPersonDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		relatedPersonService.modifyRelatedPerson(relatedPersonDto.toDomain()).toDto()
 	}
 
@@ -312,7 +312,7 @@ class RelatedPersonController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<RelatedPersonDto>,
-	): Mono<ConflictResolutionResultDto<RelatedPersonDto>> = mono {
+	): Mono<ConflictResolutionResultDto<RelatedPersonDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = relatedPersonService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge,
@@ -333,7 +333,7 @@ class RelatedPersonController(
 			} ?: ConflictResolutionStrategy.FullMergeability,
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchRelatedPersonsByCustomFilter(

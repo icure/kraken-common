@@ -288,7 +288,7 @@ class AgendaController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<AgendaDto>
-	): Mono<ConflictResolutionResultDto<AgendaDto>> = mono {
+	): Mono<ConflictResolutionResultDto<AgendaDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = agendaService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -309,5 +309,5 @@ class AgendaController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

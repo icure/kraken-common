@@ -331,7 +331,7 @@ class UserController(
 	@PutMapping
 	fun modifyUser(
 		@RequestBody userDto: UserDto,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		// Sanitize group
 		val modifiedUser =
 			userService.modifyUser(
@@ -351,14 +351,14 @@ class UserController(
 				userDtos.map { it.copy(groupId = null) }.toDomainOrNull().filterNotNull()
 			).toDto()
 		)
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Assign a healthcare party ID to current user", description = "UserDto gets returned.")
 	@PutMapping("/current/hcparty/{healthcarePartyId}")
 	fun assignHealthcareParty(
 		@PathVariable healthcarePartyId: String,
 		@RequestParam(required = false, defaultValue = "false") includeMetadataFromGlobalUser: Boolean = false,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val modifiedUser = userService.getUser(sessionInfo.getCurrentUserId(), includeMetadataFromGlobalUser)
 		modifiedUser?.let {
 			userService.modifyUser(modifiedUser.copy(healthcarePartyId = healthcarePartyId))
@@ -377,7 +377,7 @@ class UserController(
 	fun modifyProperties(
 		@PathVariable userId: String,
 		@RequestBody properties: List<PropertyStubDto>?,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userService
 			.setProperties(
 				userId,
@@ -396,7 +396,7 @@ class UserController(
 		@PathVariable userId: String,
 		@Parameter(description = "The identifiers of the property types of the properties to delete")
 		@RequestParam(required = true) propertyTypeIdentifiers: List<String>,
-	): Mono<UserDto> = mono {
+	): Mono<UserDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		userService
 			.removeProperties(userId, propertyTypeIdentifiers.toSet())
 			?.let(userV2Mapper::mapOmittingSecrets)
@@ -527,7 +527,7 @@ class UserController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<UserDto>
-	): Mono<ConflictResolutionResultDto<UserDto>> = mono {
+	): Mono<ConflictResolutionResultDto<UserDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = userService.declareConflictWinner(
 			entity = request.document.toDomainFromRev(),
 			conflictsToPurge = request.conflictsToPurge
@@ -548,5 +548,5 @@ class UserController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

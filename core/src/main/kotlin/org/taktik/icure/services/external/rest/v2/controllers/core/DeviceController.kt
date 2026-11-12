@@ -146,7 +146,7 @@ class DeviceController(
 	@PutMapping
 	fun updateDevice(
 		@RequestBody deviceDto: DeviceDto,
-	): Mono<DeviceDto> = mono {
+	): Mono<DeviceDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		deviceService.modifyDevice(deviceDto.toDomain()).toDto()
 	}
 
@@ -164,7 +164,7 @@ class DeviceController(
 		@RequestBody deviceDtos: List<DeviceDto>,
 	): Flux<DeviceDto> = flow {
 		emitAll(deviceService.modifyDevices(deviceDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(
 		summary = "Filter devices for the current user (HcParty) ",
@@ -283,7 +283,7 @@ class DeviceController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<DeviceDto>
-	): Mono<ConflictResolutionResultDto<DeviceDto>> = mono {
+	): Mono<ConflictResolutionResultDto<DeviceDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = deviceService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -304,5 +304,5 @@ class DeviceController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 }

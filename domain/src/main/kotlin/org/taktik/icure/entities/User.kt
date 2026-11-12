@@ -18,7 +18,7 @@ import org.taktik.icure.entities.base.HasIdentifier
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.DelegationTag
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.entities.security.AuthenticationToken
@@ -120,6 +120,7 @@ data class User(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Principal,
@@ -127,7 +128,7 @@ data class User(
 	Serializable,
 	HasIdentifier,
 	BaseUser,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 	companion object {
 		data class EnhancementMetadata(val groupId: String, val systemMetadata: SystemMetadata?)

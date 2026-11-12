@@ -436,7 +436,7 @@ class ContactController(
 				}
 			}
 
-		return savedOrFailed.toDto().injectReactorContext()
+		return savedOrFailed.toDto().injectCachedReactorContext(reactorCacheInjector, 100)
 	}
 
 	@Operation(summary = "Delete multiple Contacts")
@@ -509,7 +509,7 @@ class ContactController(
 	@PutMapping
 	fun modifyContact(
 		@RequestBody contactDto: ContactDto,
-	): Mono<ContactDto> = mono {
+	): Mono<ContactDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		contactService.modifyContact(contactDto.toDomain()).toDto()
 	}
 
@@ -520,7 +520,7 @@ class ContactController(
 	): Flux<ContactDto> = flow {
 		val contacts = contactService.modifyContacts(contactDtos.toDomain())
 		emitAll(contacts.toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Create a batch of contacts", description = "Returns the modified contacts.")
 	@PostMapping("/batch")
@@ -701,7 +701,7 @@ class ContactController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<ContactDto>
-	): Mono<ConflictResolutionResultDto<ContactDto>> = mono {
+	): Mono<ConflictResolutionResultDto<ContactDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = contactService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -722,7 +722,7 @@ class ContactController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchContactsByCustomFilter(

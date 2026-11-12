@@ -10,7 +10,7 @@ import com.icure.cardinal.entities.RawJson
 import jakarta.validation.Valid
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.icure.entities.base.CodeStub
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.HasEncryptionMetadata
 import org.taktik.icure.entities.base.HasIdentifier
@@ -97,6 +97,7 @@ data class RelatedPerson(
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = null,
 	@param:JsonProperty("_revs_info") override val revisionsInfo: List<RevisionInfo>? = null,
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 	override val extensions: RawJson.JsonObject? = null,
 ) : StoredICureDocument,
@@ -104,7 +105,7 @@ data class RelatedPerson(
 	HasEncryptionMetadata,
 	HasIdentifier,
 	Encryptable,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

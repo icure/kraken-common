@@ -226,7 +226,7 @@ class  FormController(
 	@PutMapping
 	fun modifyForm(
 		@RequestBody formDto: FormDto,
-	): Mono<FormDto> = mono {
+	): Mono<FormDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		formService.modifyForm(formDto.toDomain()).toDto()
 	}
 
@@ -301,7 +301,7 @@ class  FormController(
 		@RequestBody formDtos: List<FormDto>,
 	): Flux<FormDto> = flow {
 		emitAll(formService.modifyForms(formDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(summary = "Create a batch of forms", description = "Returns the created forms.")
 	@PostMapping("/batch")
@@ -682,7 +682,7 @@ class  FormController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<FormDto>
-	): Mono<ConflictResolutionResultDto<FormDto>> = mono {
+	): Mono<ConflictResolutionResultDto<FormDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = formService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -703,7 +703,7 @@ class  FormController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchFormsByCustomFilter(

@@ -372,7 +372,7 @@ class DocumentController(
 	@PutMapping
 	fun modifyDocument(
 		@RequestBody documentDto: DocumentDto,
-	): Mono<DocumentDto> = mono {
+	): Mono<DocumentDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val newDocument = documentDto.toDomain()
 		documentService.modifyDocument(newDocument, true).toDto()
 	}
@@ -383,7 +383,7 @@ class DocumentController(
 		@RequestBody documentDtos: List<DocumentDto>,
 	): Flux<DocumentDto> = flow {
 		emitAll(documentService.modifyDocuments(documentDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Suppress("DEPRECATION")
 	@Deprecated("This method is inefficient for high volumes of keys, use listDocumentIdsByDataOwnerPatientCreated instead")
@@ -697,7 +697,7 @@ class DocumentController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<DocumentDto>
-	): Mono<ConflictResolutionResultDto<DocumentDto>> = mono {
+	): Mono<ConflictResolutionResultDto<DocumentDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = documentService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -718,7 +718,7 @@ class DocumentController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchDocumentsByCustomFilter(

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asyncservice.DataOwnerService
+import org.taktik.icure.cache.ReactorCacheInjector
 import org.taktik.icure.config.CardinalVersionConfig
 import org.taktik.icure.config.SharedPaginationConfig
 import org.taktik.icure.entities.CryptoActorStubWithType
@@ -43,6 +44,7 @@ import org.taktik.icure.services.external.rest.v2.mapper.DataOwnerWithTypeV2Mapp
 import org.taktik.icure.services.external.rest.v2.mapper.base.DataOwnerHierarchyInfoV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.DataOwnerPublicKeysV2Mapper
 import org.taktik.icure.services.external.rest.v2.mapper.requests.LinkedDataOwnerV2Mapper
+import org.taktik.icure.utils.injectCachedReactorContext
 import org.taktik.icure.utils.injectReactorContext
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -62,6 +64,7 @@ class DataOwnerController(
 	private val paginationConfig: SharedPaginationConfig,
 	private val objectMapper: ObjectMapper,
 	private val cardinalVersionConfig: CardinalVersionConfig,
+	private val reactorCacheInjector: ReactorCacheInjector,
 ) {
 	private suspend fun currentDataOwnerOr404(): String =
 		sessionLogic.getCurrentDataOwnerIdOrNull() ?: throw NotFoundRequestException("Current user is not a data owner")
@@ -122,7 +125,7 @@ class DataOwnerController(
 	@PutMapping("/stub")
 	fun modifyDataOwnerStub(
 		@RequestBody updated: CryptoActorStubWithTypeDto,
-	): Mono<CryptoActorStubWithTypeDto> = mono {
+	): Mono<CryptoActorStubWithTypeDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		dataOwnerService.modifyCryptoActor(cryptoActorStubMapper.map(updated)).toDto()
 	}
 
@@ -262,7 +265,7 @@ class DataOwnerController(
 		@RequestBody newMembersIds: ListOfIdsDto,
 	): Flux<String> = dataOwnerService
 		.addDataOwnersToGroup(dataOwnerType.toDataOwnerType(), dataOwnerGroupId, newMembersIds.ids)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(
 		summary = "Remove data owners from a data owner group",
@@ -307,7 +310,7 @@ class DataOwnerController(
 			dataOwnerGroupId,
 			membersToRemoveIds.ids,
 			invalidateSharedExchangeDataIfNeeded ?: true,
-		).injectReactorContext()
+		).injectCachedReactorContext(reactorCacheInjector, 100)
 }
 
 /**

@@ -29,7 +29,7 @@ import org.taktik.icure.services.external.rest.v2.dto.base.HasMedicalLocationDto
 import org.taktik.icure.services.external.rest.v2.dto.base.ICureDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.AgendaSlottingAlgorithmDto
-import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableRootDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CustomisableBuiltinRootDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.ResourceGroupAllocationScheduleDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.RightDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserAccessLevelDto
@@ -109,12 +109,13 @@ data class AgendaDto(
 	@CardinalMetadataProperty
 	val schedules: List<ResourceGroupAllocationScheduleDto> = emptyList(),
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 )  : StoredDocumentDto,
 	ICureDocumentDto<String>,
 	HasMedicalLocationDto,
 	HasEndOfLifeDto,
-	CustomisableRootDto,
+	CustomisableBuiltinRootDto,
 	ExtendableDto {
 
 	override fun withIdRev(

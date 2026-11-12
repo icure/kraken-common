@@ -13,7 +13,7 @@ import org.taktik.icure.entities.base.Extendable
 import org.taktik.icure.entities.base.Named
 import org.taktik.icure.entities.base.StoredDocument
 import org.taktik.icure.entities.embed.Address
-import org.taktik.icure.entities.base.CustomisableRoot
+import org.taktik.icure.entities.base.CustomisableBuiltinRoot
 import org.taktik.icure.entities.embed.RevisionInfo
 import org.taktik.icure.mergers.annotations.Mergeable
 
@@ -33,10 +33,11 @@ data class Place(
 	@param:JsonProperty("_conflicts") override val conflicts: List<String>? = null,
 
 	override val extensions: RawJson.JsonObject? = null,
+	override val customisedTypeId: String? = null,
 	override val customisedModelVersion: Int? = null,
 ) : StoredDocument,
 	Named,
-	CustomisableRoot,
+	CustomisableBuiltinRoot,
 	Extendable {
 
 	override fun withIdRev(id: String?, rev: String) = if (id != null) this.copy(id = id, rev = rev) else this.copy(rev = rev)

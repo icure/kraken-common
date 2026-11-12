@@ -343,7 +343,7 @@ class AccessLogController(
 	@PutMapping
 	fun modifyAccessLog(
 		@RequestBody accessLogDto: AccessLogDto,
-	): Mono<AccessLogDto> = mono {
+	): Mono<AccessLogDto> = reactorCacheInjector.monoWithCachedContext(10) {
 		val accessLog = accessLogService.modifyAccessLog(accessLogDto.toDomain())
 		accessLog.toDto()
 	}
@@ -354,7 +354,7 @@ class AccessLogController(
 		@RequestBody accessLogDtos: List<AccessLogDto>,
 	): Flux<AccessLogDto> = flow {
 		emitAll(accessLogService.modifyAccessLogs(accessLogDtos.toDomain()).toDto())
-	}.injectReactorContext()
+	}.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@Operation(description = "Shares one or more access logs with one or more data owners")
 	@PutMapping("/bulkSharedMetadataUpdate")
@@ -406,7 +406,7 @@ class AccessLogController(
 	@PostMapping("/conflicts/winner")
 	fun declareConflictWinner(
 		@RequestBody request: ConflictResolutionRequestDto<AccessLogDto>
-	): Mono<ConflictResolutionResultDto<AccessLogDto>> = mono {
+	): Mono<ConflictResolutionResultDto<AccessLogDto>> = reactorCacheInjector.monoWithCachedContext(10) {
 		val result = accessLogService.declareConflictWinner(
 			entity = request.document.toDomain(),
 			conflictsToPurge = request.conflictsToPurge
@@ -427,7 +427,7 @@ class AccessLogController(
 			} ?: ConflictResolutionStrategy.FullMergeability
 		)
 		.map(mergeResultV2Mapper::map)
-		.injectReactorContext()
+		.injectCachedReactorContext(reactorCacheInjector, 100)
 
 	@PostMapping("/matchByCustom")
 	fun matchAccessLogsByCustomFilter(
