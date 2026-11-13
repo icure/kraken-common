@@ -224,7 +224,7 @@ open class InternalDAOImpl<T : StoredDocument>(
 	//
 	override suspend fun forceInitStandardDesignDocument(updateIfExists: Boolean) {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
-		val generateds = designDocumentProvider.generateDesignDocuments(this.entityClass, this)
+		val generateds = designDocumentProvider.generateDesignDocuments(entityClass = this.entityClass, metaDataSource = this, onlyForSystemViews = false)
 
 		generateds.forEach { generated ->
 			val fromDatabase = client.get(generated.id, DesignDocument::class.java)
