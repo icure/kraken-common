@@ -32,10 +32,10 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.EncryptableDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.SecurityMetadataDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Represents an article entity used to store named, classified content items.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ArticleDto(
 	/** The Id of the article. We encourage using either a v4 UUID or a HL7 Id. */
 	override val id: String,

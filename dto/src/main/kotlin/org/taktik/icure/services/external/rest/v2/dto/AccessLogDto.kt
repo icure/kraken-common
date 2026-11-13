@@ -36,11 +36,11 @@ import java.time.Instant
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity represents Access Log.""")
 /**
  * Represents an access log entry that records access to medical data or resources within the system.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = """This entity represents Access Log.""")
 data class AccessLogDto(
 	/** The Id of the access log. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,

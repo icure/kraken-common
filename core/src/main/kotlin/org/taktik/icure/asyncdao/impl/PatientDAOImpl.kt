@@ -1202,7 +1202,11 @@ class PatientDAOImpl(
 	): Map<String, String> {
 		// Not transactional aware
 		val result = couchDbDispatcher.getClient(datastoreInformation).queryView<String, List<String>>(
-			createQuery(datastoreInformation, "by_hcparty_delegate_keys")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_hcparty_delegate_keys".main(),
+				configurationView = "by_hcparty_delegate_keys"
+			)
 				.includeDocs(false)
 				.key(healthcarePartyId),
 		)

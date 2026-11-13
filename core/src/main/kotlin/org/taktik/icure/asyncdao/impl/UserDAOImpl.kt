@@ -215,7 +215,7 @@ open class UserDAOImpl(
 			pagedViewQuery(
 				datastoreInformation = datastoreInformation,
 				legacyView = "allForPagination".main(),
-				configurationView = "allForPagination",
+				configurationView = "all_for_pagination",
 				startKey = null,
 				endKey = "\ufff0",
 				pagination = pagination.copy(limit = extendedLimit),

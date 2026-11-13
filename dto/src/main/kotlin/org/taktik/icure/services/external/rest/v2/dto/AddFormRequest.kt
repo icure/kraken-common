@@ -23,11 +23,11 @@ import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 /**
  * Request object used to add a form for a patient.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class AddFormRequest(
 	/** The unique identifier of the patient to associate the form with. */
 	@ActiveField val patientId: String? = null,
