@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -223,6 +224,7 @@ class TarificationDAOImpl(
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, Int::class.java, Tarification::class.java))
 	}
 
+	@SystemView
 	@View(name = "conflicts", map = "function(doc) { if ((doc.java_type === 'org.taktik.icure.entities.Tarification' || doc.java_type === 'org.taktik.icure.entities.Pricing') && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

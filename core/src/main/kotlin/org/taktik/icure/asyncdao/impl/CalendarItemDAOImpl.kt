@@ -28,6 +28,7 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -37,7 +38,6 @@ import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
 import org.taktik.icure.asyncdao.Partitions
-import org.taktik.icure.asyncdao.impl.CalendarItemDAOImpl.Companion.MAX_OCCUPANCY_CALENDAR_ITEMS
 import org.taktik.icure.cache.ConfiguredCacheProvider
 import org.taktik.icure.cache.getConfiguredCache
 import org.taktik.icure.config.DaoConfig
@@ -816,6 +816,7 @@ class CalendarItemDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItem' && !doc.deleted && doc._conflicts) emit(doc._id) }",

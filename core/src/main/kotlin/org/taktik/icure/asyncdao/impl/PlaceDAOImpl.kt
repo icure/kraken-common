@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -42,6 +43,7 @@ class PlaceDAOImpl(
 	queryProvider = queryProvider
 ), PlaceDAO {
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Place' && !doc.deleted && doc._conflicts) emit(doc._id) }",

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -19,6 +20,7 @@ import org.taktik.icure.entities.SecureDelegationKeyMap
 
 @Repository("secureDelegationKeyMapDAO")
 @Profile("app")
+@SystemView
 @View(
 	name = "all",
 	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(null, doc._id)}",
@@ -39,6 +41,8 @@ class SecureDelegationKeyMapDAOImpl(
 	daoConfig = daoConfig,
 	queryProvider = queryProvider
 ), SecureDelegationKeyMapDAO {
+
+	@SystemView
 	@View(
 		name = "by_delegation_key",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.SecureDelegationKeyMap' && !doc.deleted) emit(doc.delegationKey, null)}",

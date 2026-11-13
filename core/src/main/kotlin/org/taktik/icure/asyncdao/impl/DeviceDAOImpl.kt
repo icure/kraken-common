@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -118,6 +119,7 @@ class DeviceDAOImpl(
 			).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Device' && !doc.deleted && doc._conflicts) emit(doc._id) }",

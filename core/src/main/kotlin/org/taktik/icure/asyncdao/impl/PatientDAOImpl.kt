@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
@@ -28,7 +27,9 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -198,7 +199,7 @@ class PatientDAOImpl(
 			configurationView = "by_all_delegates_ssin"
 		).reduce(true)
 			.startKey(ComplexKey.of(healthcarePartyId, null))
-			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
+			.endKey(ComplexKey.of(healthcarePartyId, EmptyObjectKey))
 			.doNotIncludeDocs()
 
 
@@ -220,7 +221,7 @@ class PatientDAOImpl(
 		)
 			.reduce(true)
 			.startKey(ComplexKey.of(healthcarePartyId, null))
-			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
+			.endKey(ComplexKey.of(healthcarePartyId, EmptyObjectKey))
 			.includeDocs(false)
 		return try {
 			client.queryView<Array<String>, Int>(viewQuery).first().value ?: 0
@@ -248,7 +249,7 @@ class PatientDAOImpl(
 			),
 			configurationView = "by_all_delegates_date_of_birth"
 		).startKey(ComplexKey.of(healthcarePartyId, null))
-			.endKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
+			.endKey(ComplexKey.of(healthcarePartyId, EmptyObjectKey))
 			.doNotIncludeDocs()
 		emitAll(
 			client.interleave<ComplexKey, String>(
@@ -297,7 +298,7 @@ class PatientDAOImpl(
 			),
 			configurationView = "by_all_delegates_date_of_birth"
 		).startKey(ComplexKey.of(healthcarePartyId, startDate))
-			.endKey(ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject()))
+			.endKey(ComplexKey.of(healthcarePartyId, endDate ?: EmptyObjectKey))
 			.doNotIncludeDocs()
 		emitAll(
 			client.interleave<ComplexKey, String>(
@@ -328,10 +329,10 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val endKey = ComplexKey.of(
 			healthcarePartyId,
-			gender?.name ?: ComplexKey.emptyObject(),
+			gender?.name ?: EmptyObjectKey,
 			education
-				?: ComplexKey.emptyObject(),
-			profession ?: ComplexKey.emptyObject(),
+				?: EmptyObjectKey,
+			profession ?: EmptyObjectKey,
 		)
 
 		val viewQueries = createQueries(
@@ -385,7 +386,7 @@ class PatientDAOImpl(
 			configurationView = "by_all_delegates_contains_name"
 		)
 			.startKey(ComplexKey.of(healthcarePartyId, name))
-			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0"))
+			.endKey(ComplexKey.of(healthcarePartyId, if (name == null) EmptyObjectKey else name + "\ufff0"))
 			.let { q -> limit?.let { q.limit(it) } ?: q }
 			.doNotIncludeDocs()
 
@@ -641,7 +642,7 @@ class PatientDAOImpl(
 			},
 			configurationView = "by_all_delegates_name",
 			startKey = ComplexKey.of(healthcarePartyId, null),
-			endKey = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()),
+			endKey = ComplexKey.of(healthcarePartyId, EmptyObjectKey),
 			pagination = pagination,
 		)
 		emitAll(client.queryView<Array<String>, String, Any>(viewQuery))
@@ -817,10 +818,10 @@ class PatientDAOImpl(
 		val endKey: ComplexKey
 		if (descending) {
 			endKey = ComplexKey.of(healthcarePartyId, name)
-			startKey = ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")
+			startKey = ComplexKey.of(healthcarePartyId, if (name == null) EmptyObjectKey else name + "\ufff0")
 		} else {
 			startKey = ComplexKey.of(healthcarePartyId, name)
-			endKey = ComplexKey.of(healthcarePartyId, if (name == null) ComplexKey.emptyObject() else name + "\ufff0")
+			endKey = ComplexKey.of(healthcarePartyId, if (name == null) EmptyObjectKey else name + "\ufff0")
 		}
 		val viewQueries = createPagedQueries(
 			datastoreInformation = datastoreInformation,
@@ -853,8 +854,8 @@ class PatientDAOImpl(
 
 		val startKeyNameKeySuffix = if (descending) "\ufff0" else "\u0000"
 		val endKeyNameKeySuffix = if (descending) "\u0000" else "\ufff0"
-		val smallestKey = if (descending) ComplexKey.emptyObject() else null
-		val largestKey = if (descending) null else ComplexKey.emptyObject()
+		val smallestKey = if (descending) EmptyObjectKey else null
+		val largestKey = if (descending) null else EmptyObjectKey
 
 		val startKey: ComplexKey
 		val endKey: ComplexKey
@@ -896,8 +897,8 @@ class PatientDAOImpl(
 
 		val startKeyNameKeySuffix = if (descending) "\ufff0" else "\u0000"
 		val endKeyNameKeySuffix = if (descending) "\u0000" else "\ufff0"
-		val smallestKey = if (descending) ComplexKey.emptyObject() else null
-		val largestKey = if (descending) null else ComplexKey.emptyObject()
+		val smallestKey = if (descending) EmptyObjectKey else null
+		val largestKey = if (descending) null else EmptyObjectKey
 
 		val startKey: ComplexKey
 		val endKey: ComplexKey
@@ -941,11 +942,11 @@ class PatientDAOImpl(
 		val from: ComplexKey
 		val to: ComplexKey
 		if (descending) {
-			from = ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject())
+			from = ComplexKey.of(healthcarePartyId, endDate ?: EmptyObjectKey)
 			to = ComplexKey.of(healthcarePartyId, startDate)
 		} else {
 			from = ComplexKey.of(healthcarePartyId, startDate)
-			to = ComplexKey.of(healthcarePartyId, endDate ?: ComplexKey.emptyObject())
+			to = ComplexKey.of(healthcarePartyId, endDate ?: EmptyObjectKey)
 		}
 
 		val viewQueries = createPagedQueries(
@@ -1099,10 +1100,10 @@ class PatientDAOImpl(
 		val endKey: ComplexKey
 		if (normalizedLastName == null && normalizedFirstName == null) {
 			startKey = ComplexKey.of(null, null)
-			endKey = ComplexKey.of(ComplexKey.of(), ComplexKey.emptyObject())
+			endKey = ComplexKey.of(ComplexKey.of(), EmptyObjectKey)
 		} else if (normalizedLastName == null) {
-			startKey = ComplexKey.of(ComplexKey.emptyObject(), normalizedFirstName)
-			endKey = ComplexKey.of(ComplexKey.emptyObject(), normalizedFirstName!! + "\ufff0")
+			startKey = ComplexKey.of(EmptyObjectKey, normalizedFirstName)
+			endKey = ComplexKey.of(EmptyObjectKey, normalizedFirstName!! + "\ufff0")
 		} else if (normalizedFirstName == null) {
 			startKey = ComplexKey.of(normalizedLastName)
 			endKey = ComplexKey.of(normalizedLastName + "\ufff0")
@@ -1130,6 +1131,7 @@ class PatientDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc._conflicts) emit(doc._id) }",
@@ -1215,6 +1217,7 @@ class PatientDAOImpl(
 		return resultMap
 	}
 
+	@SystemView
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/patient/By_delegate_aes_exchange_keys_map.js")
 	override suspend fun getAesExchangeKeysForDelegate(
 		datastoreInformation: IDatastoreInformation,
@@ -1333,7 +1336,7 @@ class PatientDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val from = paginationOffset.startKey ?: ComplexKey.of(healthcarePartyId, "")
-		val to = ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject())
+		val to = ComplexKey.of(healthcarePartyId, EmptyObjectKey)
 		val viewQueries = createQueries(
 			datastoreInformation = datastoreInformation,
 			legacyViews = legacyViews,
@@ -1386,7 +1389,7 @@ class PatientDAOImpl(
 					lastVisited = it
 				}
 			}.onCompletion {
-				if (duplicates >= paginationOffset.limit && sentElements < paginationOffset.limit && lastVisited != null) {
+				if (paginationOffset.limit in (sentElements + 1)..duplicates && lastVisited != null) {
 					emitAll(
 						getDuplicatesFromView(
 							datastoreInformation = datastoreInformation,

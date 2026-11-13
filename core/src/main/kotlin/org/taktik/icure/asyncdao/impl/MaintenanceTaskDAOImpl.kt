@@ -19,6 +19,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DATA_OWNER_PARTITION
@@ -125,7 +126,7 @@ class MaintenanceTaskDAOImpl(
 					"by_data_owner_date" to DATA_OWNER_PARTITION,
 				),
 				configurationView = "by_all_delegates_date"
-			).startKey(ComplexKey.of(healthcarePartyId, ComplexKey.emptyObject()))
+			).startKey(ComplexKey.of(healthcarePartyId, EmptyObjectKey))
 				.endKey(ComplexKey.of(healthcarePartyId, date))
 				.descending(true)
 				.doNotIncludeDocs()
@@ -166,7 +167,7 @@ class MaintenanceTaskDAOImpl(
 				endDate?.let { ComplexKey.of(healthcarePartyId, type, it) } ?: ComplexKey.of(
 					healthcarePartyId,
 					type,
-					ComplexKey.emptyObject(),
+					EmptyObjectKey,
 				),
 			).endKey(startDate?.let { ComplexKey.of(healthcarePartyId, type, startDate) } ?: ComplexKey.of(healthcarePartyId, type, null))
 				.descending(true)
