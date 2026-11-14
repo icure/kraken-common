@@ -9,16 +9,15 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.User
 import org.taktik.icure.entities.base.PropertyStub
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface UserService : EntityWithConflictResolutionService<User> {
+interface UserService : EntityWithConflictResolutionService<User>, EntityWithFilterService<User> {
 
 	// region create
 
@@ -72,16 +71,7 @@ interface UserService : EntityWithConflictResolutionService<User> {
 	 * @throws AccessDeniedException if the current user does not meet the precondition to search any user.
 	 */
 	fun listUsers(paginationOffset: PaginationOffset<String>, skipPatients: Boolean): Flow<PaginationElement>
-	fun filterUsers(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<User>): Flow<ViewQueryResultEvent>
 
-	/**
-	 * Retrieves the ids of the [User]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [User].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the current user does not have the Permission to search users with a filter.
-	 */
-	fun matchUsersBy(filter: AbstractFilter<User>): Flow<String>
 	// endregion
 
 	// region modify

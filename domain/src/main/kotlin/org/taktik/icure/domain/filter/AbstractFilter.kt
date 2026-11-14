@@ -15,6 +15,14 @@ interface AbstractFilter<O : Identifiable<String>> :
 	val desc: String?
 
 	/**
+	 * If this value is true, this means that the filter will most likely yield a lot for results so it may be handled
+	 * differently (e.g. a different thread pool). A filter is considered heavy if:
+	 * - Can get all entities for a type
+	 * - Can get all entities for a type for a single data owner
+	 */
+	val isHeavyFilter: Boolean
+
+	/**
 	 * This method returns true in one of two cases:
 	 * - The filter is for an encryptable entity and includes any search for data that is not limited to data for a
 	 *   (set of) specific data owner id(s) AND may leak information on the content of an entity.

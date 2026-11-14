@@ -12,8 +12,11 @@ data class MessageByDataOwnerLifecycleBetween(
 	override val descending: Boolean,
 	override val desc: String? = null,
 ) : AbstractFilter<Message>,
-	MessageByDataOwnerLifecycleBetween {
+	MessageByDataOwnerLifecycleBetween
+{
 
+	override val isHeavyFilter: Boolean
+		get() = startTimestamp == null && endTimestamp == null
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

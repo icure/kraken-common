@@ -292,7 +292,7 @@ class HealthElementController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
-		val healthElements = healthElementService.filter(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+		val healthElements = healthElementService.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 
 		healthElements.paginatedList(healthElementMapper::map, realLimit)
 	}
@@ -302,7 +302,7 @@ class HealthElementController(
 	fun matchHealthElementsBy(
 		@RequestBody filter: AbstractFilterDto<HealthElementDto>,
 	) = healthElementService
-		.matchHealthElementsBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }

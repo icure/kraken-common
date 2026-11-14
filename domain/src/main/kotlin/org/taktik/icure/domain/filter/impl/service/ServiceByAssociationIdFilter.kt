@@ -9,8 +9,11 @@ data class ServiceByAssociationIdFilter(
 	override val associationId: String,
 	override val desc: String? = null,
 ) : AbstractFilter<Service>,
-	ServiceByAssociationIdFilter {
+	ServiceByAssociationIdFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

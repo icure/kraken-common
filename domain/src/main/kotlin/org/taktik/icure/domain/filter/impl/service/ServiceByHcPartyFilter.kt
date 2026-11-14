@@ -27,8 +27,11 @@ data class ServiceByHcPartyFilter(
 	override val hcpId: String,
 	override val desc: String? = null,
 ) : AbstractFilter<Service>,
-	Filters.ByHcpartyFilter<String, Service> {
+	Filters.ByHcpartyFilter<String, Service>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)

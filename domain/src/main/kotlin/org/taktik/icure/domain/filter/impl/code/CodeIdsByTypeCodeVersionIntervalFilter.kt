@@ -13,8 +13,11 @@ data class CodeIdsByTypeCodeVersionIntervalFilter(
 	override val endCode: String?,
 	override val endVersion: String?,
 ) : AbstractFilter<Code>,
-	org.taktik.icure.domain.filter.code.CodeIdsByTypeCodeVersionIntervalFilter {
+	org.taktik.icure.domain.filter.code.CodeIdsByTypeCodeVersionIntervalFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

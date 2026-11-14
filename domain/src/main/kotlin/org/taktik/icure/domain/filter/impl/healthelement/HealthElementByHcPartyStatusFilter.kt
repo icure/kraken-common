@@ -9,8 +9,11 @@ data class HealthElementByHcPartyStatusFilter(
 	override val hcPartyId: String,
 	override val status: Int,
 ) : AbstractFilter<HealthElement>,
-	org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyStatusFilter {
+	org.taktik.icure.domain.filter.healthelement.HealthElementByHcPartyStatusFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

@@ -9,8 +9,11 @@ data class TimeTableByAgendaIdFilter(
 	override val agendaId: String,
 	override val desc: String? = null,
 ) : AbstractFilter<TimeTable>,
-	TimeTableByAgendaIdFilter {
+	TimeTableByAgendaIdFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

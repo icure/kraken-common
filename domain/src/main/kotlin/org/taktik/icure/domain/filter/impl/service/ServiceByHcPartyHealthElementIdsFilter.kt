@@ -9,8 +9,11 @@ data class ServiceByHcPartyHealthElementIdsFilter(
 	override val healthcarePartyId: String? = null,
 	override val healthElementIds: List<String> = emptyList(),
 ) : AbstractFilter<Service>,
-	org.taktik.icure.domain.filter.service.ServiceByHcPartyHealthElementIdsFilter {
+	org.taktik.icure.domain.filter.service.ServiceByHcPartyHealthElementIdsFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	// This filter requires to check the healthElementId in the parent subContact, a thing that matches cannot do.
 	override val canBeUsedInWebsocket = false
 

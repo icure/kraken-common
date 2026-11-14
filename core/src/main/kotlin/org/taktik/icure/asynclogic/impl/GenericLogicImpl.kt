@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.taktik.couchdb.DocIdentifier
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Revisionable
 import org.taktik.icure.asyncdao.GenericDAO
@@ -22,7 +23,9 @@ import org.taktik.icure.asynclogic.base.AutoFixableLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.datastore.IDatastoreInformation
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
+import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.validation.EntityIdValidation
 import org.taktik.icure.validation.aspect.Fixer
 
@@ -167,6 +170,11 @@ abstract class GenericLogicImpl<E : Revisionable<String>, D : GenericDAO<E>>(
 	override fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		emitAll(filters.resolve(filter, datastoreInformation))
+	}
+
+	override fun filterEntitiesBy(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<E>): Flow<ViewQueryResultEvent> = flow {
+		val datastoreInformation = getInstanceAndGroup()
+		emitAll(getGenericDAO().findEntitiesByIds(datastoreInformation, filters.resolvePage(filter.filter, datastoreInformation, paginationOffset)))
 	}
 
 	protected abstract fun getGenericDAO(): D

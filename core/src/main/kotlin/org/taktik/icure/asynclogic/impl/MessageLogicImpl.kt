@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toSet
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asyncdao.MessageDAO
 import org.taktik.icure.asyncdao.results.filterSuccessfulUpdates
@@ -20,7 +19,6 @@ import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
 import org.taktik.icure.datastore.DatastoreInstanceProvider
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.EnhancedUser
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
@@ -308,26 +306,6 @@ open class MessageLogicImpl(
 	override suspend fun getMessage(messageId: String): Message? = getEntity(messageId)
 
 	override fun getMessages(messageIds: List<String>): Flow<Message> = getEntities(messageIds)
-
-	override fun filterMessages(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Message>,
-	): Flow<ViewQueryResultEvent> = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
-
-		val sortedIds =
-			if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
-				ids.dropWhile { it != paginationOffset.startDocumentId }
-			} else {
-				ids
-			}
-		val selectedIds = sortedIds.take(paginationOffset.limit + 1) // Fetching one more messages for the start key of the next page
-
-		emitAll(
-			messageDAO.findMessagesByIds(datastoreInformation, selectedIds),
-		)
-	}
 
 	override fun entityWithUpdatedSecurityMetadata(
 		entity: Message,

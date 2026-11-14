@@ -12,6 +12,6 @@ interface ICureSharedService {
 	suspend fun getIndexingStatus(): IndexingInfo
 	fun getVersion(): String
 	suspend fun getProcessInfo(): String
-	suspend fun setLogLevel(logLevel: String, packageName: String): String
+	suspend fun setLogLevel(logLevel: String, loggerName: String): String
 	suspend fun updateDesignDocForCurrentUser(daoEntityName: String, warmup: Boolean = false)
 }

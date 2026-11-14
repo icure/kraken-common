@@ -10,8 +10,11 @@ data class MessageByDataOwnerFromAddressFilter(
 	override val fromAddress: String,
 	override val desc: String? = null,
 ) : AbstractFilter<Message>,
-	MessageByDataOwnerFromAddressFilter {
+	MessageByDataOwnerFromAddressFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

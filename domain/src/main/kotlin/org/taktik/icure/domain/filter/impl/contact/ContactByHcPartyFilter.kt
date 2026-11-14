@@ -26,8 +26,11 @@ data class ContactByHcPartyFilter(
 	override val hcpId: String,
 	override val desc: String? = null,
 ) : AbstractFilter<Contact>,
-	Filters.ByHcpartyFilter<String, Contact> {
+	Filters.ByHcpartyFilter<String, Contact>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(hcpId)

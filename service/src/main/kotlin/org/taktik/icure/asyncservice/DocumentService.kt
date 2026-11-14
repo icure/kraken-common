@@ -11,9 +11,9 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.domain.BatchUpdateDocumentInfo
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Document
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
@@ -22,7 +22,8 @@ import java.nio.ByteBuffer
 
 interface DocumentService :
 	EntityWithSecureDelegationsService<Document>,
-	EntityWithConflictResolutionService<Document> {
+	EntityWithConflictResolutionService<Document>,
+	EntityWithFilterService<Document> {
 
 	/**
 	 * Creates a new document.
@@ -199,15 +200,4 @@ interface DocumentService :
 	 * @return a [Flow] containing all the successfully updated [Document]s.
 	 */
 	suspend fun modifyDocuments(documents: Collection<Document>): Flow<Document>
-
-	/**
-	 * Retrieves the ids of the [Document]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Document].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchDocumentsBy(filter: AbstractFilter<Document>): Flow<String>
 }

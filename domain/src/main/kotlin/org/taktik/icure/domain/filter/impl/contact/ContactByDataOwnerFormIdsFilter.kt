@@ -10,8 +10,11 @@ data class ContactByDataOwnerFormIdsFilter(
 	override val formIds: List<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<Contact>,
-	ContactByDataOwnerFormIdsFilter {
+	ContactByDataOwnerFormIdsFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)

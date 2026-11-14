@@ -127,7 +127,7 @@ class MedicalLocationController(
 	fun matchMedicalLocationsBy(
 		@RequestBody filter: AbstractFilterDto<MedicalLocationDto>,
 	): Flux<String> = medicalLocationService
-		.matchMedicalLocationsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }

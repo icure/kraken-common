@@ -4,14 +4,18 @@ import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.hcparty.HealthcarePartyByNationalIdentifierFilter
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 
 data class HealthcarePartyByNationalIdentifierFilter(
 	override val searchValue: String,
 	override val descending: Boolean? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<HealthcareParty>,
-	HealthcarePartyByNationalIdentifierFilter {
+	HealthcarePartyByNationalIdentifierFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = isHeavySearchString(searchValue)
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

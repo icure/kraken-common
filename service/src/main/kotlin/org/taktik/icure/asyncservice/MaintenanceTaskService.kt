@@ -7,17 +7,14 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.MaintenanceTask
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface MaintenanceTaskService : EntityWithSecureDelegationsService<MaintenanceTask> {
+interface MaintenanceTaskService : EntityWithSecureDelegationsService<MaintenanceTask>, EntityWithFilterService<MaintenanceTask> {
 	/**
 	 * Marks a batch of entities as deleted.
 	 * The data of the entities is preserved, but they won't appear in most queries.
@@ -70,19 +67,6 @@ interface MaintenanceTaskService : EntityWithSecureDelegationsService<Maintenanc
 	fun modifyMaintenanceTasks(entities: Collection<MaintenanceTask>): Flow<MaintenanceTask>
 
 	/**
-	 * Retrieves all the [MaintenanceTask]s from the database that match the provided [FilterChain], using the provided
-	 * [PaginationOffset] to skip all the result up to a certain result and to set the number of returned results.
-	 * Each entity in the returning flow will be wrapped in a [ViewQueryResultEvent].
-	 *
-	 * @param paginationOffset a [PaginationOffset] that specifies where to start filtering and the result number limit.
-	 * @param filter a [FilterChain] to filter the [MaintenanceTask]s.
-	 * @return a [Flow] of [ViewQueryResultEvent], each one wrapping a matching [MaintenanceTask]. This [Flow] will
-	 * contain only the maintenance tasks that the current user can access.
-	 * @throws [AccessDeniedException] if the user does not have the permission to search the [MaintenanceTask]s using the specified filter.
-	 */
-	fun filterMaintenanceTasks(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<MaintenanceTask>): Flow<ViewQueryResultEvent>
-
-	/**
 	 * Retrieves a single [MaintenanceTask] by its id.
 	 *
 	 * @param id the id of the [MaintenanceTask] to retrieve.
@@ -108,15 +92,4 @@ interface MaintenanceTaskService : EntityWithSecureDelegationsService<Maintenanc
 	 * @throws [AccessDeniedException] if the user does not have the permission to create a [MaintenanceTask].
 	 */
 	fun createMaintenanceTasks(entities: Collection<MaintenanceTask>): Flow<MaintenanceTask>
-
-	/**
-	 * Retrieves the ids of the [MaintenanceTask]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [MaintenanceTask].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchMaintenanceTasksBy(filter: AbstractFilter<MaintenanceTask>): Flow<String>
 }

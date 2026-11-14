@@ -11,8 +11,11 @@ data class ServiceByQualifiedLinkFilter(
 	override val linkQualification: LinkQualification? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<Service>,
-	ServiceByQualifiedLinkFilter {
+	ServiceByQualifiedLinkFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

@@ -15,8 +15,11 @@ data class CodeByRegionTypesLanguageLabelVersionFilter(
 	override val version: String? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<Code>,
-	CodeByRegionTypesLanguageLabelVersionFilter {
+	CodeByRegionTypesLanguageLabelVersionFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = version != LATEST_VERSION
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

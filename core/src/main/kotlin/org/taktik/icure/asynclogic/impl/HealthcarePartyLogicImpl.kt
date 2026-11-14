@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -203,10 +204,10 @@ open class HealthcarePartyLogicImpl(
 		return hcpartyIds
 	}
 
-	override fun filterHealthcareParties(
+	override fun filterEntitiesBy(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthcareParty>,
-	) = flow {
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation)
 		val sortedIds =

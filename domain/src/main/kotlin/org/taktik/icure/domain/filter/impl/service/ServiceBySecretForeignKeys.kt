@@ -13,8 +13,11 @@ data class ServiceBySecretForeignKeys(
 	override val healthcarePartyId: String? = null,
 	override val patientSecretForeignKeys: Set<String>,
 ) : AbstractFilter<Service>,
-	org.taktik.icure.domain.filter.service.ServiceBySecretForeignKeys {
+	org.taktik.icure.domain.filter.service.ServiceBySecretForeignKeys
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

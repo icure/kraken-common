@@ -342,7 +342,7 @@ class AccessLogController(
 	fun matchAccessLogsBy(
 		@RequestBody filter: AbstractFilterDto<AccessLogDto>,
 	): Flux<String> = accessLogService
-		.matchAccessLogsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

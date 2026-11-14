@@ -195,7 +195,7 @@ class TimeTableController(
 	fun matchTimeTablesBy(
 		@RequestBody filter: AbstractFilterDto<TimeTableDto>,
 	): Flux<String> = timeTableService
-		.matchTimeTablesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }

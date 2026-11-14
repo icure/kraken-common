@@ -9,8 +9,8 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Form
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -18,7 +18,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 
 interface FormService :
 	EntityWithSecureDelegationsService<Form>,
-	EntityWithConflictResolutionService<Form> {
+	EntityWithConflictResolutionService<Form>,
+	EntityWithFilterService<Form> {
 
 	suspend fun getForm(id: String): Form?
 	fun getForms(selectedIds: Collection<String>): Flow<Form>
@@ -154,15 +155,4 @@ interface FormService :
 	 * @return a [Flow] containing the successfully created [Form]s
 	 */
 	fun createForms(forms: Collection<Form>): Flow<Form>
-
-	/**
-	 * Retrieves the ids of the [Form]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Form].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchFormsBy(filter: AbstractFilter<Form>): Flow<String>
 }

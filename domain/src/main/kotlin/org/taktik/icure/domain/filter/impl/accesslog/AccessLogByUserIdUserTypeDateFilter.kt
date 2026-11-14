@@ -13,8 +13,11 @@ data class AccessLogByUserIdUserTypeDateFilter(
 	override val descending: Boolean?,
 	override val desc: String? = null,
 ) : AbstractFilter<AccessLog>,
-	IAccessLogByUserIdUserTypeDateFilter {
+	IAccessLogByUserIdUserTypeDateFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = startDate == null && accessType == null
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

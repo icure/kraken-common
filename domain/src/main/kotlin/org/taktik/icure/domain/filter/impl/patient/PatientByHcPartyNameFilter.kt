@@ -8,6 +8,7 @@ import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 import java.util.*
 
 data class PatientByHcPartyNameFilter(
@@ -15,8 +16,11 @@ data class PatientByHcPartyNameFilter(
 	override val name: String? = null,
 	override val healthcarePartyId: String? = null,
 ) : AbstractFilter<Patient>,
-	org.taktik.icure.domain.filter.patient.PatientByHcPartyNameFilter {
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyNameFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = isHeavySearchString(name)
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

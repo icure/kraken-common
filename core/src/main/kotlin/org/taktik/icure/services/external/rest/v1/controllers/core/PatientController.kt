@@ -443,7 +443,7 @@ class PatientController(
 	fun matchPatientsBy(
 		@RequestBody filter: AbstractFilterDto<PatientDto>,
 	) = patientService
-		.matchPatientsBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

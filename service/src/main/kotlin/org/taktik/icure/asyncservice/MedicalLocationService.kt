@@ -7,12 +7,12 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.MedicalLocation
 import org.taktik.icure.pagination.PaginationElement
 
-interface MedicalLocationService {
+interface MedicalLocationService : EntityWithFilterService<MedicalLocation> {
 	suspend fun createMedicalLocation(medicalLocation: MedicalLocation): MedicalLocation
 
 	/**
@@ -89,13 +89,4 @@ interface MedicalLocationService {
 	 * @return a [Flow] of [MedicalLocation]s
 	 */
 	fun getAllMedicalLocations(): Flow<MedicalLocation>
-
-	/**
-	 * Retrieves the ids of the [MedicalLocation]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [MedicalLocation].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the current user does not have the Permission to search medical locations with a filter.
-	 */
-	fun matchMedicalLocationsBy(filter: AbstractFilter<MedicalLocation>): Flow<String>
 }

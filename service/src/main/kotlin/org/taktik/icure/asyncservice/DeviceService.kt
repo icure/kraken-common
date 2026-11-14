@@ -3,16 +3,14 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.entities.Device
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface DeviceService : EntityWithConflictResolutionService<Device> {
+interface DeviceService : EntityWithConflictResolutionService<Device>, EntityWithFilterService<Device> {
 
 	suspend fun createDevice(device: Device): Device
 	fun createDevices(devices: List<Device>): Flow<Device>
@@ -75,15 +73,5 @@ interface DeviceService : EntityWithConflictResolutionService<Device> {
 	suspend fun undeleteDevice(id: String, rev: String): Device
 	fun undeleteDevices(deviceIds: List<IdAndRev>): Flow<Device>
 
-	fun filterDevices(filter: FilterChain<Device>, limit: Int, startDocumentId: String?): Flow<ViewQueryResultEvent>
 	fun getEntityIds(): Flow<String>
-
-	/**
-	 * Retrieves the ids of the [Device]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Device].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the current user does not have the Permission to search devices with a filter.
-	 */
-	fun matchDevicesBy(filter: AbstractFilter<Device>): Flow<String>
 }

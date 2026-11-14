@@ -10,8 +10,11 @@ class CodeByQualifiedLinkFilter(
 	override val linkedId: String?,
 	override val desc: String?,
 ) : AbstractFilter<Code>,
-	CodeByQualifiedLinkFilter {
+	CodeByQualifiedLinkFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

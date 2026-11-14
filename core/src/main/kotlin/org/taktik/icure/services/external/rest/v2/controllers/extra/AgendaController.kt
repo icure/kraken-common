@@ -219,7 +219,7 @@ class AgendaController(
 	fun matchAgendasBy(
 		@RequestBody filter: AbstractFilterDto<AgendaDto>,
 	): Flux<String> = agendaService
-		.matchAgendasBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

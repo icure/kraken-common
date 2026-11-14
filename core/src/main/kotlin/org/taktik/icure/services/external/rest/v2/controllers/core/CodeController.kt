@@ -348,7 +348,7 @@ class CodeController(
 	fun matchCodesBy(
 		@RequestBody filter: AbstractFilterDto<CodeDto>,
 	): Flux<String> = codeService
-		.matchCodesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

@@ -42,7 +42,7 @@ open class MaintenanceTaskLogicImpl(
 	filters,
 ),
 	MaintenanceTaskLogic {
-	override fun filter(
+	override fun filterEntitiesBy(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<MaintenanceTask>,
 	): Flow<ViewQueryResultEvent> = flow {

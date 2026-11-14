@@ -23,6 +23,7 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.DeviceService
 import org.taktik.icure.config.SharedPaginationConfig
+import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.services.external.rest.v1.dto.DeviceDto
 import org.taktik.icure.services.external.rest.v1.dto.IdWithRevDto
 import org.taktik.icure.services.external.rest.v1.dto.ListOfIdsDto
@@ -146,7 +147,7 @@ class DeviceController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		deviceService
-			.filterDevices(filterChainMapper.tryMap(filterChain).orThrow(), realLimit + 1, startDocumentId)
+			.filterEntitiesBy(PaginationOffset(null, startDocumentId, null, realLimit + 1), filterChainMapper.tryMap(filterChain).orThrow())
 			.paginatedList(deviceMapper::map, realLimit)
 	}
 
@@ -155,7 +156,7 @@ class DeviceController(
 	fun matchDevicesBy(
 		@RequestBody filter: AbstractFilterDto<DeviceDto>,
 	) = deviceService
-		.matchDevicesBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

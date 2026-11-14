@@ -9,8 +9,11 @@ data class FormTemplateBySpecialtyFilter(
 	override val specialtyCode: String,
 	override val desc: String? = null,
 ) : AbstractFilter<FormTemplate>,
-	FormTemplateBySpecialtyFilter {
+	FormTemplateBySpecialtyFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

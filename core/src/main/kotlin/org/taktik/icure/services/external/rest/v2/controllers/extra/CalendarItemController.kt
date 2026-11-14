@@ -412,7 +412,7 @@ class CalendarItemController(
 	fun matchCalendarItemsBy(
 		@RequestBody filter: AbstractFilterDto<CalendarItemDto>,
 	): Flux<String> = calendarItemService
-		.matchCalendarItemsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

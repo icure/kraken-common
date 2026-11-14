@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.TotalCount
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.RelatedPersonDAO
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -71,10 +72,10 @@ open class RelatedPersonLogicImpl(
 		)
 	}
 
-	override fun filter(
+	override fun filterEntitiesBy(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<RelatedPerson>,
-	) = flow {
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 		aggregateResults(

@@ -14,8 +14,11 @@ data class DocumentByDataOwnerPatientDateFilter(
 	override val descending: Boolean? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<Document>,
-	DocumentByDataOwnerPatientDateFilter {
+	DocumentByDataOwnerPatientDateFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
