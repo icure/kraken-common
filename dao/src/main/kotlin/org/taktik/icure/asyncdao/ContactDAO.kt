@@ -10,6 +10,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
+import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.CalendarItem
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
@@ -406,6 +407,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerPatientCodeCodes(
@@ -415,6 +417,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
@@ -466,6 +469,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
@@ -476,6 +480,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerTagCodes(
@@ -484,6 +489,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 
 	fun listServiceIdsByDataOwnerCodeCodes(
@@ -492,6 +498,7 @@ interface ContactDAO : ConflictDAO<Contact> {
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long? = null,
 		endValueDate: Long? = null,
+		filterVersion: VersionFiltering = VersionFiltering.LATEST,
 	): Flow<String>
 	// endregion
 }

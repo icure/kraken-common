@@ -48,6 +48,11 @@ interface AbstractFilter<O : Identifiable<String>> :
 	 */
 	fun requestedDataOwnerIds(): Set<String>
 
+	/*
+	 * Default in-memory evaluation: keep the items for which [matches] is true. Subclasses only implement [matches].
+	 * [searchKeyMatcher] is passed through unchanged: see the documentation of [Filter] for its role.
+	 */
+
 	override fun applyTo(items: Flow<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): Flow<O> = items.filter { item -> this.matches(item, searchKeyMatcher) }
 
 	override fun applyTo(items: List<O>, searchKeyMatcher: (String, HasEncryptionMetadata) -> Boolean): List<O> = items.filter { item -> this.matches(item, searchKeyMatcher) }

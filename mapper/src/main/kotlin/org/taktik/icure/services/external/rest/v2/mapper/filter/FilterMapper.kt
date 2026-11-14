@@ -201,6 +201,10 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHc
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyPatientTagPrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodeDateFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagCodesFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerTagCodesFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerPatientTagCodesFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerCodeCodesFilter
+import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByDataOwnerPatientCodeCodesFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByHcPartyTagPrefixFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByIdsFilter
 import org.taktik.icure.services.external.rest.v2.dto.filter.service.ServiceByQualifiedLinkFilter
@@ -521,6 +525,10 @@ abstract class FilterV2Mapper {
 	abstract fun map(filterDto: ServiceByHcPartyTagCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyTagCodesFilter
 	abstract fun map(filterDto: ServiceByHcPartyPatientCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyPatientCodesFilter
 	abstract fun map(filterDto: ServiceByHcPartyPatientTagCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByHcPartyPatientTagCodesFilter
+	abstract fun map(filterDto: ServiceByDataOwnerTagCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByDataOwnerTagCodesFilter
+	abstract fun map(filterDto: ServiceByDataOwnerPatientTagCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByDataOwnerPatientTagCodesFilter
+	abstract fun map(filterDto: ServiceByDataOwnerCodeCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByDataOwnerCodeCodesFilter
+	abstract fun map(filterDto: ServiceByDataOwnerPatientCodeCodesFilter): org.taktik.icure.domain.filter.impl.service.ServiceByDataOwnerPatientCodeCodesFilter
 
 	@Suppress("DEPRECATION")
 	@JvmName("tryMapServiceFilter")
@@ -545,6 +553,10 @@ abstract class FilterV2Mapper {
 		is ServiceByHcPartyTagCodesFilter -> map(filterDto)
 		is ServiceByHcPartyPatientCodesFilter -> map(filterDto)
 		is ServiceByHcPartyPatientTagCodesFilter -> map(filterDto)
+		is ServiceByDataOwnerTagCodesFilter -> map(filterDto)
+		is ServiceByDataOwnerPatientTagCodesFilter -> map(filterDto)
+		is ServiceByDataOwnerCodeCodesFilter -> map(filterDto)
+		is ServiceByDataOwnerPatientCodeCodesFilter -> map(filterDto)
 		else -> mapGeneralFilterToDomain(filterDto) { tryMap(it) }
 	}
 
