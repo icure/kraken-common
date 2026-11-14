@@ -54,6 +54,7 @@ import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.ContactIdServiceId
+import org.taktik.icure.domain.filter.VersionFiltering
 import org.taktik.icure.entities.Contact
 import org.taktik.icure.entities.embed.Identifier
 import org.taktik.icure.entities.embed.Service
@@ -1243,6 +1244,7 @@ class ContactDAOImpl(
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1252,6 +1254,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_patient_tag_prefix",
 		configurationView = "service_by_all_delegates_patient_tag_prefix",
+		filterVersion = filterVersion,
 	)
 
 	override fun listServiceIdsByDataOwnerPatientCodeCodes(
@@ -1261,6 +1264,7 @@ class ContactDAOImpl(
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerPatientTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1270,6 +1274,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_patient_code_prefix",
 		configurationView = "service_by_all_delegates_patient_code_prefix",
+		filterVersion = filterVersion,
 	)
 
 	private fun listServiceIdsByDataOwnerPatientTagOrCodeExact(
@@ -1281,6 +1286,7 @@ class ContactDAOImpl(
 		endValueDate: Long?,
 		legacyView: String,
 		configurationView: String,
+		filterVersion: VersionFiltering,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
@@ -1301,7 +1307,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(datastoreInformation, client, results))
+		emitAll(filterServicesByVersion(datastoreInformation, client, results, filterVersion))
 	}
 
 	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1391,6 +1397,7 @@ class ContactDAOImpl(
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1399,6 +1406,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_tag_prefix",
 		configurationView = "service_by_all_delegates_tag_prefix",
+		filterVersion = filterVersion,
 	)
 
 	override fun listServiceIdsByDataOwnerCodeCodes(
@@ -1407,6 +1415,7 @@ class ContactDAOImpl(
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1415,6 +1424,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_code_prefix",
 		configurationView = "service_by_all_delegates_code_prefix",
+		filterVersion = filterVersion,
 	)
 
 	private fun listServiceIdsByDataOwnerTagOrCodeExact(
@@ -1424,7 +1434,8 @@ class ContactDAOImpl(
 		startValueDate: Long?,
 		endValueDate: Long?,
 		legacyView: String,
-		configurationView: String
+		configurationView: String,
+		filterVersion: VersionFiltering,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = searchKeys.asSequence().flatMap { dataOwnerSearchKey ->
@@ -1443,7 +1454,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(datastoreInformation, client, results))
+		emitAll(filterServicesByVersion(datastoreInformation, client, results, filterVersion))
 	}
 
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
@@ -1500,6 +1511,7 @@ class ContactDAOImpl(
 		tagTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1510,6 +1522,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_month_tag_prefix",
 		configurationView = "service_by_all_delegates_month_tag_prefix",
+		filterVersion = filterVersion,
 	)
 
 	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
@@ -1520,6 +1533,7 @@ class ContactDAOImpl(
 		codeTypesAndCodes: Map<String, Collection<String>>,
 		startValueDate: Long?,
 		endValueDate: Long?,
+		filterVersion: VersionFiltering,
 	): Flow<String> = listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
 		datastoreInformation = datastoreInformation,
 		searchKeys = searchKeys,
@@ -1530,6 +1544,7 @@ class ContactDAOImpl(
 		endValueDate = endValueDate,
 		legacyView = "service_by_data_owner_month_code_prefix",
 		configurationView = "service_by_all_delegates_month_code_prefix",
+		filterVersion = filterVersion,
 	)
 
 	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodeExact(
@@ -1542,6 +1557,7 @@ class ContactDAOImpl(
 		endValueDate: Long?,
 		legacyView: String,
 		configurationView: String,
+		filterVersion: VersionFiltering,
 	): Flow<String> = flow {
 		require((year == null) == (month == null)) { "Year and month must both be non-null or both null" }
 		if (startValueDate != null) {
@@ -1569,7 +1585,7 @@ class ContactDAOImpl(
 			startValueDate = startValueDate,
 			endValueDate = endValueDate
 		)
-		emitAll(filterLatestServices(datastoreInformation, client, results))
+		emitAll(filterServicesByVersion(datastoreInformation, client, results, filterVersion))
 	}
 
 	private fun listServiceIdsByDataOwnerValueDateMonthTagOrCodePrefix(
@@ -1654,6 +1670,21 @@ class ContactDAOImpl(
 				}
 			}
 		}.toList().awaitAll().flatten()
+	}
+
+	/**
+	 * Converts view rows into service ids according to [filterVersion]:
+	 * - [VersionFiltering.LATEST]: keeps only the services whose matching row comes from their latest contact.
+	 * - [VersionFiltering.ANY]: keeps every matching service id (deduplicated), without querying `by_service_latest`.
+	 */
+	private fun filterServicesByVersion(
+		datastoreInformation: IDatastoreInformation,
+		client: Client,
+		services: Collection<ContactIdMandatoryServiceId>,
+		filterVersion: VersionFiltering,
+	): Flow<String> = when (filterVersion) {
+		VersionFiltering.LATEST -> filterLatestServices(datastoreInformation, client, services)
+		VersionFiltering.ANY -> services.mapTo(LinkedHashSet()) { it.serviceId }.asFlow()
 	}
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
