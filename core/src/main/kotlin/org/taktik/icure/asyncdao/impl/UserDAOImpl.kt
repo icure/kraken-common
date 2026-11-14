@@ -54,6 +54,7 @@ open class UserDAOImpl(
 	daoConfig = daoConfig,
 	queryProvider = queryProvider
 ), UserDAO {
+	@SystemView
 	@View(
 		name = "by_username",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}",
@@ -95,6 +96,7 @@ open class UserDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(
 		name = "by_email",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.email, null)}}",
@@ -142,6 +144,7 @@ open class UserDAOImpl(
 		}
 	}
 
+	@SystemView
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
 	override fun listUsersByPhone(
 		datastoreInformation: IDatastoreInformation,
