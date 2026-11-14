@@ -17,6 +17,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -53,6 +54,7 @@ open class UserDAOImpl(
 	daoConfig = daoConfig,
 	queryProvider = queryProvider
 ), UserDAO {
+	@SystemView
 	@View(
 		name = "by_username",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}",
@@ -94,6 +96,7 @@ open class UserDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(
 		name = "by_email",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.email, null)}}",
@@ -141,6 +144,7 @@ open class UserDAOImpl(
 		}
 	}
 
+	@SystemView
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
 	override fun listUsersByPhone(
 		datastoreInformation: IDatastoreInformation,
@@ -214,7 +218,7 @@ open class UserDAOImpl(
 			pagedViewQuery(
 				datastoreInformation = datastoreInformation,
 				legacyView = "allForPagination".main(),
-				configurationView = "allForPagination",
+				configurationView = "all_for_pagination",
 				startKey = null,
 				endKey = "\ufff0",
 				pagination = pagination.copy(limit = extendedLimit),
@@ -448,6 +452,7 @@ open class UserDAOImpl(
 		emitAll(client.getForPagination(userIds, User::class.java))
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id) }",

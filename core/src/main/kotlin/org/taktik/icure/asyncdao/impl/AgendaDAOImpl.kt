@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
@@ -198,6 +199,7 @@ class AgendaDAOImpl(
 		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id }.distinct())
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Agenda' && !doc.deleted && doc._conflicts) emit(doc._id)}",

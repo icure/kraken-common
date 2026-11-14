@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -26,6 +27,7 @@ import org.taktik.icure.entities.RecoveryData
 
 @Repository("RecoveryDataDAO")
 @Profile("app")
+@SystemView
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted) emit( null, doc._id )}")
 class RecoveryDataDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
@@ -48,6 +50,7 @@ class RecoveryDataDAOImpl(
 		private val log = LoggerFactory.getLogger(this::class.java)
 	}
 
+	@SystemView
 	@View(name = "by_recipient_and_type", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted && doc.recipient && doc.type) emit([doc.recipient, doc.type], doc._rev)}")
 	override fun findRecoveryDataIdsByRecipientAndType(
 		datastoreInformation: IDatastoreInformation,
@@ -69,6 +72,7 @@ class RecoveryDataDAOImpl(
 		emitAll(client.queryViewIncludeDocs<ComplexKey, String, RecoveryData>(query).map { it.doc })
 	}
 
+	@SystemView
 	@View(name = "by_expiration", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RecoveryData' && !doc.deleted && doc.expirationInstant !== undefined && doc.expirationInstant !== null) emit(doc.expirationInstant, doc._rev)}")
 	override fun findRecoveryDataIdsWithExpirationLessThan(
 		datastoreInformation: IDatastoreInformation,

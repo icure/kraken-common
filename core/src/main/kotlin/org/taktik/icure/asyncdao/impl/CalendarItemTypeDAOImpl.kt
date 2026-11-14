@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
@@ -105,6 +106,7 @@ class CalendarItemTypeDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItemType>(viewQuery).map { it.doc })
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && !doc.deleted && doc._conflicts) emit(doc._id) }",

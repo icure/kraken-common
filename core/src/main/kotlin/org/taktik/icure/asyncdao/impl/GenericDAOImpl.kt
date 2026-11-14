@@ -656,12 +656,14 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	override suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean,
 		dryRun: Boolean,
 		partition: Partitions,
 		ignoreIfUnchanged: Boolean
 	): List<DesignDocument> = forceInitStandardDesignDocument(
 		client = couchDbDispatcher.getClient(datastoreInformation),
+		onlyForSystemViews = onlyForSystemViews,
 		updateIfExists = updateIfExists,
 		dryRun = dryRun,
 		partition = partition,
@@ -670,6 +672,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	override suspend fun forceInitStandardDesignDocument(
 		client: Client,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean,
 		dryRun: Boolean,
 		partition: Partitions,
@@ -678,6 +681,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		val generatedDocs = designDocumentProvider.generateDesignDocuments(
 			entityClass = this.entityClass,
 			metaDataSource = this,
+			onlyForSystemViews = onlyForSystemViews,
 			client = client,
 			partition = partition,
 			ignoreIfUnchanged = ignoreIfUnchanged

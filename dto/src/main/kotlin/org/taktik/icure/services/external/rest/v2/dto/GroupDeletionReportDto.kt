@@ -9,9 +9,14 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 data class GroupDeletionReportDto(
 	/** The type of the deleted resource. */
-	@param:Schema(required = true) @ActiveField val type: String,
+	@param:Schema(required = true)
+	@ActiveField
+	val type: String,
 	/** The unique identifier of the deleted group. */
-	@ActiveField val id: String,
+	@ActiveField
+	val id: String,
 	/** The server on which the group was deleted. */
-	@param:Schema(required = true) @ActiveField val server: String,
+	@param:Schema(required = true)
+	@ActiveField
+	val server: String,
 )

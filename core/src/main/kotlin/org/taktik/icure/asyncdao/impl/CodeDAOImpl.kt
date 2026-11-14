@@ -27,6 +27,7 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
@@ -953,6 +954,7 @@ class CodeDAOImpl(
 		}
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id) }",

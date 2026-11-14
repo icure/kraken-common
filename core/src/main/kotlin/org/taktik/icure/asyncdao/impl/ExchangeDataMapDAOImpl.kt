@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.ExchangeDataMapDAO
@@ -16,6 +17,7 @@ import org.taktik.icure.entities.ExchangeDataMap
 
 @Repository("exchangeDataMapDAO")
 @Profile("app")
+@SystemView
 @View(
 	name = "all",
 	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ExchangeDataMap' && !doc.deleted) emit(doc._id, doc._id)}",

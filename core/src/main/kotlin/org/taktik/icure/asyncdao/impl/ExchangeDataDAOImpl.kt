@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -24,6 +25,7 @@ import org.taktik.icure.entities.ExchangeData
 
 @Repository("ExchangeDataDAO")
 @Profile("app")
+@SystemView
 @View(
 	name = "all",
 	map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.ExchangeData' && !doc.deleted) emit( null, doc._id )}",
@@ -44,6 +46,7 @@ class ExchangeDataDAOImpl(
 	daoConfig = daoConfig,
 	queryProvider = queryProvider,
 ), ExchangeDataDAO {
+	@SystemView
 	@View(name = "by_participant", map = "classpath:js/exchangedata/By_participant_map.js")
 	override fun findExchangeDataByParticipant(
 		datastoreInformation: IDatastoreInformation,
@@ -65,6 +68,7 @@ class ExchangeDataDAOImpl(
 		emitAll(client.queryView(viewQuery, String::class.java, Nothing::class.java, ExchangeData::class.java))
 	}
 
+	@SystemView
 	@View(name = "by_delegator_delegate", map = "classpath:js/exchangedata/By_delegator_delegate_map.js")
 	override fun findExchangeDataByDelegatorDelegatePair(
 		datastoreInformation: IDatastoreInformation,

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -26,6 +27,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.TimeTable
+import org.taktik.icure.utils.main
 
 @Repository("timeTableDAO")
 @Profile("app")
@@ -56,7 +58,11 @@ class TimeTableDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_agenda".main(),
+				configurationView = "by_agenda",
+			)
 				.startKey(agendaId)
 				.endKey(agendaId)
 				.includeDocs(true)
@@ -69,7 +75,11 @@ class TimeTableDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_agenda".main(),
+				configurationView = "by_agenda",
+			)
 				.startKey(agendaId)
 				.endKey(agendaId)
 				.includeDocs(false)
@@ -82,7 +92,11 @@ class TimeTableDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_agenda".main(),
+				configurationView = "by_agenda",
+			)
 				.keys(agendaIds)
 				.includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, TimeTable>(viewQuery).map { it.doc })
@@ -96,13 +110,13 @@ class TimeTableDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(agendaId, null)
-		val to =
-			ComplexKey.of(
-				agendaId,
-				ComplexKey.emptyObject(),
-			)
+		val to = ComplexKey.of(agendaId, EmptyObjectKey)
 		val viewQuery =
-			createQuery(datastoreInformation, "by_agenda_and_startdate")
+			createQuery(
+				datastoreInformation = datastoreInformation,
+				legacyView = "by_agenda_and_startdate".main(),
+				configurationView = "by_agenda_and_startdate",
+			)
 				.startKey(if (descending) to else from)
 				.endKey(if (descending) from else to)
 				.includeDocs(true)
