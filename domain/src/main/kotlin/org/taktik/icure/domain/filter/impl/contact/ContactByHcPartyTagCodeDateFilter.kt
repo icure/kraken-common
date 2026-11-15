@@ -29,11 +29,8 @@ data class ContactByHcPartyTagCodeDateFilter(
 	}
 
 	override val isHeavyFilter: Boolean
-		get() = tagType == null &&
-			tagCode == null &&
-			codeType == null &&
-			codeCode == null &&
-			startOfContactOpeningDate == null &&
+		get() =
+			startOfContactOpeningDate == null ||
 			endOfContactOpeningDate == null
 	override val canBeUsedInWebsocket = true
 

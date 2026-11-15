@@ -41,7 +41,7 @@ data class InsuranceByTagCodeFilter(
 	}
 
 	override val isHeavyFilter: Boolean
-		get() = tagType == null && tagCode == null && codeType == null && codeCode == null
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

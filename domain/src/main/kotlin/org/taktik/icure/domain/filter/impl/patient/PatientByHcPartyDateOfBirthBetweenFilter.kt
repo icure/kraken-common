@@ -17,7 +17,7 @@ data class PatientByHcPartyDateOfBirthBetweenFilter(
 {
 
 	override val isHeavyFilter: Boolean
-		get() = minDateOfBirth == null && maxDateOfBirth == null
+		get() = minDateOfBirth == null || maxDateOfBirth == null
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

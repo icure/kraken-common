@@ -17,7 +17,7 @@ data class ServiceBySecretForeignKeys(
 {
 
 	override val isHeavyFilter: Boolean
-		get() = true
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve
