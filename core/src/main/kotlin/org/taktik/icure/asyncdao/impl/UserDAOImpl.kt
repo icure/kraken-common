@@ -37,6 +37,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.utils.main
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
+@SystemView
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) emit( null, doc._rev )}")
 open class UserDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
