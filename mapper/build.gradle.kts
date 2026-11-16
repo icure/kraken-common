@@ -71,10 +71,11 @@ tasks.withType<com.google.devtools.ksp.gradle.KspAATask> {
 
 // KSP doesn't like incremental compiling
 // If the KspPreCheck task is-up-to date, then it means that the annotated files were not modified
-// So the KSP can be disabled
+// So the KSP can be disabled. Only the KSP of this project: the task graph is shared by every project of the build.
+val kspPreCheckProject = project
 gradle.taskGraph.whenReady {
     gradle.taskGraph.beforeTask {
-        if (this.name == "kspKotlin") {
+        if (this.name == "kspKotlin" && this.project == kspPreCheckProject) {
             this.enabled = tasks.asMap["KspPreCheck"]
                 ?.state
                 ?.upToDate
