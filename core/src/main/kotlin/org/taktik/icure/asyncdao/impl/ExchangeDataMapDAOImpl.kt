@@ -37,4 +37,5 @@ class ExchangeDataMapDAOImpl(
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
 	queryProvider = queryProvider,
+	allIsSystemView = true
 ), ExchangeDataMapDAO

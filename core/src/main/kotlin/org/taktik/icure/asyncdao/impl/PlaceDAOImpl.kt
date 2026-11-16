@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.MAURICE_PARTITION
@@ -49,12 +50,14 @@ class PlaceDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Place' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Place>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Place>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

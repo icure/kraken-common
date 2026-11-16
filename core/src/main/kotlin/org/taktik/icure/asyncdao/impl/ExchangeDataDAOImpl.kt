@@ -45,6 +45,7 @@ class ExchangeDataDAOImpl(
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
 	queryProvider = queryProvider,
+	allIsSystemView = true
 ), ExchangeDataDAO {
 	@SystemView
 	@View(name = "by_participant", map = "classpath:js/exchangedata/By_participant_map.js")

@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
 import org.apache.commons.lang3.ArrayUtils
 import org.slf4j.LoggerFactory
 import org.taktik.couchdb.BulkUpdateResult
@@ -28,6 +27,7 @@ import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.AttachmentUpload
@@ -85,7 +85,8 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	protected val cacheChain: EntityCacheChainLink<String, T>? = null,
 	protected val designDocumentProvider: DesignDocumentProvider,
 	protected val daoConfig: DaoConfig,
-	protected val queryProvider: QueryProvider
+	protected val queryProvider: QueryProvider,
+	private val allIsSystemView: Boolean = false
 ) : GenericDAO<T>, CouchDbDAO {
 	companion object {
 		// Maximum number of items we are willing to filter kraken-side
@@ -98,22 +99,40 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
+	@UsesView(["all"])
 	protected open suspend fun createAllQuery(datastoreInformation: IDatastoreInformation): ViewQuery =
-		createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
+		if (allIsSystemView) {
+			createQuery(datastoreInformation = datastoreInformation, viewName = "all")
+		} else {
+			createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
+		}
 
+	@UsesView(["all"])
 	protected open suspend fun <K> createAllPaginatedQuery(
 		datastoreInformation: IDatastoreInformation,
 		offset: PaginationOffset<K>
-	): ViewQuery = pagedViewQuery(
-		datastoreInformation = datastoreInformation,
-		legacyView = "all".main(),
-		configurationView = "all",
-		startKey = null,
-		endKey = null,
-		pagination = offset,
-		descending = false
-	)
+	): ViewQuery = if (allIsSystemView) {
+		pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			viewName = "all",
+			startKey = null,
+			endKey = null,
+			pagination = offset,
+			descending = false
+		)
+	} else {
+		pagedViewQuery(
+			datastoreInformation = datastoreInformation,
+			legacyView = "all".main(),
+			configurationView = "all",
+			startKey = null,
+			endKey = null,
+			pagination = offset,
+			descending = false
+		)
+	}
 
+	@UsesView(["all"])
 	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -130,6 +149,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return client.get(id, entityClass) != null
 	}
 
+	@UsesView(["all"])
 	override suspend fun hasAny(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return designDocContainsAllView(datastoreInformation) &&
@@ -145,11 +165,13 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	 */
 	protected open suspend fun designDocContainsAllView(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		return queryProvider.hasAllViewForCurrentEntity(datastoreInformation) ?: client.get<DesignDocument>(
-			designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this)
-		)?.views?.containsKey("all") ?: false
+		return if (!allIsSystemView) { queryProvider.hasAllViewForCurrentEntity(datastoreInformation) } else { null }
+			?: client.get<DesignDocument>(
+				designDocumentProvider.currentOrAvailableDesignDocumentId(client, entityClass, this)
+			)?.views?.containsKey("all") ?: false
 	}
 
+	@UsesView(["all"])
 	override fun getEntityIds(datastoreInformation: IDatastoreInformation, limit: Int?): Flow<String> = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAllIds")
@@ -166,6 +188,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	@Suppress("UNCHECKED_CAST")
+	@UsesView(["all"])
 	override fun getEntities(datastoreInformation: IDatastoreInformation) = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAll")
@@ -830,6 +853,7 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.All -> {

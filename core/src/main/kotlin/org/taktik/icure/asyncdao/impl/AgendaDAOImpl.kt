@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
@@ -55,6 +56,7 @@ class AgendaDAOImpl(
 ),
 	AgendaDAO {
 	@View(name = "by_user", map = "classpath:js/agenda/By_user.js")
+	@UsesView(["by_user"])
 	override fun getAgendasByUser(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -70,6 +72,7 @@ class AgendaDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["by_user"])
 	override fun listAgendaIdsByUser(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -86,6 +89,7 @@ class AgendaDAOImpl(
 	}
 
 	@View(name = "readable_by_user", map = "classpath:js/agenda/Readable_by_user.js")
+	@UsesView(["readable_by_user"])
 	override fun getReadableAgendaByUserLegacy(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -101,6 +105,7 @@ class AgendaDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Agenda>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["readable_by_user"])
 	override fun listReadableAgendaByUserLegacy(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -117,6 +122,7 @@ class AgendaDAOImpl(
 	}
 
 	@View(name = "readable_by_user_rights", map = "classpath:js/agenda/Readable_by_user_rights.js", secondaryPartition = MAURICE_PARTITION)
+	@UsesView(["readable_by_user_rights"])
 	override fun listReadableAgendaIdsByUserRights(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -135,6 +141,7 @@ class AgendaDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
+	@UsesView(["by_typed_property"])
 	override fun listAgendasByTypedProperty(
 		datastoreInformation: IDatastoreInformation,
 		property: PropertyStub,
@@ -148,6 +155,7 @@ class AgendaDAOImpl(
 	}
 
 	@View(name = "by_typed_property", map = "classpath:js/agenda/By_typed_property.js", secondaryPartition = MAURICE_PARTITION)
+	@UsesView(["by_typed_property"])
 	override fun listAgendasIdsByTypedProperty(
 		datastoreInformation: IDatastoreInformation,
 		property: PropertyStub,
@@ -158,6 +166,7 @@ class AgendaDAOImpl(
 		).map { it.id })
 	}
 
+	@UsesView(["by_typed_property"])
 	private suspend fun viewQueryByTypedProperty(
 		datastoreInformation: IDatastoreInformation,
 		property: PropertyStub,
@@ -185,6 +194,7 @@ class AgendaDAOImpl(
 		).key(key).includeDocs(includeDocs)
 	}
 
+	@UsesView(["by_typed_property"])
 	override fun listAgendasWithProperty(
 		datastoreInformation: IDatastoreInformation,
 		propertyId: String,
@@ -205,12 +215,14 @@ class AgendaDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Agenda' && !doc.deleted && doc._conflicts) emit(doc._id)}",
 		secondaryPartition = MAURICE_PARTITION
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Agenda>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Agenda>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions

@@ -43,7 +43,8 @@ class RecoveryDataDAOImpl(
 	cacheChain = entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-	queryProvider = queryProvider
+	queryProvider = queryProvider,
+	allIsSystemView = true
 ), RecoveryDataDAO {
 
 	companion object {

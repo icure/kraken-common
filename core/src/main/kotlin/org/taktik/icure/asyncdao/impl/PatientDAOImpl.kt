@@ -28,6 +28,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -91,6 +92,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_ssin"])
 	override fun listPatientIdsByHcPartyAndSsin(
 		datastoreInformation: IDatastoreInformation,
 		ssin: String,
@@ -131,6 +133,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_active"])
 	override fun listPatientIdsByActive(
 		datastoreInformation: IDatastoreInformation,
 		active: Boolean,
@@ -150,6 +153,7 @@ class PatientDAOImpl(
 			secondaryPartition = MAURICE_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_tag"])
 	override fun listPatientIdsByDataOwnerTag(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -177,6 +181,7 @@ class PatientDAOImpl(
 	}
 
 	@View(name = "merged_by_date", map = "classpath:js/patient/Merged_by_date.js")
+	@UsesView(["merged_by_date"])
 	override fun listOfMergesAfter(datastoreInformation: IDatastoreInformation, date: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
@@ -187,6 +192,7 @@ class PatientDAOImpl(
 		emitAll(client.queryViewIncludeDocs<Long, String, Patient>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["by_all_delegates_ssin"])
 	override suspend fun countByHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -212,6 +218,7 @@ class PatientDAOImpl(
 		}
 	}
 
+	@UsesView(["of_hcparty_ssin"])
 	override suspend fun countOfHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Int {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
@@ -238,6 +245,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_date_of_birth"])
 	override fun listPatientIdsByHcParty(datastoreInformation: IDatastoreInformation, healthcarePartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -259,6 +267,7 @@ class PatientDAOImpl(
 		)
 	}
 
+	@UsesView(["by_all_delegates_date_of_birth"])
 	override fun listPatientIdsByHcPartyAndDateOfBirth(
 		datastoreInformation: IDatastoreInformation,
 		date: Int?,
@@ -283,6 +292,7 @@ class PatientDAOImpl(
 		)
 	}.distinctIf(searchKeys.size > 1)
 
+	@UsesView(["by_all_delegates_date_of_birth"])
 	override fun listPatientIdsByHcPartyAndDateOfBirth(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Int?,
@@ -319,6 +329,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_gender_education_profession"])
 	override fun listPatientIdsByHcPartyGenderEducationProfession(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -368,6 +379,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_contains_name"])
 	override fun listPatientIdsByHcPartyNameContainsFuzzy(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -434,6 +446,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_externalid"])
 	override fun listPatientIdsByHcPartyAndExternalId(
 		datastoreInformation: IDatastoreInformation,
 		externalId: String?,
@@ -482,6 +495,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_telecom"])
 	override fun listPatientIdsByHcPartyAndTelecom(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -529,6 +543,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_address"])
 	override fun listPatientIdsByHcPartyAndAddress(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -578,6 +593,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_address_postalcode_housenumber"])
 	override fun listPatientIdsByHcPartyAndAddress(
 		datastoreInformation: IDatastoreInformation,
 		streetAndCity: String?,
@@ -627,6 +643,7 @@ class PatientDAOImpl(
 		)
 	}
 
+	@UsesView(["by_all_delegates_name"])
 	override fun findPatientIdsByHcParty(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -663,6 +680,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_name"])
 	override fun findPatientsByHcPartyAndName(
 		datastoreInformation: IDatastoreInformation,
 		name: String?,
@@ -683,6 +701,7 @@ class PatientDAOImpl(
 	)
 
 	@View(name = "of_hcparty_name", map = "classpath:js/patient/Of_hcparty_name_map.js")
+	@UsesView(["of_hcparty_name"])
 	override fun findPatientsOfHcPartyAndName(
 		datastoreInformation: IDatastoreInformation,
 		name: String?,
@@ -699,6 +718,7 @@ class PatientDAOImpl(
 		configurationView = "of_hcparty_name",
 	)
 
+	@UsesView(["by_all_delegates_ssin"])
 	override fun findPatientsByHcPartyAndSsin(
 		datastoreInformation: IDatastoreInformation,
 		ssin: String?,
@@ -716,6 +736,7 @@ class PatientDAOImpl(
 	)
 
 	@View(name = "of_hcparty_ssin", map = "classpath:js/patient/Of_hcparty_ssin_map.js", reduce = "_count")
+	@UsesView(["of_hcparty_ssin"])
 	override fun findPatientsOfHcPartyAndSsin(
 		datastoreInformation: IDatastoreInformation,
 		ssin: String?,
@@ -732,6 +753,7 @@ class PatientDAOImpl(
 		configurationView = "of_hcparty_ssin",
 	)
 
+	@UsesView(["by_all_delegates_date_of_birth"])
 	override fun findPatientsByHcPartyDateOfBirth(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Int?,
@@ -751,6 +773,7 @@ class PatientDAOImpl(
 	)
 
 	@View(name = "of_hcparty_date_of_birth", map = "classpath:js/patient/Of_hcparty_date_of_birth_map.js")
+	@UsesView(["of_hcparty_date_of_birth"])
 	override fun findPatientsOfHcPartyDateOfBirth(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Int?,
@@ -769,6 +792,7 @@ class PatientDAOImpl(
 		configurationView = "of_hcparty_date_of_birth",
 	)
 
+	@UsesView(["by_all_delegates_contains_name"])
 	override fun findPatientsByHcPartyNameContainsFuzzy(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -786,6 +810,7 @@ class PatientDAOImpl(
 	)
 
 	@View(name = "of_hcparty_contains_name", map = "classpath:js/patient/Of_hcparty_contains_name_map.js")
+	@UsesView(["of_hcparty_contains_name"])
 	override fun findPatientsOfHcPartyNameContainsFuzzy(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -978,6 +1003,7 @@ class PatientDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_modification_date"])
 	override fun listPatientIdsByDataOwnerModificationDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1024,6 +1050,7 @@ class PatientDAOImpl(
 		name = "by_user_id",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc.userId) emit( doc.userId, doc._id )}",
 	)
+	@UsesView(["by_user_id"])
 	override suspend fun findPatientsByUserId(datastoreInformation: IDatastoreInformation, id: String): Patient? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -1043,6 +1070,7 @@ class PatientDAOImpl(
 		name = "by_external_id",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc.externalId) emit( doc.externalId, doc._id )}",
 	)
+	@UsesView(["by_external_id"])
 	override suspend fun getPatientByExternalId(
 		datastoreInformation: IDatastoreInformation,
 		externalId: String,
@@ -1065,6 +1093,7 @@ class PatientDAOImpl(
 			"    }\n" +
 			"}",
 	)
+	@UsesView(["deleted_by_delete_date"])
 	override fun findDeletedPatientsByDeleteDate(
 		datastoreInformation: IDatastoreInformation,
 		start: Long,
@@ -1086,6 +1115,7 @@ class PatientDAOImpl(
 	}
 
 	@View(name = "deleted_by_names", map = "classpath:js/patient/Deleted_by_names.js")
+	@UsesView(["deleted_by_names"])
 	override fun findDeletedPatientsByNames(
 		datastoreInformation: IDatastoreInformation,
 		firstName: String?,
@@ -1136,6 +1166,7 @@ class PatientDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Patient>(datastoreInformation, "conflicts", null)
 
@@ -1146,6 +1177,7 @@ class PatientDAOImpl(
 		name = "by_modification_date",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Patient' && doc.modified) emit(doc.modified)}",
 	)
+	@UsesView(["by_modification_date"])
 	override fun findPatientsModifiedAfter(
 		datastoreInformation: IDatastoreInformation,
 		date: Long,
@@ -1164,6 +1196,7 @@ class PatientDAOImpl(
 		emitAll(client.queryView<Long, Any, Patient>(viewQuery))
 	}
 
+	@UsesView(["by_all_delegates_ssin"])
 	override fun listPatientIdsByHcPartyAndSsins(
 		datastoreInformation: IDatastoreInformation,
 		ssins: Collection<String>,
@@ -1196,6 +1229,7 @@ class PatientDAOImpl(
 
 	@Deprecated("A Data Owner may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	@View(name = "by_hcparty_delegate_keys", map = "classpath:js/patient/By_hcparty_delegate_keys_map.js")
+	@UsesView(["by_hcparty_delegate_keys"])
 	override suspend fun getHcPartyKeysForDelegate(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -1223,6 +1257,7 @@ class PatientDAOImpl(
 
 	@SystemView
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/patient/By_delegate_aes_exchange_keys_map.js")
+	@UsesView(["by_delegate_aes_exchange_keys"])
 	override suspend fun getAesExchangeKeysForDelegate(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -1231,14 +1266,14 @@ class PatientDAOImpl(
 		return client.queryView<String, AesExchangeKeyViewValue>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
-				legacyView = "by_delegate_aes_exchange_keys".main(),
-				configurationView = "by_delegate_aes_exchange_keys"
+				viewName = "by_delegate_aes_exchange_keys",
 			)
 				.key(healthcarePartyId)
 				.includeDocs(false),
 		).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
+	@UsesView(["by_all_delegates_identifier"])
 	override fun listPatientsByHcPartyAndIdentifier(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1256,6 +1291,7 @@ class PatientDAOImpl(
 		emitAll(client.queryViewIncludeDocs<ComplexKey, Void, Patient>(queryView).map { it.doc })
 	}.distinctByIdIf(searchKeys.size > 1)
 
+	@UsesView(["by_all_delegates_ssin"])
 	override fun getDuplicatePatientsBySsin(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -1268,6 +1304,7 @@ class PatientDAOImpl(
 		paginationOffset = paginationOffset,
 	)
 
+	@UsesView(["by_all_delegates_name"])
 	override fun getDuplicatePatientsByName(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -1304,6 +1341,7 @@ class PatientDAOImpl(
 		map = "classpath:js/patient/By_data_owner_identifier_map.js",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
+	@UsesView(["by_all_delegates_identifier"])
 	override fun listPatientIdsByHcPartyAndIdentifiers(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1414,6 +1452,7 @@ class PatientDAOImpl(
 		emitAll(duplicatePatients)
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.DataOwner -> {

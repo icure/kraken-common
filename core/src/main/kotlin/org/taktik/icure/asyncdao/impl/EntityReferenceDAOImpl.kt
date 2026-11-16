@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -43,6 +44,7 @@ class EntityReferenceDAOImpl(
 	queryProvider = queryProvider
 ), EntityReferenceDAO {
 
+	@UsesView(["all"])
 	override suspend fun getLatest(datastoreInformation: IDatastoreInformation, prefix: String): EntityReference? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 

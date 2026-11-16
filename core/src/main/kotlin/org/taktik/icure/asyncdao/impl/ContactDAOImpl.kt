@@ -38,6 +38,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -109,6 +110,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_openingdate", map = "classpath:js/contact/By_hcparty_openingdate.js"),
 		View(name = "by_data_owner_openingdate", map = "classpath:js/contact/By_data_owner_openingdate.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_openingdate"])
 	override fun listContactsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -130,6 +132,7 @@ class ContactDAOImpl(
 		emitAll(client.interleave<ComplexKey, String, Contact>(viewQueries, compareBy({ it.components[0] as String }, { (it.components[1] as? Number)?.toLong() })))
 	}
 
+	@UsesView(["by_all_delegates_openingdate"])
 	override fun listContactIdsByOpeningDate(datastoreInformation: IDatastoreInformation, hcPartyId: String, startOpeningDate: Long?, endOpeningDate: Long?, descending: Boolean): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -173,6 +176,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty", map = "classpath:js/contact/By_hcparty.js"),
 		View(name = "by_data_owner", map = "classpath:js/contact/By_data_owner.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates"])
 	override fun findContactsByHcParty(datastoreInformation: IDatastoreInformation, hcPartyId: String, pagination: PaginationOffset<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createPagedQueries(
@@ -194,6 +198,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_identifier", map = "classpath:js/contact/By_hcparty_identifier.js"),
 		View(name = "by_data_owner_identifier", map = "classpath:js/contact/By_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_identifier"])
 	override fun listContactIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -227,6 +232,7 @@ class ContactDAOImpl(
 		emitAll(client.getForPagination(contactIds, Contact::class.java))
 	}
 
+	@UsesView(["by_all_delegates"])
 	override fun listContactIdsByHealthcareParty(datastoreInformation: IDatastoreInformation, hcPartyId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -251,6 +257,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
 		View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listContactsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -275,6 +282,7 @@ class ContactDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_hcparty_patientfk_openingdate", map = "classpath:js/contact/By_hcparty_patientfk_openingdate_map.js", secondaryPartition = MAURICE_PARTITION)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listContactIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -297,6 +305,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_patientfk", map = "classpath:js/contact/By_hcparty_patientfk_map.js"),
 		View(name = "by_data_owner_patientfk", map = "classpath:js/contact/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listContactIdsByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -319,6 +328,7 @@ class ContactDAOImpl(
 		)
 	}.distinct()
 
+	@UsesView(["by_all_delegates_formid"])
 	private suspend fun createQueriesForSearchKeysAndFormIds(
 		datastoreInformation: IDatastoreInformation,
 		formIds: List<String>,
@@ -340,6 +350,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_formid", map = "classpath:js/contact/By_hcparty_formid_map.js"),
 		View(name = "by_data_owner_formid", map = "classpath:js/contact/By_data_owner_formid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_formid"])
 	override fun listContactsByHcPartyAndFormId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, formId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -352,6 +363,7 @@ class ContactDAOImpl(
 		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
+	@UsesView(["by_all_delegates_formid"])
 	override fun listContactsByHcPartyAndFormIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, ids: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -362,6 +374,7 @@ class ContactDAOImpl(
 		emitAll(relink(getContacts(datastoreInformation, result)))
 	}
 
+	@UsesView(["by_all_delegates_formid"])
 	override fun listContactIdsByDataOwnerAndFormIds(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -382,6 +395,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_serviceid", map = "classpath:js/contact/By_hcparty_serviceid_map.js"),
 		View(name = "by_data_owner_serviceid", map = "classpath:js/contact/By_data_owner_serviceid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_serviceid"])
 	override fun listContactsByHcPartyAndServiceId(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, serviceId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -402,6 +416,7 @@ class ContactDAOImpl(
 		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
+	@UsesView(["by_all_delegates_serviceid"])
 	override fun findContactsByHcPartyServiceId(datastoreInformation: IDatastoreInformation, hcPartyId: String, serviceId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -423,6 +438,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_linked_id", map = "classpath:js/contact/Service_by_linked_id.js", secondaryPartition = MAURICE_PARTITION)
+	@UsesView(["service_by_linked_id"])
 	override fun findServiceIdsByIdQualifiedLink(datastoreInformation: IDatastoreInformation, linkValues: List<String>, linkQualification: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
@@ -440,6 +456,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
+	@UsesView(["service_by_association_id"])
 	override fun listServiceIdsByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
@@ -460,6 +477,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty", map = "classpath:js/contact/Service_by_hcparty_map.js"),
 		View(name = "service_by_data_owner", map = "classpath:js/contact/Service_by_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates"])
 	override fun listServiceIdsByHcParty(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
@@ -480,6 +498,7 @@ class ContactDAOImpl(
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "service_by_association_id", map = "classpath:js/contact/Service_by_association_id.js")
+	@UsesView(["service_by_association_id"])
 	override fun listServicesByAssociationId(datastoreInformation: IDatastoreInformation, associationId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
@@ -541,6 +560,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty_tag", map = "classpath:js/contact/Service_by_hcparty_tag.js"),
 		View(name = "service_by_data_owner_tag", map = "classpath:js/contact/Service_by_data_owner_tag.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates_tag"])
 	override fun listServiceIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -574,6 +594,7 @@ class ContactDAOImpl(
 		)
 	}
 
+	@UsesView(["service_by_all_delegates_tag"])
 	override fun listContactIdsByServiceTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -608,6 +629,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty_patient_tag", map = "classpath:js/contact/Service_by_hcparty_patient_tag.js"),
 		View(name = "service_by_data_owner_patient_tag", map = "classpath:js/contact/Service_by_data_owner_patient_tag.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates_patient_tag"])
 	override fun listServiceIdsByPatientAndTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, patientSecretForeignKeys: List<String>, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -666,6 +688,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty_code", map = "classpath:js/contact/Service_by_hcparty_code.js", reduce = "_count"),
 		View(name = "service_by_data_owner_code", map = "classpath:js/contact/Service_by_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates_code"])
 	override fun listServiceIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -699,6 +722,7 @@ class ContactDAOImpl(
 		)
 	}
 
+	@UsesView(["service_by_all_delegates_code"])
 	override fun listContactIdsByServiceCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String, codeCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -732,6 +756,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_tag", map = "classpath:js/contact/By_hcparty_tag.js", reduce = "_count"),
 		View(name = "by_data_owner_tag", map = "classpath:js/contact/By_data_owner_tag.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_tag"])
 	override fun listContactIdsByTag(datastoreInformation: IDatastoreInformation, hcPartyId: String, tagType: String?, tagCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -789,6 +814,7 @@ class ContactDAOImpl(
 		View(name = "service_id_by_hcparty_helements", map = "classpath:js/contact/Service_id_by_hcparty_helement_ids.js"),
 		View(name = "service_id_by_data_owner_helements", map = "classpath:js/contact/Service_id_by_data_owner_helement_ids.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_id_by_all_delegates_helement_ids"])
 	override fun listServiceIdsByHcPartyHealthElementIds(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, healthElementIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
@@ -820,6 +846,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty_identifier", map = "classpath:js/contact/Service_by_hcparty_identifier.js"),
 		View(name = "service_by_data_owner_identifier", map = "classpath:js/contact/Service_by_data_owner_identifier.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates_identifier"])
 	override fun listServiceIdsByHcPartyAndIdentifiers(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, identifiers: List<Identifier>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -849,6 +876,7 @@ class ContactDAOImpl(
 		View(name = "by_hcparty_code", map = "classpath:js/contact/By_hcparty_code.js", reduce = "_count"),
 		View(name = "by_data_owner_code", map = "classpath:js/contact/By_data_owner_code.js", reduce = "_count", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_code"])
 	override fun listContactIdsByCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -895,6 +923,7 @@ class ContactDAOImpl(
 		)
 	}
 
+	@UsesView(["service_by_all_delegates_code"])
 	override fun listCodesFrequencies(datastoreInformation: IDatastoreInformation, hcPartyId: String, codeType: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -925,6 +954,7 @@ class ContactDAOImpl(
 		View(name = "service_by_hcparty_patient_code", map = "classpath:js/contact/Service_by_hcparty_patient_code.js"),
 		View(name = "service_by_data_owner_patient_code", map = "classpath:js/contact/Service_by_data_owner_patient_code.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["service_by_all_delegates_patient_code"])
 	override fun listServicesIdsByPatientAndCode(datastoreInformation: IDatastoreInformation, hcPartyId: String, patientSecretForeignKeys: List<String>, codeType: String?, codeCode: String?, startValueDate: Long?, endValueDate: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -979,6 +1009,7 @@ class ContactDAOImpl(
 		emitAll(idFlows.asFlow().flattenConcat().distinct())
 	}
 
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listServiceIdsByDataOwnerPatientDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1042,6 +1073,7 @@ class ContactDAOImpl(
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listServicesIdsByPatientForeignKeys(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, patientSecretForeignKeys: Set<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -1069,6 +1101,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "by_service_emit_modified", map = "classpath:js/contact/By_service_emit_modified.js")
+	@UsesView(["by_service_emit_modified"])
 	override fun listIdsByServices(datastoreInformation: IDatastoreInformation, services: Collection<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -1080,6 +1113,7 @@ class ContactDAOImpl(
 		emitAll(client.queryView<String, ContactIdServiceId>(viewQuery).mapNotNull { it.value })
 	}
 
+	@UsesView(["by_service_emit_modified"])
 	override fun listContactsByServices(
 		datastoreInformation: IDatastoreInformation,
 		services: Collection<String>
@@ -1102,6 +1136,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "by_externalid", map = "classpath:js/contact/By_externalid.js")
+	@UsesView(["by_externalid"])
 	override fun findContactsByExternalId(datastoreInformation: IDatastoreInformation, externalId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -1114,6 +1149,7 @@ class ContactDAOImpl(
 		emitAll(client.queryViewIncludeDocs<String, String, Contact>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["by_externalid"])
 	override fun listContactIdsByExternalId(
 		datastoreInformation: IDatastoreInformation,
 		externalId: String,
@@ -1134,6 +1170,7 @@ class ContactDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Contact' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Contact>(datastoreInformation, "conflicts", null)
 
@@ -1141,6 +1178,7 @@ class ContactDAOImpl(
 		doListIdsOfEntitiesWithConflicts<Contact>(datastoreInformation, "conflicts", null)
 
 	@View(name = "service_by_data_owner_patient_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_patient_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_patient_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerPatientTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1163,6 +1201,7 @@ class ContactDAOImpl(
 		)
 
 	@View(name = "service_by_data_owner_patient_code_prefix", map = "classpath:js/contact/Service_by_data_owner_patient_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_patient_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerPatientCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1238,6 +1277,7 @@ class ContactDAOImpl(
 		))
 	}
 
+	@UsesView(["service_by_all_delegates_patient_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerPatientTagCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1256,6 +1296,7 @@ class ContactDAOImpl(
 		configurationView = "service_by_all_delegates_patient_tag_prefix",
 	)
 
+	@UsesView(["service_by_all_delegates_patient_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerPatientCodeCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1307,6 +1348,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_data_owner_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1326,6 +1368,7 @@ class ContactDAOImpl(
 	)
 
 	@View(name = "service_by_data_owner_code_prefix", map = "classpath:js/contact/Service_by_data_owner_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1387,6 +1430,7 @@ class ContactDAOImpl(
 		)
 	}
 
+	@UsesView(["service_by_all_delegates_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerTagCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1403,6 +1447,7 @@ class ContactDAOImpl(
 		configurationView = "service_by_all_delegates_tag_prefix",
 	)
 
+	@UsesView(["service_by_all_delegates_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerCodeCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1449,6 +1494,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "service_by_data_owner_month_tag_prefix", map = "classpath:js/contact/Service_by_data_owner_month_tag_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_month_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerValueDateMonthTagCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1472,6 +1518,7 @@ class ContactDAOImpl(
 	)
 
 	@View(name = "service_by_data_owner_month_code_prefix", map = "classpath:js/contact/Service_by_data_owner_month_code_prefix.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["service_by_all_delegates_month_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodePrefix(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1494,6 +1541,7 @@ class ContactDAOImpl(
 		configurationView = "service_by_all_delegates_month_code_prefix",
 	)
 
+	@UsesView(["service_by_all_delegates_month_tag_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerValueDateMonthTagCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1514,6 +1562,7 @@ class ContactDAOImpl(
 		configurationView = "service_by_all_delegates_month_tag_prefix",
 	)
 
+	@UsesView(["service_by_all_delegates_month_code_prefix", "by_service_latest"])
 	override fun listServiceIdsByDataOwnerValueDateMonthCodeCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -1659,6 +1708,7 @@ class ContactDAOImpl(
 	}
 
 	@View(name = "by_service_latest", map = "classpath:js/contact/By_service_latest.js", reduce = "classpath:js/contact/By_service_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_service_latest"])
 	private fun filterLatestServices(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
@@ -1690,6 +1740,7 @@ class ContactDAOImpl(
 		}
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_serviceid" to DATA_OWNER_PARTITION)

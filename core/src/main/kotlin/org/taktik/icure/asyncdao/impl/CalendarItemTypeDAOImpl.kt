@@ -15,6 +15,7 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
 import org.taktik.icure.asyncdao.CalendarItemTypeDAO
@@ -58,6 +59,7 @@ class CalendarItemTypeDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && doc.agendaId && !doc.deleted) emit( doc.agendaId , null )}",
 		secondaryPartition = MAURICE_PARTITION,
 	)
+	@UsesView(["by_agenda_id"])
 	override fun listCalendarItemTypesByAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		agendaId: String,
@@ -76,6 +78,7 @@ class CalendarItemTypeDAOImpl(
 		name = "all_and_deleted",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType') emit( doc._id , null )}",
 	)
+	@UsesView(["all_and_deleted"])
 	override fun getCalendarItemsWithDeleted(
 		datastoreInformation: IDatastoreInformation,
 		offset: PaginationOffset<String>,
@@ -94,6 +97,7 @@ class CalendarItemTypeDAOImpl(
 		emitAll(client.queryView<String, String, CalendarItemType>(viewQuery))
 	}
 
+	@UsesView(["all_and_deleted"])
 	override fun getCalendarItemsWithDeleted(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -112,12 +116,14 @@ class CalendarItemTypeDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItemType' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<CalendarItemType>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<CalendarItemType>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

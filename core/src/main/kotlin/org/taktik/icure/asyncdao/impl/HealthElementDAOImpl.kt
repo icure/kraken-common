@@ -24,6 +24,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -74,6 +75,7 @@ internal class HealthElementDAOImpl(
 		View(name = "by_hcparty", map = "classpath:js/healthelement/By_hcparty_map.js"),
 		View(name = "by_data_owner", map = "classpath:js/healthelement/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates"])
 	override fun listHealthElementIdsByHcParty(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -108,6 +110,7 @@ internal class HealthElementDAOImpl(
 		}
 	}
 
+	@UsesView(["by_all_delegates_patient"])
 	override fun listHealthElementIdsByHcPartyAndSecretPatientKeys(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -192,6 +195,7 @@ internal class HealthElementDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_code_map"])
 	override fun listHealthElementIdsByHcPartyAndCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -220,6 +224,7 @@ internal class HealthElementDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_tag_map"])
 	override fun listHealthElementIdsByHcPartyAndTags(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -248,6 +253,7 @@ internal class HealthElementDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_status"])
 	override fun listHealthElementIdsByHcPartyAndStatus(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -296,6 +302,7 @@ internal class HealthElementDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_identifiers"])
 	override fun listHealthElementsIdsByHcPartyAndIdentifiers(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -348,6 +355,7 @@ internal class HealthElementDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_patient"])
 	override fun listHealthElementsByHCPartyAndSecretPatientKeys(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -378,6 +386,7 @@ internal class HealthElementDAOImpl(
 		)
 	}
 
+	@UsesView(["by_all_delegates_patient"])
 	override fun listHealthElementIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -401,6 +410,7 @@ internal class HealthElementDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthElement' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<HealthElement>(datastoreInformation, "conflicts", null)
 
@@ -415,6 +425,7 @@ internal class HealthElementDAOImpl(
 		emitAll(client.getForPagination(healthElementIds, HealthElement::class.java))
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,
@@ -432,6 +443,7 @@ internal class HealthElementDAOImpl(
 		View(name = "by_all_delegates_code_map", map = "classpath:js/healthelement/By_all_delegates_code_map.js", secondaryPartition = BEPPE_PARTITION)
 	)
 
+	@UsesView(["by_all_delegates_code_date_map", "by_all_delegates_code_map", "by_health_element_id_latest"])
 	override fun listHealthElementIdsByHcPartyAndCodesAndValueDateAndVersioning(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -465,6 +477,7 @@ internal class HealthElementDAOImpl(
 		View(name = "by_all_delegates_tag_date_map", map = "classpath:js/healthelement/By_all_delegates_tag_date_map.js", secondaryPartition = BEPPE_PARTITION),
 		View(name = "by_all_delegates_tag_map", map = "classpath:js/healthelement/By_all_delegates_tag_map.js", secondaryPartition = BEPPE_PARTITION)
 	)
+	@UsesView(["by_all_delegates_tag_date_map", "by_all_delegates_tag_map", "by_health_element_id_latest"])
 	override fun listHealthElementIdsByHcPartyAndTagsAndValueDateAndVersioning(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -586,6 +599,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_all_delegates_status", map = "classpath:js/healthelement/By_all_delegates_status_map.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_all_delegates_status", "by_health_element_id_latest"])
 	override fun listHealthElementIdsByHcPartyAndStatusAndVersioning(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -615,6 +629,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_all_delegates_identifiers", map = "classpath:js/healthelement/By_all_delegates_identifiers_map.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_all_delegates_identifiers", "by_health_element_id_latest"])
 	override fun listHealthElementsIdsByHcPartyAndIdentifiersAndVersioning(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -648,6 +663,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_linked_health_element_id", map = "classpath:js/healthelement/By_linked_health_element_id_map.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_linked_health_element_id"])
 	override fun listHealthElementIdsByQualifiedLink(
 		datastoreInformation: IDatastoreInformation,
 		linkedIds: List<String>,
@@ -670,6 +686,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_association_id", map = "classpath:js/healthelement/By_association_id_map.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_association_id"])
 	override fun listHealthElementIdsByAssociationId(
 		datastoreInformation: IDatastoreInformation,
 		associationId: String,
@@ -688,6 +705,7 @@ internal class HealthElementDAOImpl(
 		)
 	}
 
+	@UsesView(["by_health_element_id_latest"])
 	private suspend fun FlowCollector<String>.emitFilteringVersions(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
@@ -699,6 +717,7 @@ internal class HealthElementDAOImpl(
 	}
 
 	@View(name = "by_health_element_id_latest", map = "classpath:js/healthelement/By_health_element_id_latest_map.js", reduce = "classpath:js/healthelement/By_health_element_id_latest_reduce.js", secondaryPartition = BEPPE_PARTITION)
+	@UsesView(["by_health_element_id_latest"])
 	private suspend fun FlowCollector<String>.emitLatestHealthElements(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,

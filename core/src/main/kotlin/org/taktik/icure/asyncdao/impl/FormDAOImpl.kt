@@ -18,6 +18,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -69,6 +70,7 @@ internal class FormDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listFormsByHcPartyPatient(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -103,6 +105,7 @@ internal class FormDAOImpl(
 		map = "classpath:js/form/By_hcparty_patientfk_date_map.js",
 		secondaryPartition = MAURICE_PARTITION,
 	)
+	@UsesView(["by_all_delegates_patientfk"])
 	override fun listFormIdsByDataOwnerPatientOpeningDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -125,6 +128,7 @@ internal class FormDAOImpl(
 		View(name = "by_hcparty_parentId", map = "classpath:js/form/By_hcparty_parent_id.js"),
 		View(name = "by_data_owner_parentId", map = "classpath:js/form/By_data_owner_parent_id.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
+	@UsesView(["by_all_delegates_parent_id"])
 	override fun listFormsByHcPartyAndParentId(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -153,6 +157,7 @@ internal class FormDAOImpl(
 		)
 	}.distinctByIdIf(searchKeys.size > 1)
 
+	@UsesView(["by_all_delegates_parent_id"])
 	override fun listFormIdsByDataOwnerAndParentId(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -180,6 +185,7 @@ internal class FormDAOImpl(
 		)
 	}.distinct()
 
+	@UsesView(["all"])
 	override fun findForms(
 		datastoreInformation: IDatastoreInformation,
 		pagination: PaginationOffset<String>,
@@ -202,6 +208,7 @@ internal class FormDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Form' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Form>(datastoreInformation, "conflicts", null)
 
@@ -215,6 +222,7 @@ internal class FormDAOImpl(
 		),
 		View(name = "by_logical_uuid_created", map = "classpath:js/form/By_logical_uuid_created.js", secondaryPartition = MAURICE_PARTITION),
 	)
+	@UsesView(["by_logical_uuid_created"])
 	override fun listFormsByLogicalUuid(
 		datastoreInformation: IDatastoreInformation,
 		formUuid: String,
@@ -236,6 +244,7 @@ internal class FormDAOImpl(
 		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Form>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["by_logical_uuid_created"])
 	override fun listFormIdsByLogicalUuid(
 		datastoreInformation: IDatastoreInformation,
 		formUuid: String,
@@ -264,6 +273,7 @@ internal class FormDAOImpl(
 		),
 		View(name = "by_unique_id_created", map = "classpath:js/form/By_unique_id_created.js", secondaryPartition = MAURICE_PARTITION),
 	)
+	@UsesView(["by_unique_id_created"])
 	override fun listFormsByUniqueId(
 		datastoreInformation: IDatastoreInformation,
 		externalUuid: String,
@@ -285,6 +295,7 @@ internal class FormDAOImpl(
 		emitAll(client.queryViewIncludeDocs<ComplexKey, String, Form>(viewQuery).map { it.doc })
 	}
 
+	@UsesView(["by_unique_id_created"])
 	override fun listFormIdsByUniqueId(
 		datastoreInformation: IDatastoreInformation,
 		externalUuid: String,
@@ -306,6 +317,7 @@ internal class FormDAOImpl(
 		emitAll(client.queryView<ComplexKey, String>(viewQuery).map { it.id })
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

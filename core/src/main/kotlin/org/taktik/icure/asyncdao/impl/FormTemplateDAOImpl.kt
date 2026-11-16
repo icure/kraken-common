@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -55,6 +56,7 @@ internal class FormTemplateDAOImpl(
 ), FormTemplateDAO {
 
 	@View(name = "by_userId_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FormTemplate' && !doc.deleted && doc.author) emit([doc.author,doc.guid], null )}")
+	@UsesView(["by_userId_and_guid"])
 	override fun listFormTemplatesByUserGuid(datastoreInformation: IDatastoreInformation, userId: String, guid: String?, loadLayout: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -81,6 +83,7 @@ internal class FormTemplateDAOImpl(
 	}
 
 	@View(name = "by_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FormTemplate' && !doc.deleted) emit(doc.guid, null )}")
+	@UsesView(["by_guid"])
 	override fun listFormsByGuid(datastoreInformation: IDatastoreInformation, guid: String, loadLayout: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -104,6 +107,7 @@ internal class FormTemplateDAOImpl(
 	}
 
 	@View(name = "by_specialty_code_and_guid", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.FormTemplate' && !doc.deleted && doc.specialty) emit([doc.specialty.code,doc.guid], null )}")
+	@UsesView(["by_specialty_code_and_guid"])
 	override fun listFormsBySpecialtyAndGuid(datastoreInformation: IDatastoreInformation, specialityCode: String, guid: String?, loadLayout: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -139,6 +143,7 @@ internal class FormTemplateDAOImpl(
 		)
 	}
 
+	@UsesView(["by_specialty_code_and_guid"])
 	override fun listFormTemplateIdsBySpecialty(datastoreInformation: IDatastoreInformation, specialtyCode: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 

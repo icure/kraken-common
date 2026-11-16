@@ -19,6 +19,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -69,6 +70,7 @@ class DocumentDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Document>(datastoreInformation, "conflicts", null)
 
@@ -84,6 +86,7 @@ class DocumentDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_message"])
 	override fun listDocumentsByHcPartyAndSecretMessageKeys(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -117,6 +120,7 @@ class DocumentDAOImpl(
 		map = "classpath:js/document/By_hcparty_message_date_map.js",
 		secondaryPartition = MAURICE_PARTITION,
 	)
+	@UsesView(["by_all_delegates_message"])
 	override fun listDocumentIdsByDataOwnerPatientCreated(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -139,6 +143,7 @@ class DocumentDAOImpl(
 		name = "without_delegations",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && (!doc.delegations || Object.keys(doc.delegations).length === 0)) emit(doc._id )}",
 	)
+	@UsesView(["without_delegations"])
 	override fun listDocumentsWithNoDelegations(
 		datastoreInformation: IDatastoreInformation,
 		limit: Int,
@@ -161,6 +166,7 @@ class DocumentDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_document_type_delegate_message"])
 	override fun listDocumentsByDocumentTypeHcPartySecretMessageKeys(
 		datastoreInformation: IDatastoreInformation,
 		documentTypeCode: String,
@@ -195,6 +201,7 @@ class DocumentDAOImpl(
 		)
 	}.distinctById()
 
+	@UsesView(["by_all_delegates_message"])
 	override fun listDocumentIdsByDocumentTypeHcPartySecretMessageKeys(
 		datastoreInformation: IDatastoreInformation,
 		documentTypeCode: String,
@@ -232,6 +239,7 @@ class DocumentDAOImpl(
 		name = "by_externalUuid",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Document' && !doc.deleted && doc.externalUuid) emit( doc.externalUuid, doc._id )}",
 	)
+	@UsesView(["by_external_uuid"])
 	override suspend fun listDocumentsByExternalUuid(
 		datastoreInformation: IDatastoreInformation,
 		externalUuid: String,
@@ -295,6 +303,7 @@ class DocumentDAOImpl(
 		map = "classpath:js/document/By_data_owner_tag_map.js",
 		secondaryPartition = BEPPE_PARTITION,
 	)
+	@UsesView(["by_all_delegates_tag"])
 	override fun listDocumentIdsByDataOwnerTags(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -326,6 +335,7 @@ class DocumentDAOImpl(
 		map = "classpath:js/document/By_data_owner_code_map.js",
 		secondaryPartition = BEPPE_PARTITION,
 	)
+	@UsesView(["by_all_delegates_code"])
 	override fun listDocumentIdsByDataOwnerCodes(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -352,6 +362,7 @@ class DocumentDAOImpl(
 		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

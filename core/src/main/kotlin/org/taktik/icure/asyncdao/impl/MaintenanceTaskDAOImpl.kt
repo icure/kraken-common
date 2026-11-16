@@ -18,6 +18,7 @@ import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -67,6 +68,7 @@ class MaintenanceTaskDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_identifier"])
 	override fun listMaintenanceTaskIdsByHcPartyAndIdentifier(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -112,6 +114,7 @@ class MaintenanceTaskDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_date"])
 	override fun listMaintenanceTaskIdsAfterDate(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -147,6 +150,7 @@ class MaintenanceTaskDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
+	@UsesView(["by_all_delegates_type"])
 	override fun listMaintenanceTaskIdsByHcPartyAndType(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -193,6 +197,7 @@ class MaintenanceTaskDAOImpl(
 		emitAll(client.getForPagination(maintenanceTasksId, MaintenanceTask::class.java))
 	}
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

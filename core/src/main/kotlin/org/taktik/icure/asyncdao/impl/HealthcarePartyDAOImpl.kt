@@ -20,6 +20,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
+import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -62,6 +63,7 @@ internal class HealthcarePartyDAOImpl(
 ),
 	HealthcarePartyDAO {
 
+	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_public" to MAURICE_PARTITION)
@@ -70,6 +72,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_public", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.public ? true : false, null)}", secondaryPartition = MAURICE_PARTITION)
+	@UsesView(["by_public"])
 	override fun listHealthcarePartiesByPublic(
 		datastoreInformation: IDatastoreInformation,
 		public: Boolean,
@@ -87,6 +90,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_nihii", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.nihii.substr(0,8), doc._id )}")
+	@UsesView(["by_nihii"])
 	override fun listHealthcarePartiesByNihii(datastoreInformation: IDatastoreInformation, nihii: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -107,6 +111,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_ssin", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.ssin, doc._id )}")
+	@UsesView(["by_ssin"])
 	override fun listHealthcarePartiesBySsin(datastoreInformation: IDatastoreInformation, ssin: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -122,6 +127,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_speciality_postcode", map = "classpath:js/healthcareparty/By_speciality_postcode.js")
+	@UsesView(["by_speciality_postcode"])
 	override fun listHealthcarePartiesBySpecialityAndPostcode(datastoreInformation: IDatastoreInformation, type: String, spec: String, firstCode: String, lastCode: String, offset: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -137,6 +143,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<ComplexKey, String, HealthcareParty>(viewQuery))
 	}
 
+	@UsesView(["by_speciality_postcode"])
 	override fun listHealthcarePartyIdsBySpecialityAndPostcode(
 		datastoreInformation: IDatastoreInformation,
 		type: String,
@@ -160,6 +167,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "allForPagination", map = "classpath:js/healthcareparty/All_for_pagination.js")
+	@UsesView(["all"])
 	override fun findHealthCareParties(datastoreInformation: IDatastoreInformation, pagination: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -183,6 +191,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_name", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit(doc.name, doc._id )}")
+	@UsesView(["by_name"])
 	override fun listHealthcarePartiesByName(datastoreInformation: IDatastoreInformation, name: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -198,6 +207,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_ssin_or_nihii", map = "classpath:js/healthcareparty/By_ssin_or_nihii.js")
+	@UsesView(["by_ssin_or_nihii"])
 	override fun findHealthcarePartiesBySsinOrNihii(datastoreInformation: IDatastoreInformation, searchValue: String?, offset: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -217,6 +227,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<String, String, HealthcareParty>(viewQuery))
 	}
 
+	@UsesView(["by_ssin_or_nihii"])
 	override fun listHealthcarePartyIdsBySsinOrNihii(
 		datastoreInformation: IDatastoreInformation,
 		searchValue: String?,
@@ -241,6 +252,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_hcParty_name", map = "classpath:js/healthcareparty/By_hcparty_name_map.js")
+	@UsesView(["by_hcparty_name"])
 	override fun findHealthcarePartiesByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, offset: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -266,6 +278,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView(viewQuery, String::class.java, String::class.java, HealthcareParty::class.java))
 	}
 
+	@UsesView(["by_hcparty_name"])
 	override fun listHealthcareParties(datastoreInformation: IDatastoreInformation, searchString: String, offset: Int, limit: Int) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val r = sanitizeString(searchString)
@@ -287,6 +300,7 @@ internal class HealthcarePartyDAOImpl(
 	@SystemView
 	@Deprecated("A HCP may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	@View(name = "by_hcparty_delegate_keys", map = "classpath:js/healthcareparty/By_hcparty_delegate_keys_map.js")
+	@UsesView(["by_hcparty_delegate_keys"])
 	override suspend fun getHcPartyKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, String> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -294,8 +308,7 @@ internal class HealthcarePartyDAOImpl(
 		val result = client.queryView<String, List<String>>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
-				legacyView = "by_hcparty_delegate_keys".main(),
-				configurationView = "by_hcparty_delegate_keys",
+				viewName = "by_hcparty_delegate_keys",
 			).key(healthcarePartyId).includeDocs(false),
 		).mapNotNull { it.value }
 
@@ -308,13 +321,13 @@ internal class HealthcarePartyDAOImpl(
 
 	@SystemView
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/healthcareparty/By_delegate_aes_exchange_keys_map.js")
+	@UsesView(["by_delegate_aes_exchange_keys"])
 	override suspend fun getAesExchangeKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, Map<String, Map<String, String>>> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return client.queryView<String, AesExchangeKeyViewValue>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
-				legacyView = "by_delegate_aes_exchange_keys".main(),
-				configurationView = "by_delegate_aes_exchange_keys",
+				viewName = "by_delegate_aes_exchange_keys",
 			)
 				.key(healthcarePartyId)
 				.includeDocs(false),
@@ -322,6 +335,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
+	@UsesView(["by_parent"])
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -336,6 +350,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 	}
 
+	@UsesView(["by_parent"])
 	override fun listHealthcarePartyIdsByParentId(
 		datastoreInformation: IDatastoreInformation,
 		parentId: String,
@@ -359,6 +374,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_identifiers", map = "classpath:js/healthcareparty/By_identifier.js")
+	@UsesView(["by_identifier"])
 	override fun listHealthcarePartyIdsByIdentifiers(datastoreInformation: IDatastoreInformation, hcpIdentifiers: List<Identifier>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -386,6 +402,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_codes", map = "classpath:js/healthcareparty/By_codes.js")
+	@UsesView(["by_codes"])
 	override fun listHealthcarePartyIdsByCode(datastoreInformation: IDatastoreInformation, codeType: String, codeCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -411,6 +428,7 @@ internal class HealthcarePartyDAOImpl(
 	}
 
 	@View(name = "by_tags", map = "classpath:js/healthcareparty/By_tags.js")
+	@UsesView(["by_tags"])
 	override fun listHealthcarePartyIdsByTag(datastoreInformation: IDatastoreInformation, tagType: String, tagCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -435,6 +453,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.value })
 	}
 
+	@UsesView(["by_hcparty_name"])
 	override fun listHealthcarePartyIdsByName(datastoreInformation: IDatastoreInformation, name: String, desc: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -461,6 +480,7 @@ internal class HealthcarePartyDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
+	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<HealthcareParty>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 

@@ -39,7 +39,8 @@ class SecureDelegationKeyMapDAOImpl(
 	cacheChain = entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-	queryProvider = queryProvider
+	queryProvider = queryProvider,
+	allIsSystemView = true
 ), SecureDelegationKeyMapDAO {
 
 	@SystemView
