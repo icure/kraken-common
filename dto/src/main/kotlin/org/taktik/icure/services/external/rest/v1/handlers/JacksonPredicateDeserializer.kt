@@ -4,33 +4,20 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
-import com.google.common.base.Preconditions
-import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.scanners.TypeAnnotationsScanner
 import org.springframework.boot.jackson.JsonObjectDeserializer
-import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.handlers.JsonDiscriminator
-import org.taktik.icure.handlers.JsonPolymorphismRoot
+import org.taktik.icure.handlers.scanPolymorphicSubclasses
 import org.taktik.icure.services.external.rest.v1.dto.filter.predicate.Predicate
-import java.lang.reflect.Modifier
 
 class JacksonPredicateDeserializer : JsonObjectDeserializer<Predicate>() {
-	private val discriminator = Predicate::class.java.getAnnotation(JsonDiscriminator::class.java)?.value ?: "\$type"
-	private val subclasses: MutableMap<String, Class<Predicate>> = HashMap()
-	private val reverseSubclasses: MutableMap<Class<*>, String> = HashMap()
-	private val scanner = Reflections(Predicate::class.java, TypeAnnotationsScanner(), SubTypesScanner())
+	companion object {
+		private val discriminator = Predicate::class.java.getAnnotation(JsonDiscriminator::class.java)?.value ?: "\$type"
 
-	init {
-		Preconditions.checkArgument(Modifier.isAbstract(Predicate::class.java.modifiers), "Superclass must be abstract")
-		val classes = scanner.getTypesAnnotatedWith(JsonPolymorphismRoot::class.java).filter { Predicate::class.java.isAssignableFrom(it) }
-		for (subClass in classes) {
-			val discriminated = subClass.getAnnotation(JsonDiscriminated::class.java)
-			val discriminatedString = discriminated?.value ?: subClass.simpleName
-			subclasses[discriminatedString] = subClass as Class<Predicate>
-			reverseSubclasses[subClass] = discriminatedString
-		}
+		// Classpath scan: done once per class, not per deserializer instance.
+		private val subclasses: Map<String, Class<Predicate>> = scanPolymorphicSubclasses(Predicate::class.java, requireAbstractRoot = true)
 	}
+
+	override fun isCachable(): Boolean = true
 
 	override fun deserializeObject(
 		jsonParser: JsonParser?,
