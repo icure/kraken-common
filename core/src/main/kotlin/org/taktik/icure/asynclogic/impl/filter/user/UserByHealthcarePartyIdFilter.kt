@@ -16,7 +16,6 @@ class UserByHealthcarePartyIdFilter(
 	private val userDAO: UserDAO,
 ) : Filter<String, User, UserByHealthcarePartyIdFilter> {
 	override val entity get() = userDAO.entityClass
-	override val views = listOf("by_hcp_id")
 
 	override fun resolve(
 		filter: UserByHealthcarePartyIdFilter,

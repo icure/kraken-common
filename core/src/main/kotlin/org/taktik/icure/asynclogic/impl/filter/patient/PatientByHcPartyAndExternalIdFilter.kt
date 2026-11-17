@@ -24,7 +24,6 @@ class PatientByHcPartyAndExternalIdFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndExternalIdFilter> {
 	override val entity get() = patientDAO.entityClass
-	override val views = listOf("by_all_delegates_externalid")
 
 	override fun resolve(
 		filter: PatientByHcPartyAndExternalIdFilter,

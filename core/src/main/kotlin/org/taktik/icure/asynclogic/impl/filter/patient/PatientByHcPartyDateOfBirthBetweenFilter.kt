@@ -24,7 +24,6 @@ class PatientByHcPartyDateOfBirthBetweenFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyDateOfBirthBetweenFilter> {
 	override val entity get() = patientDAO.entityClass
-	override val views = listOf("by_all_delegates_date_of_birth")
 
 	override fun resolve(
 		filter: PatientByHcPartyDateOfBirthBetweenFilter,

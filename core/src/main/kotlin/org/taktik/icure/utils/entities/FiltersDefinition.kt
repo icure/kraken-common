@@ -17,7 +17,6 @@ class FiltersDefinition(
 				FilterDefinitionDto(
 					filter = it::class.java.simpleName,
 					entity = entity,
-					views = it.views
 				)
 			}
 		} else {

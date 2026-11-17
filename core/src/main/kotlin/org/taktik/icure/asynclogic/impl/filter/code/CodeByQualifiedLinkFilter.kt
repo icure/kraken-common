@@ -16,7 +16,6 @@ class CodeByQualifiedLinkFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, CodeByQualifiedLinkFilter> {
 	override val entity get() = codeDAO.entityClass
-	override val views = listOf("by_qualifiedlink_id")
 
 	override fun resolve(
 		filter: CodeByQualifiedLinkFilter,

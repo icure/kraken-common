@@ -16,7 +16,6 @@ class HealthElementByQualifiedLinkFilter(
 	private val healthElementDAO: HealthElementDAO,
 ) : Filter<String, HealthElement, HealthElementByQualifiedLinkFilter> {
 	override val entity get() = healthElementDAO.entityClass
-	override val views = listOf("by_linked_health_element_id")
 
 	override fun resolve(
 		filter: HealthElementByQualifiedLinkFilter,

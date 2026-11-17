@@ -27,7 +27,6 @@ class ServiceByHcPartyTagPrefixFilter(
 	}
 
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("service_by_all_delegates_month_tag_prefix", "service_by_all_delegates_tag_prefix")
 
 	override fun resolve(
 		filter: ServiceByHcPartyTagPrefixFilter,

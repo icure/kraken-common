@@ -24,7 +24,6 @@ class PatientByHcPartyGenderEducationProfession(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyGenderEducationProfession> {
 	override val entity get() = patientDAO.entityClass
-	override val views = listOf("by_all_delegates_gender_education_profession")
 
 	override fun resolve(
 		filter: PatientByHcPartyGenderEducationProfession,

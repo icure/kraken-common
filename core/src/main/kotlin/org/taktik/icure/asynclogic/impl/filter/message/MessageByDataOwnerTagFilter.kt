@@ -20,7 +20,6 @@ class MessageByDataOwnerTagFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerTagFilter> {
 	override val entity get() = messageDAO.entityClass
-	override val views = listOf("by_all_delegates_tag")
 
 	override fun resolve(
 		filter: MessageByDataOwnerTagFilter,

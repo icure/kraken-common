@@ -16,7 +16,6 @@ class AgendaReadableByUserRightsFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, AgendaReadableByUserRightsFilter> {
 	override val entity get() = agendaDAO.entityClass
-	override val views = listOf("readable_by_user_rights")
 
 	override fun resolve(
 		filter: AgendaReadableByUserRightsFilter,

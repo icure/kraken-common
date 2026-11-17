@@ -16,7 +16,6 @@ class FormTemplateBySpecialtyFilter(
 	private val formTemplateDAO: FormTemplateDAO,
 ) : Filter<String, FormTemplate, FormTemplateBySpecialtyFilter> {
 	override val entity get() = formTemplateDAO.entityClass
-	override val views = listOf("by_specialty_code_and_guid")
 
 	override fun resolve(
 		filter: FormTemplateBySpecialtyFilter,
