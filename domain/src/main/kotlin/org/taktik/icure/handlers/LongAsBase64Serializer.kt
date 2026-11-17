@@ -10,6 +10,8 @@ import java.nio.ByteBuffer
 import java.util.Base64
 
 class LongAsBase64Deserializer : JsonDeserializer<Long>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(
 		p: JsonParser,
 		ctxt: DeserializationContext?

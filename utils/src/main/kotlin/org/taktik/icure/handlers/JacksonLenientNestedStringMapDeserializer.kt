@@ -21,6 +21,7 @@ class JacksonLenientNestedStringMapDeserializer(
 	private val depth: Int = 1,
 ) : JsonDeserializer<Map<String, Any>>(),
 	ContextualDeserializer {
+	override fun isCachable(): Boolean = true
 
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Map<String, Any> {
 		val node = p.readValueAsTree<JsonNode>()

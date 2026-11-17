@@ -27,6 +27,8 @@ internal data class AesExchangeKeyViewValue(
 	 * Never throws on a row value of the wrong shape: the couchdb client would otherwise fail the whole query.
 	 */
 	class Deserializer : JsonDeserializer<AesExchangeKeyViewValue?>() {
+		override fun isCachable(): Boolean = true
+
 		override fun deserialize(p: JsonParser, ctxt: DeserializationContext): AesExchangeKeyViewValue? {
 			val node = p.readValueAsTree<JsonNode>()
 			val values = (node as? ArrayNode)

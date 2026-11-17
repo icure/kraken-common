@@ -1703,6 +1703,8 @@ class ContactDAOImpl(
 		val date: Long? // value date with fallback to opening date
 	) {
 		object Deserializer : JsonDeserializer<ServiceIdAndDateValue>() {
+			override fun isCachable(): Boolean = true
+
 			override fun deserialize(
 				p: JsonParser,
 				ctxt: DeserializationContext
