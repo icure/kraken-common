@@ -17,7 +17,6 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -82,7 +81,6 @@ internal class ClassificationDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patient"])
 	override fun listClassificationsByHCPartyAndSecretPatientKeys(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -117,7 +115,6 @@ internal class ClassificationDAOImpl(
 		map = "classpath:js/classification/By_hcparty_patient_date_as_value_map.js",
 		secondaryPartition = MAURICE_PARTITION,
 	)
-	@UsesView(["by_all_delegates_patient"])
 	override fun listClassificationIdsByDataOwnerPatientCreated(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -136,7 +133,6 @@ internal class ClassificationDAOImpl(
 		descending = descending,
 	)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

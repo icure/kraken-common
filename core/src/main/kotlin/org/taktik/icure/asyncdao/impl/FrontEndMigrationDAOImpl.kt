@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -53,7 +52,6 @@ class FrontEndMigrationDAOImpl(
 			"}\n" +
 			"}",
 	)
-	@UsesView(["by_userid_name"])
 	override fun getFrontEndMigrationsByUserIdAndName(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,

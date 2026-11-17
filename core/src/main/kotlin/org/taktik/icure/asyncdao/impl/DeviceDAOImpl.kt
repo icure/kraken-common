@@ -12,7 +12,6 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -55,7 +54,6 @@ class DeviceDAOImpl(
 	}
 
 	@View(name = "by_responsible", map = "classpath:js/device/By_responsible.js")
-	@UsesView(["by_responsible"])
 	override fun listDeviceIdsByResponsible(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -82,7 +80,6 @@ class DeviceDAOImpl(
 	}
 
 	@View(name = "by_hcparty_delegate_keys", map = "classpath:js/device/By_hcparty_delegate_keys_map.js")
-	@UsesView(["by_hcparty_delegate_keys"])
 	override suspend fun getHcPartyKeysForDelegate(
 		datastoreInformation: IDatastoreInformation,
 		deviceId: String,
@@ -105,7 +102,6 @@ class DeviceDAOImpl(
 	}
 
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/device/By_delegate_aes_exchange_keys_map.js")
-	@UsesView(["by_delegate_aes_exchange_keys"])
 	override suspend fun getAesExchangeKeysForDelegate(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String,
@@ -129,14 +125,12 @@ class DeviceDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Device' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Device>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Device>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

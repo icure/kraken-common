@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -80,7 +79,6 @@ class TarificationDAOImpl(
 	}
 
 	@View(name = "by_region_type_code_version", map = "classpath:js/tarif/By_region_type_code_version.js", reduce = "_count")
-	@UsesView(["by_region_type_code_version"])
 	override fun listTarificationsBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -112,7 +110,6 @@ class TarificationDAOImpl(
 		)
 	}
 
-	@UsesView(["by_region_type_code_version"])
 	override fun findTarificationsBy(
 		datastoreInformation: IDatastoreInformation,
 		region: String?,
@@ -147,7 +144,6 @@ class TarificationDAOImpl(
 	}
 
 	@View(name = "by_language_label", map = "classpath:js/tarif/By_language_label.js")
-	@UsesView(["by_language_label"])
 	override fun findTarificationsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String?, label: String?, pagination: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -245,7 +241,6 @@ class TarificationDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, Tarification>(viewQuery).map { it.doc })
 	}
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

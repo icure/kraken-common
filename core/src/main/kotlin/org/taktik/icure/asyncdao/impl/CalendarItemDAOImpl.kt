@@ -29,7 +29,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -81,7 +80,6 @@ class CalendarItemDAOImpl(
 ),
 	CalendarItemDAO {
 	@View(name = "by_agenda_period", map = "classpath:js/calendarItem/By_agenda_period.js", secondaryPartition = MAURICE_PARTITION)
-	@UsesView(["by_agenda_period"])
 	override fun listCalendarItemStubsByAgendaIdAndPeriod(
 		datastoreInformation: IDatastoreInformation,
 		searchStart: Long,
@@ -134,7 +132,6 @@ class CalendarItemDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_and_startdate"])
 	override fun listCalendarItemByStartDateAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -171,7 +168,6 @@ class CalendarItemDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_and_enddate"])
 	override fun listCalendarItemByEndDateAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -225,7 +221,6 @@ class CalendarItemDAOImpl(
 			.toSet(LinkedHashSet()) // More for documentation purposes as it is the default behaviour of .toSet()
 	}
 
-	@UsesView(["by_all_delegates_and_startdate", "by_all_delegates_and_enddate"])
 	override fun listCalendarItemIdsByPeriodAndDataOwnerId(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -259,7 +254,6 @@ class CalendarItemDAOImpl(
 		emitAll(idsByStartDate.union(idsByEndDate).asFlow())
 	}
 
-	@UsesView(["by_all_delegates_and_startdate", "by_all_delegates_and_enddate"])
 	override fun listCalendarItemByPeriodAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -275,7 +269,6 @@ class CalendarItemDAOImpl(
 		map = "classpath:js/calendarItem/By_data_owner_and_last_update.js",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
-	@UsesView(["by_all_delegates_and_last_update"])
 	override fun listCalendarItemIdsByDataOwnerLifecycleBetween(
 		datastoreInformation: IDatastoreInformation,
 		searchKey: String,
@@ -326,7 +319,6 @@ class CalendarItemDAOImpl(
 	 *
 	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
 	 */
-	@UsesView(["by_agenda_period"])
 	override fun collectFrequenciesByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -368,7 +360,6 @@ class CalendarItemDAOImpl(
 
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/calendarItem/By_agenda_and_startdate.js")
-	@UsesView(["by_agenda_and_startdate"])
 	fun listCalendarItemByStartDateAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long,
@@ -403,7 +394,6 @@ class CalendarItemDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, CalendarItem>(viewQuery).map { it.doc })
 	}
 
-	@UsesView(["by_agenda_and_startdate"])
 	override fun listCalendarItemByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long,
@@ -467,7 +457,6 @@ class CalendarItemDAOImpl(
 	 *
 	 * @throws TooManyResultsException if more than [MAX_OCCUPANCY_CALENDAR_ITEMS] calendar items match the query.
 	 */
-	@UsesView(["by_all_delegates_and_startdate", "by_all_delegates_and_enddate"])
 	override fun collectFrequenciesByPeriodAndHcPartyId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -582,7 +571,6 @@ class CalendarItemDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patient"])
 	override fun listCalendarItemsByHcPartyAndPatient(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -622,7 +610,6 @@ class CalendarItemDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patient_start_time"])
 	override fun findCalendarItemsByHcPartyAndPatient(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -650,7 +637,6 @@ class CalendarItemDAOImpl(
 
 	// Here I cannot use the function in the generic DAO because the date is in the key, not in the value.
 	@OptIn(ExperimentalCoroutinesApi::class)
-	@UsesView(["by_all_delegates_patient_start_time"])
 	override fun listCalendarItemIdsByDataOwnerPatientStartTime(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -711,7 +697,6 @@ class CalendarItemDAOImpl(
 			).forEach { emit(it.first) }
 	}.distinctUntilChanged() // This works because ids will be sorted by start time first
 
-	@UsesView(["by_all_delegates_patient"])
 	override fun findCalendarItemsByHcPartyAndPatient(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -787,7 +772,6 @@ class CalendarItemDAOImpl(
 	}
 
 	@View(name = "by_recurrence_id", map = "classpath:js/calendarItem/by_recurrence_id.js")
-	@UsesView(["by_recurrence_id"])
 	override fun listCalendarItemsByRecurrenceId(
 		datastoreInformation: IDatastoreInformation,
 		recurrenceId: String,
@@ -806,7 +790,6 @@ class CalendarItemDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery))
 	}
 
-	@UsesView(["by_recurrence_id"])
 	override fun listCalendarItemsByRecurrenceId(
 		datastoreInformation: IDatastoreInformation,
 		recurrenceId: String,
@@ -820,7 +803,6 @@ class CalendarItemDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, CalendarItem>(viewQuery).map { it.doc })
 	}
 
-	@UsesView(["by_recurrence_id"])
 	override fun listCalendarItemIdsByRecurrenceId(
 		datastoreInformation: IDatastoreInformation,
 		recurrenceId: String,
@@ -840,14 +822,12 @@ class CalendarItemDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.CalendarItem' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<CalendarItem>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<CalendarItem>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

@@ -17,7 +17,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -61,7 +60,6 @@ class AccessLogDAOImpl(
 	queryProvider = queryProvider
 ), AccessLogDAO {
 	@View(name = "all_by_date", map = "classpath:js/accesslog/All_by_date_map.js")
-	@UsesView(["by_date"])
 	override fun listAccessLogsByDate(
 		datastoreInformation: IDatastoreInformation,
 		fromEpoch: Long,
@@ -82,7 +80,6 @@ class AccessLogDAOImpl(
 		emitAll(client.queryView(viewQuery, Long::class.java, String::class.java, AccessLog::class.java))
 	}
 
-	@UsesView(["by_date"])
 	override fun listAccessLogIdsByDate(
 		datastoreInformation: IDatastoreInformation,
 		fromEpoch: Long,
@@ -132,7 +129,6 @@ class AccessLogDAOImpl(
 	}
 
 	@View(name = "all_by_user_date", map = "classpath:js/accesslog/All_by_user_type_and_date_map.js")
-	@UsesView(["by_user_type_and_date"])
 	override fun findAccessLogsByUserAfterDate(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -159,7 +155,6 @@ class AccessLogDAOImpl(
 		emitAll(items)
 	}
 
-	@UsesView(["by_user_type_and_date"])
 	override fun listAccessLogIdsByUserAfterDate(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -193,7 +188,6 @@ class AccessLogDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patient"])
 	override fun findAccessLogsByHCPartyAndSecretPatientKeys(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -228,7 +222,6 @@ class AccessLogDAOImpl(
 		map = "classpath:js/accesslog/By_hcparty_patient_date_map.js",
 		secondaryPartition = MAURICE_PARTITION,
 	)
-	@UsesView(["by_all_delegates_patient"])
 	override fun listAccessLogIdsByDataOwnerPatientDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -253,14 +246,12 @@ class AccessLogDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.AccessLog' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<AccessLog>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<AccessLog>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

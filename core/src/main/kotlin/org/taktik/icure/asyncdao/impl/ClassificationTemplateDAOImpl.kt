@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.icure.asyncdao.ClassificationTemplateDAO
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -53,7 +52,6 @@ internal class ClassificationTemplateDAOImpl(
 		classificationTemplateId: String,
 	): ClassificationTemplate? = get(datastoreInformation, classificationTemplateId)
 
-	@UsesView(["all"])
 	override fun findClassificationTemplates(
 		datastoreInformation: IDatastoreInformation,
 		paginationOffset: PaginationOffset<String>,

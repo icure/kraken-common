@@ -14,7 +14,6 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -53,7 +52,6 @@ class ReceiptDAOImpl(
 ), ReceiptDAO {
 
 	@View(name = "by_reference", map = "classpath:js/receipt/By_ref.js")
-	@UsesView(["by_ref"])
 	override fun listByReference(datastoreInformation: IDatastoreInformation, ref: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
@@ -67,7 +65,6 @@ class ReceiptDAOImpl(
 	}
 
 	@View(name = "by_date", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit(doc.created)}")
-	@UsesView(["by_date"])
 	override fun listReceiptsBetweenDates(datastoreInformation: IDatastoreInformation, start: Long?, end: Long?, descending: Boolean) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -95,7 +92,6 @@ class ReceiptDAOImpl(
 	}
 
 	@View(name = "by_category", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit([doc.category,doc.subCategory,doc.created])}")
-	@UsesView(["by_category"])
 	override fun listReceiptsByCategory(datastoreInformation: IDatastoreInformation, category: String, subCategory: String, startDate: Long, endDate: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
@@ -112,7 +108,6 @@ class ReceiptDAOImpl(
 	}
 
 	@View(name = "by_doc_id", map = "function(doc) { if (doc.java_type === 'org.taktik.icure.entities.Receipt' && !doc.deleted) emit(doc.documentId)}")
-	@UsesView(["by_doc_id"])
 	override fun listReceiptsByDocId(datastoreInformation: IDatastoreInformation, date: Long) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
@@ -150,14 +145,12 @@ class ReceiptDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Receipt' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Receipt>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Receipt>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

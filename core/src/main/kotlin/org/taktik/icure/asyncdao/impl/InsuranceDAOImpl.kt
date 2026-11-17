@@ -15,7 +15,6 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.entity.NullKey
@@ -61,7 +60,6 @@ class InsuranceDAOImpl(
 ),
 	InsuranceDAO {
 	@View(name = "all_by_code", map = "classpath:js/insurance/All_by_code_map.js")
-	@UsesView(["all_by_code"])
 	override fun listInsurancesByCode(
 		datastoreInformation: IDatastoreInformation,
 		code: String,
@@ -83,7 +81,6 @@ class InsuranceDAOImpl(
 	}
 
 	@View(name = "all_by_name", map = "classpath:js/insurance/All_by_name_map.js")
-	@UsesView(["all_by_name"])
 	override fun listInsurancesByName(
 		datastoreInformation: IDatastoreInformation,
 		name: String,
@@ -108,7 +105,6 @@ class InsuranceDAOImpl(
 		emitAll(getEntities(datastoreInformation, ids))
 	}
 
-	@UsesView(["all"])
 	override fun getAllInsurances(
 		datastoreInformation: IDatastoreInformation,
 		paginationOffset: PaginationOffset<Nothing>,
@@ -130,7 +126,6 @@ class InsuranceDAOImpl(
 		emitAll(client.queryViewIncludeDocs<Any?, String, Insurance>(viewQuery))
 	}
 
-	@UsesView(["by_identifiers"])
 	override fun listInsuranceIdsByIdentifiers(datastoreInformation: IDatastoreInformation, identifiers: List<Identifier>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -149,7 +144,6 @@ class InsuranceDAOImpl(
 		)
 	}
 
-	@UsesView(["by_codes"])
 	override fun listInsuranceIdsByCode(datastoreInformation: IDatastoreInformation, codeType: String, codeCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -167,7 +161,6 @@ class InsuranceDAOImpl(
 		emitAll(client.queryView<ComplexKey, Void>(viewQuery).map { it.id })
 	}
 
-	@UsesView(["by_tags"])
 	override fun listInsuranceIdsByTag(datastoreInformation: IDatastoreInformation, tagType: String, tagCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -191,14 +184,12 @@ class InsuranceDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Insurance' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Insurance>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Insurance>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

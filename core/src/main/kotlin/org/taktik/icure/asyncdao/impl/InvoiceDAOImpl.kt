@@ -22,7 +22,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -74,7 +73,6 @@ class InvoiceDAOImpl(
 		View(name = "by_hcparty_date", map = "classpath:js/invoice/By_hcparty_date_map.js"),
 		View(name = "by_data_owner_date", map = "classpath:js/invoice/By_data_owner_date_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_date"])
 	override fun findInvoicesByHcParty(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -118,7 +116,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_contact"])
 	override fun listInvoicesByHcPartyAndContacts(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -153,7 +150,6 @@ class InvoiceDAOImpl(
 		map = "classpath:js/invoice/By_data_owner_decision_reference_map.js",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
-	@UsesView(["by_all_delegates_decision_reference"])
 	override fun listInvoiceIdsByDataOwnerDecisionReference(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -184,7 +180,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_reference"])
 	override fun listInvoicesByHcPartyAndReferences(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -224,7 +219,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_reference"])
 	override fun listInvoicesByHcPartyAndReferences(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -268,7 +262,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_groupid"])
 	override fun listInvoicesByHcPartyAndGroupId(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -302,7 +295,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_recipient"])
 	override fun listInvoicesByHcPartyAndRecipientIds(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -340,7 +332,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patientfk"])
 	override fun listInvoicesByHcPartyAndPatientSfks(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -374,7 +365,6 @@ class InvoiceDAOImpl(
 		map = "classpath:js/invoice/By_hcparty_patientfk_date_map.js",
 		secondaryPartition = MAURICE_PARTITION,
 	)
-	@UsesView(["by_all_delegates_patientfk"])
 	override fun listInvoiceIdsByDataOwnerPatientInvoiceDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -401,7 +391,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_recipient_unsent"])
 	override fun listInvoicesByHcPartyAndRecipientIdsUnsent(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -438,7 +427,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_patientfk_unsent"])
 	override fun listInvoicesByHcPartyAndPatientFkUnsent(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -478,7 +466,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_sentmediumtype_invoicetype_sent_date"])
 	override fun listInvoicesByHcPartySentMediumTypeInvoiceTypeSentDate(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -528,7 +515,6 @@ class InvoiceDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_sending_mode_status_date"])
 	override fun listInvoicesByHcPartySendingModeStatus(
 		datastoreInformation: IDatastoreInformation,
 		hcParty: String,
@@ -579,7 +565,6 @@ class InvoiceDAOImpl(
 	}
 
 	@View(name = "by_serviceid", map = "classpath:js/invoice/By_serviceid_map.js")
-	@UsesView(["by_serviceid"])
 	override fun listInvoicesByServiceIds(
 		datastoreInformation: IDatastoreInformation,
 		serviceIds: Set<String>,
@@ -602,7 +587,6 @@ class InvoiceDAOImpl(
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	@View(name = "by_status_hcps_sentdate", map = "classpath:js/invoice/By_status_hcps_sentdate_map.js")
-	@UsesView(["by_status_hcps_sentdate"])
 	override fun listInvoicesHcpsByStatus(
 		datastoreInformation: IDatastoreInformation,
 		status: String,
@@ -638,7 +622,6 @@ class InvoiceDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Invoice' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation): Flow<Invoice> =
 		doListConflicts<Invoice>(datastoreInformation, "conflicts", null)
 
@@ -651,7 +634,6 @@ class InvoiceDAOImpl(
 		reduce = "_count",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
-	@UsesView(["tarification_by_all_delegates_code"])
 	override fun listInvoiceIdsByTarificationsAndCode(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -698,7 +680,6 @@ class InvoiceDAOImpl(
 		)
 	}
 
-	@UsesView(["tarification_by_all_delegates_code"])
 	override fun listInvoiceIdsByTarificationsByCode(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -746,7 +727,6 @@ class InvoiceDAOImpl(
 		)
 	}
 
-	@UsesView(["tarification_by_all_delegates_code"])
 	override fun listTarificationsFrequencies(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -772,7 +752,6 @@ class InvoiceDAOImpl(
 		)
 	}
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

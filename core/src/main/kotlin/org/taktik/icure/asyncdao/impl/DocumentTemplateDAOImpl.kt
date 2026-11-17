@@ -18,7 +18,6 @@ import org.taktik.commons.uti.UTI
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -59,7 +58,6 @@ class DocumentTemplateDAOImpl(
 	queryProvider = queryProvider
 ),
 	DocumentTemplateDAO {
-	@UsesView(["all"])
 	override fun getAllDocumentTemplates(
 		datastoreInformation: IDatastoreInformation,
 		paginationOffset: PaginationOffset<String>,
@@ -85,7 +83,6 @@ class DocumentTemplateDAOImpl(
 		name = "by_userId_and_guid",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.owner) emit([doc.owner,doc.guid], null )}",
 	)
-	@UsesView(["by_userId_and_guid"])
 	override fun listDocumentTemplatesByUserGuid(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -115,7 +112,6 @@ class DocumentTemplateDAOImpl(
 		name = "by_specialty_code_and_guid",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.specialty) emit([doc.specialty.code,doc.guid], null )}",
 	)
-	@UsesView(["by_specialty_code_and_guid"])
 	override fun listDocumentTemplatesBySpecialtyAndGuid(
 		datastoreInformation: IDatastoreInformation,
 		healthcarePartyId: String?,
@@ -156,7 +152,6 @@ class DocumentTemplateDAOImpl(
 		name = "by_document_type_code_and_user_id_and_guid",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.DocumentTemplate' && !doc.deleted && doc.documentType ) emit([doc.documentType,doc.owner,doc.guid], null )}",
 	)
-	@UsesView(["by_document_type_code_and_user_id_and_guid"])
 	override fun listDocumentsByTypeUserGuid(
 		datastoreInformation: IDatastoreInformation,
 		documentTypeCode: String,

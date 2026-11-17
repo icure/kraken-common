@@ -18,7 +18,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -72,7 +71,6 @@ open class MessageDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_from_address"])
 	override fun listMessagesByFromAddress(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
@@ -110,7 +108,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_all_delegates_from_address"])
 	override fun listMessageIdsByFromAddress(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -152,7 +149,6 @@ open class MessageDAOImpl(
 			secondaryPartition = DATA_OWNER_PARTITION,
 		),
 	)
-	@UsesView(["by_all_delegates_to_address"])
 	override fun findMessagesByToAddress(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
@@ -185,7 +181,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_all_delegates_to_address"])
 	override fun listMessageIdsByToAddress(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -226,7 +221,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty_transport_guid", map = "classpath:js/message/By_hcparty_transport_guid_map.js"),
 		View(name = "by_data_owner_transport_guid", map = "classpath:js/message/By_data_owner_transport_guid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_transport_guid"])
 	override fun findMessagesByTransportGuid(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
@@ -267,7 +261,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty_transport_guid_received", map = "classpath:js/message/By_hcparty_transport_guid_received_map.js"),
 		View(name = "by_data_owner_transport_guid_received", map = "classpath:js/message/By_data_owner_transport_guid_received_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_transport_guid_received"])
 	override fun findMessagesByTransportGuidReceived(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
@@ -304,7 +297,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_all_delegates_transport_guid_received"])
 	override fun listMessageIdsByTransportGuidReceived(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -349,7 +341,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty_transport_guid_sent_date", map = "classpath:js/message/By_hcparty_transport_guid_sent_date.js"),
 		View(name = "by_data_owner_transport_guid_sent_date", map = "classpath:js/message/By_data_owner_transport_guid_sent_date.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_transport_guid_sent_date"])
 	override fun findMessagesByTransportGuidAndSentDate(datastoreInformation: IDatastoreInformation, partyId: String, transportGuid: String, fromDate: Long, toDate: Long, paginationOffset: PaginationOffset<ComplexKey>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val startKey = ComplexKey.of(partyId, transportGuid, fromDate)
@@ -375,7 +366,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_all_delegates_transport_guid_sent_date"])
 	override fun listMessageIdsByTransportGuidAndSentDate(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -418,7 +408,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty", map = "classpath:js/message/By_hcParty_map.js"),
 		View(name = "by_data_owner", map = "classpath:js/message/By_dataOwner_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates"])
 	override fun findMessagesByHcPartySortedByReceived(
 		datastoreInformation: IDatastoreInformation,
 		partyId: String,
@@ -453,7 +442,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty_patientfk", map = "classpath:js/message/By_hcparty_patientfk_map.js"),
 		View(name = "by_data_owner_patientfk", map = "classpath:js/message/By_data_owner_patientfk_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_patientfk"])
 	override fun listMessagesByHcPartyAndPatient(datastoreInformation: IDatastoreInformation, searchKeys: Set<String>, secretPatientKeys: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val keys = secretPatientKeys.flatMap { fk ->
@@ -475,7 +463,6 @@ open class MessageDAOImpl(
 	}.distinctById()
 
 	@View(name = "by_hcparty_patientfk_sent", map = "classpath:js/message/By_hcparty_patientfk_sent_map.js", secondaryPartition = MAURICE_PARTITION)
-	@UsesView(["by_all_delegates_patientfk"])
 	override fun listMessageIdsByDataOwnerPatientSentDate(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -495,7 +482,6 @@ open class MessageDAOImpl(
 	)
 
 	@View(name = "by_parent_id", map = "classpath:js/message/By_parent_id_map.js")
-	@UsesView(["by_parent_id"])
 	override fun getChildren(datastoreInformation: IDatastoreInformation, messageId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -510,7 +496,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_parent_id"])
 	override fun getMessagesChildren(datastoreInformation: IDatastoreInformation, parentIds: List<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
@@ -521,7 +506,6 @@ open class MessageDAOImpl(
 		emitAll(client.queryViewIncludeDocs<String, Int, Message>(query).map { it.doc })
 	}
 
-	@UsesView(["by_parent_id"])
 	override fun listMessageIdsByParents(datastoreInformation: IDatastoreInformation, parentIds: List<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val query = createQuery(
@@ -541,7 +525,6 @@ open class MessageDAOImpl(
 	}
 
 	@View(name = "by_invoice_id", map = "classpath:js/message/By_invoice_id_map.js")
-	@UsesView(["by_invoice_id"])
 	override fun listMessagesByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -555,7 +538,6 @@ open class MessageDAOImpl(
 		)
 	}
 
-	@UsesView(["by_invoice_id"])
 	override fun listMessageIdsByInvoiceIds(datastoreInformation: IDatastoreInformation, invoiceIds: Set<String>): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -573,7 +555,6 @@ open class MessageDAOImpl(
 		View(name = "by_hcparty_transport_guid", map = "classpath:js/message/By_hcparty_transport_guid_map.js"),
 		View(name = "by_data_owner_transport_guid", map = "classpath:js/message/By_data_owner_transport_guid_map.js", secondaryPartition = DATA_OWNER_PARTITION),
 	)
-	@UsesView(["by_all_delegates_transport_guid"])
 	override fun getMessagesByTransportGuids(datastoreInformation: IDatastoreInformation, hcPartyId: String, transportGuids: Collection<String>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQueries = createQueries(
@@ -596,14 +577,12 @@ open class MessageDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc._conflicts) emit(doc._id) }"
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Message>(datastoreInformation, "conflicts", null)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Message>(datastoreInformation, "conflicts", null)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.DataOwner -> warmup(datastoreInformation, "by_data_owner_transport_guid" to DATA_OWNER_PARTITION)
@@ -613,7 +592,6 @@ open class MessageDAOImpl(
 	}
 
 	@View(name = "by_data_owner_and_last_update", map = "classpath:js/message/By_data_owner_and_last_update.js", secondaryPartition = DATA_OWNER_PARTITION)
-	@UsesView(["by_all_delegates_and_last_update"])
 	override fun listMessageIdsByDataOwnerLifecycleBetween(
 		datastoreInformation: IDatastoreInformation,
 		searchKey: String,
@@ -665,7 +643,6 @@ open class MessageDAOImpl(
 	}
 
 	@View(name = "by_data_owner_tag", map = "classpath:js/message/By_data_owner_tag.js", secondaryPartition = MAURICE_PARTITION)
-	@UsesView(["by_all_delegates_tag"])
 	override fun listMessageIdsByDataOwnerTag(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -681,7 +658,6 @@ open class MessageDAOImpl(
 	)
 
 	@View(name = "by_data_owner_code", map = "classpath:js/message/By_data_owner_code.js", secondaryPartition = MAURICE_PARTITION)
-	@UsesView(["by_all_delegates_code"])
 	override fun listMessageIdsByDataOwnerCode(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,

@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.exception.DocumentNotFoundException
@@ -51,7 +50,6 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 		emitAll(client.queryViewNoValue<String>(viewQuery).map { it.id })
 	}
 
-	@UsesView(["conflicts"])
 	protected inline fun <reified E: T> doListConflicts(
 		datastoreInformation: IDatastoreInformation,
 		viewName: String,

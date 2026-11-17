@@ -27,7 +27,6 @@ import org.taktik.couchdb.ViewRowNoDoc
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.create
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.dao.designDocName
 import org.taktik.couchdb.entity.Attachment
 import org.taktik.couchdb.entity.AttachmentUpload
@@ -99,7 +98,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 
 	private val log = LoggerFactory.getLogger(this.javaClass)
 
-	@UsesView(["all"])
 	protected open suspend fun createAllQuery(datastoreInformation: IDatastoreInformation): ViewQuery =
 		if (allIsSystemView) {
 			createQuery(datastoreInformation = datastoreInformation, viewName = "all")
@@ -107,7 +105,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			createQuery(datastoreInformation = datastoreInformation, legacyView = "all".main(), configurationView = "all")
 		}
 
-	@UsesView(["all"])
 	protected open suspend fun <K> createAllPaginatedQuery(
 		datastoreInformation: IDatastoreInformation,
 		offset: PaginationOffset<K>
@@ -132,7 +129,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		)
 	}
 
-	@UsesView(["all"])
 	override fun <K> getAllPaginated(datastoreInformation: IDatastoreInformation, offset: PaginationOffset<K>, keyClass: Class<K>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -149,7 +145,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		return client.get(id, entityClass) != null
 	}
 
-	@UsesView(["all"])
 	override suspend fun hasAny(datastoreInformation: IDatastoreInformation): Boolean {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return designDocContainsAllView(datastoreInformation) &&
@@ -171,7 +166,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 			)?.views?.containsKey("all") ?: false
 	}
 
-	@UsesView(["all"])
 	override fun getEntityIds(datastoreInformation: IDatastoreInformation, limit: Int?): Flow<String> = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAllIds")
@@ -188,7 +182,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	@UsesView(["all"])
 	override fun getEntities(datastoreInformation: IDatastoreInformation) = flow {
 		if (log.isDebugEnabled) {
 			log.debug(entityClass.simpleName + ".getAll")
@@ -853,7 +846,6 @@ abstract class GenericDAOImpl<T : StoredDocument>(
 		client.interleave<Array<String>, String>(viewQueries, compareBy {it[0]}).firstOrNull()
 	}
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when(partition) {
 			Partitions.All -> {

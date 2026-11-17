@@ -18,7 +18,6 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -63,7 +62,6 @@ open class UserDAOImpl(
 		name = "by_username",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}",
 	)
-	@UsesView(["by_username"])
 	override fun listUsersByUsername(
 		datastoreInformation: IDatastoreInformation,
 		username: String,
@@ -83,7 +81,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_username"])
 	override fun findUsedUsernames(
 		datastoreInformation: IDatastoreInformation,
 		usernames: Collection<String>,
@@ -105,7 +102,6 @@ open class UserDAOImpl(
 		name = "by_email",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.email, null)}}",
 	)
-	@UsesView(["by_email"])
 	override fun listUsersByEmail(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String,
@@ -123,7 +119,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_email"])
 	override fun findUsedEmails(
 		datastoreInformation: IDatastoreInformation,
 		emails: Collection<String>,
@@ -150,7 +145,6 @@ open class UserDAOImpl(
 
 	@SystemView
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
-	@UsesView(["by_phone"])
 	override fun listUsersByPhone(
 		datastoreInformation: IDatastoreInformation,
 		phone: String,
@@ -167,7 +161,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_phone"])
 	override fun findUsedPhones(
 		datastoreInformation: IDatastoreInformation,
 		phones: Collection<String>,
@@ -195,14 +188,12 @@ open class UserDAOImpl(
 		name = "allForPagination",
 		map = "map = function (doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) { emit(doc.login, null); }};",
 	)
-	@UsesView(["all_for_pagination"])
 	override fun findUsers(
 		datastoreInformation: IDatastoreInformation,
 		pagination: PaginationOffset<String>,
 		skipPatients: Boolean,
 	): Flow<ViewQueryResultEvent> = findUsers(datastoreInformation, pagination, skipPatients, 1f, 0, false)
 
-	@UsesView(["all_for_pagination"])
 	private fun findUsers(
 		datastoreInformation: IDatastoreInformation,
 		pagination: PaginationOffset<String>,
@@ -287,7 +278,6 @@ open class UserDAOImpl(
 	}
 
 	@View(name = "by_hcp_id", map = "classpath:js/user/By_hcp_id.js")
-	@UsesView(["by_hcp_id"])
 	override fun listUsersByHcpId(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -306,7 +296,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_hcp_id"])
 	override fun listUserIdsByHcpId(
 		datastoreInformation: IDatastoreInformation,
 		hcPartyId: String,
@@ -326,7 +315,6 @@ open class UserDAOImpl(
 	}
 
 	@View(name = "by_patient_id", map = "classpath:js/user/by_patient_id.js")
-	@UsesView(["by_patient_id"])
 	override fun listUsersByPatientId(
 		datastoreInformation: IDatastoreInformation,
 		patientId: String,
@@ -345,7 +333,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_patient_id"])
 	override fun listUserIdsByPatientId(
 		datastoreInformation: IDatastoreInformation,
 		patientId: String,
@@ -365,7 +352,6 @@ open class UserDAOImpl(
 	}
 
 	@View(name = "by_name_email_phone", map = "classpath:js/user/By_name_email_phone.js")
-	@UsesView(["by_name_email_phone"])
 	override fun listUserIdsByNameEmailPhone(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String,
@@ -383,7 +369,6 @@ open class UserDAOImpl(
 		)
 	}
 
-	@UsesView(["by_name_email_phone"])
 	override fun findUsersByNameEmailPhone(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String,
@@ -450,7 +435,6 @@ open class UserDAOImpl(
 			}
 	}
 
-	@UsesView(["all"])
 	override fun getUsersOnDb(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -479,14 +463,12 @@ open class UserDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION,
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<User>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<User>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

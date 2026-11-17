@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -56,7 +55,6 @@ internal class KeywordDAOImpl(
 		name = "by_user",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Keyword' && !doc.deleted) emit( doc.userId, doc)}",
 	)
-	@UsesView(["by_user"])
 	override fun getKeywordsByUserId(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,

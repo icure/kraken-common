@@ -15,7 +15,6 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -62,7 +61,6 @@ internal class RelatedPersonDAOImpl(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.RelatedPerson' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<RelatedPerson>(datastoreInformation, "conflicts", null)
 
@@ -78,7 +76,6 @@ internal class RelatedPersonDAOImpl(
 	}
 
 	@View(name = "by_data_owner", map = "classpath:js/relatedperson/By_data_owner_map.js", secondaryPartition = DATA_OWNER_PARTITION)
-	@UsesView(["by_all_delegates"])
 	override fun listRelatedPersonIdsByDataOwner(
 		datastoreInformation: IDatastoreInformation,
 		dataOwnerId: String,
@@ -102,7 +99,6 @@ internal class RelatedPersonDAOImpl(
 		map = "classpath:js/relatedperson/By_data_owner_contains_name_map.js",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
-	@UsesView(["by_all_delegates_contains_name"])
 	override fun listRelatedPersonIdsByDataOwnerNameContainsFuzzy(
 		datastoreInformation: IDatastoreInformation,
 		searchString: String?,
@@ -130,7 +126,6 @@ internal class RelatedPersonDAOImpl(
 		map = "classpath:js/relatedperson/By_data_owner_identifier_map.js",
 		secondaryPartition = DATA_OWNER_PARTITION,
 	)
-	@UsesView(["by_all_delegates_identifier"])
 	override fun listRelatedPersonIdsByDataOwnerAndIdentifiers(
 		datastoreInformation: IDatastoreInformation,
 		searchKeys: Set<String>,
@@ -157,7 +152,6 @@ internal class RelatedPersonDAOImpl(
 		emitAll(client.queryView<ComplexKey, Int>(viewQuery).map { it.id })
 	}.distinct()
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(
 		datastoreInformation: IDatastoreInformation,
 		partition: Partitions,

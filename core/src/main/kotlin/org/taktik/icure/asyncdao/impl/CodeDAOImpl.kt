@@ -28,7 +28,6 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.id.IDGenerator
@@ -215,7 +214,6 @@ class CodeDAOImpl(
 	}
 
 	@View(name = "by_type_code_version", map = "classpath:js/code/By_type_code_version.js")
-	@UsesView(["by_type_code_version"])
 	override fun listCodesBy(datastoreInformation: IDatastoreInformation, type: String?, code: String?, version: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -242,7 +240,6 @@ class CodeDAOImpl(
 	}
 
 	@View(name = "by_region_type_code_version", map = "classpath:js/code/By_region_type_code_version.js", reduce = "_count")
-	@UsesView(["by_region_type_code_version"])
 	override fun listCodesBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
@@ -315,7 +312,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_region_type_code_version"])
 	override fun listCodeTypesByRegionAndType(datastoreInformation: IDatastoreInformation, region: String?, type: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -341,7 +337,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_region_type_code_version"])
 	override fun findCodesBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
@@ -371,7 +366,6 @@ class CodeDAOImpl(
 		return from to to
 	}
 
-	@UsesView(["by_region_type_code_version"])
 	private fun findCodesByRecursively(datastoreInformation: IDatastoreInformation, client: Client, region: String?, type: String?, code: String?, version: String?, paginationOffset: PaginationOffset<List<String?>>, extensionFactor: Float?): Flow<ViewQueryResultEvent> = flow {
 		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
 		val extendedLimit = (paginationOffset.limit * (extensionFactor ?: 1f)).toInt()
@@ -432,7 +426,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_region_type_code_version"])
 	override fun listCodeIdsBy(datastoreInformation: IDatastoreInformation, region: String?, type: String?, code: String?, version: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val (from, to) = getFindCodesQueryLimits(region, type, code, version)
@@ -491,7 +484,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_language_type_label"])
 	private suspend fun buildByLabelPageQuery(
 		datastoreInformation: IDatastoreInformation,
 		language: String,
@@ -511,7 +503,6 @@ class CodeDAOImpl(
 		descending = false,
 	)
 
-	@UsesView(["by_language_type_label"])
 	private fun findSpecificVersionOfCodesByLabel(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
@@ -591,7 +582,6 @@ class CodeDAOImpl(
 		}.also { emitAll(it) }
 	}
 
-	@UsesView(["by_language_type_label", "by_type_code"])
 	private fun findLatestVersionOfCodesByLabel(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
@@ -727,7 +717,6 @@ class CodeDAOImpl(
 	}
 
 	// Returns all the versions for the codes that match the label, calling itself recursively until the page is filled.
-	@UsesView(["by_language_type_label"])
 	private fun findCodesByLabel(
 		datastoreInformation: IDatastoreInformation,
 		client: Client,
@@ -804,7 +793,6 @@ class CodeDAOImpl(
 		View(name = "by_language_type_label", map = "classpath:js/code/By_language_type_label.js", secondaryPartition = MAURICE_PARTITION),
 		View(name = "by_type_code", map = "classpath:js/code/By_type_code.js", secondaryPartition = MAURICE_PARTITION),
 	)
-	@UsesView(["by_language_type_label", "by_type_code"])
 	override fun findCodesByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String, type: String, label: String, version: String?, paginationOffset: PaginationOffset<List<String?>>): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		when (version) {
@@ -832,7 +820,6 @@ class CodeDAOImpl(
 	}
 
 	@View(name = "by_qualifiedlink_id", map = "classpath:js/code/By_qualifiedlink_id.js")
-	@UsesView(["by_qualifiedlink_id"])
 	override fun findCodesByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?, paginationOffset: PaginationOffset<List<String>>) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from =
@@ -857,7 +844,6 @@ class CodeDAOImpl(
 		emitAll(client.queryView<Array<String>, String, Code>(viewQuery))
 	}
 
-	@UsesView(["by_language_type_label"])
 	override fun listCodeIdsByLabel(datastoreInformation: IDatastoreInformation, region: String?, language: String, type: String, label: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val sanitizedLabel = label?.let { sanitizeString(it) }
@@ -888,7 +874,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_type_code_version"])
 	override fun listCodeIdsByTypeCodeVersionInterval(datastoreInformation: IDatastoreInformation, startType: String?, startCode: String?, startVersion: String?, endType: String?, endCode: String?, endVersion: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(
@@ -916,7 +901,6 @@ class CodeDAOImpl(
 		)
 	}
 
-	@UsesView(["by_qualifiedlink_id"])
 	override fun listCodeIdsByQualifiedLinkId(datastoreInformation: IDatastoreInformation, linkType: String, linkedId: String?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val from = ComplexKey.of(
@@ -947,11 +931,9 @@ class CodeDAOImpl(
 		emitAll(client.getForPagination(ids, Code::class.java))
 	}
 
-	@UsesView(["by_type_code_version"])
 	override suspend fun isValid(datastoreInformation: IDatastoreInformation, codeType: String, codeCode: String, codeVersion: String?) = listCodesBy(datastoreInformation, codeType, codeCode, codeVersion).firstOrNull() != null
 
 	// Note: languages has a default value in the interface
-	@UsesView(["by_language_type_label"])
 	override suspend fun getCodeByLabel(datastoreInformation: IDatastoreInformation, region: String?, label: String, type: String, languages: List<String>): Code? {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val (sanitizedLabel, otherParts) = label.splitAndSanitizeLabel()
@@ -978,14 +960,12 @@ class CodeDAOImpl(
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.base.Code' && !doc.deleted && doc._conflicts) emit(doc._id) }",
 		secondaryPartition = MAURICE_PARTITION
 	)
-	@UsesView(["conflicts"])
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) =
 		doListConflicts<Code>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
 	override fun listIdsOfEntitiesWithConflicts(datastoreInformation: IDatastoreInformation): Flow<String> =
 		doListIdsOfEntitiesWithConflicts<Code>(datastoreInformation, "conflicts", MAURICE_PARTITION)
 
-	@UsesView(["all"])
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {
 			Partitions.Maurice -> warmup(datastoreInformation, "by_language_type_label" to MAURICE_PARTITION)

@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -52,7 +51,6 @@ class EntityTemplateDAOImpl(
 	queryProvider = queryProvider
 ), EntityTemplateDAO {
 	@View(name = "by_user_type_descr", map = "classpath:js/entitytemplate/By_user_type_descr.js")
-	@UsesView(["by_user_type_descr"])
 	override fun listEntityTemplatesByUserIdTypeDescr(
 		datastoreInformation: IDatastoreInformation,
 		userId: String,
@@ -88,7 +86,6 @@ class EntityTemplateDAOImpl(
 	}
 
 	@View(name = "by_type_descr", map = "classpath:js/entitytemplate/By_type_descr.js")
-	@UsesView(["by_type_descr"])
 	override fun listEntityTemplatesByTypeDescr(
 		datastoreInformation: IDatastoreInformation,
 		type: String,
@@ -122,7 +119,6 @@ class EntityTemplateDAOImpl(
 	}
 
 	@View(name = "by_user_type_keyword", map = "classpath:js/entitytemplate/By_user_type_keyword.js")
-	@UsesView(["by_user_type_keyword"])
 	override fun listEntityTemplatesByUserIdTypeKeyword(
 		datastoreInformation: IDatastoreInformation,
 		userId: String?,
@@ -157,7 +153,6 @@ class EntityTemplateDAOImpl(
 	}
 
 	@View(name = "by_type_keyword", map = "classpath:js/entitytemplate/By_type_keyword.js")
-	@UsesView(["by_type_keyword"])
 	override fun listEntityTemplatesByTypeAndKeyword(
 		datastoreInformation: IDatastoreInformation,
 		type: String?,

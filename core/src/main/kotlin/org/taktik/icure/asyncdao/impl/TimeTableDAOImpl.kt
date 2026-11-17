@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
-import org.taktik.couchdb.dao.annotations.UsesView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
@@ -53,7 +52,6 @@ class TimeTableDAOImpl(
 	queryProvider = queryProvider
 ), TimeTableDAO {
 	@View(name = "by_agenda", map = "classpath:js/timeTable/By_agenda.js")
-	@UsesView(["by_agenda"])
 	override fun listTimeTablesByAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		agendaId: String,
@@ -71,7 +69,6 @@ class TimeTableDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<String, TimeTable>(viewQuery).map { it.doc })
 	}
 
-	@UsesView(["by_agenda"])
 	override fun listTimeTableIdsByAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		agendaId: String,
@@ -89,7 +86,6 @@ class TimeTableDAOImpl(
 		emitAll(client.queryView<String, Any?>(viewQuery).map { it.id })
 	}
 
-	@UsesView(["by_agenda"])
 	override fun listTimeTablesByAgendaIds(
 		datastoreInformation: IDatastoreInformation,
 		agendaIds: Collection<String>,
@@ -107,7 +103,6 @@ class TimeTableDAOImpl(
 	}
 
 	@View(name = "by_agenda_and_startdate", map = "classpath:js/timeTable/By_agenda_and_startdate.js")
-	@UsesView(["by_agenda_and_startdate"])
 	private fun listTimeTablesByStartDateAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		agendaId: String,
@@ -129,7 +124,6 @@ class TimeTableDAOImpl(
 		emitAll(client.queryViewIncludeDocsNoValue<ComplexKey, TimeTable>(viewQuery).map { it.doc })
 	}
 
-	@UsesView(["by_agenda_and_startdate"])
 	override fun listTimeTablesByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -141,7 +135,6 @@ class TimeTableDAOImpl(
 			(it.startTime?.let { st -> st < (endDate ?: 99999999999999L) } ?: true)
 	}
 
-	@UsesView(["by_agenda_and_startdate"])
 	override fun listTimeTableIdsByPeriodAndAgendaId(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
@@ -150,7 +143,6 @@ class TimeTableDAOImpl(
 		descending: Boolean,
 	): Flow<String> = listTimeTablesByPeriodAndAgendaId(datastoreInformation, startDate, endDate, agendaId, descending).map { it.id }
 
-	@UsesView(["by_agenda"])
 	override fun listTimeTablesByPeriodAndAgendaIds(
 		datastoreInformation: IDatastoreInformation,
 		startDate: Long?,
