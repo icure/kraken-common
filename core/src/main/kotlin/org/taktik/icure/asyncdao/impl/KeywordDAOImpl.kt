@@ -22,6 +22,7 @@ import org.taktik.icure.config.DaoConfig
 import org.taktik.icure.dao.QueryProvider
 import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.entities.Keyword
+import org.taktik.icure.utils.main
 
 @Repository("keywordDAO")
 @Profile("app")
@@ -63,7 +64,11 @@ internal class KeywordDAOImpl(
 		emitAll(
 			client
 				.queryView<String, Keyword>(
-					createQuery(datastoreInformation, "by_user").startKey(userId).endKey(userId).includeDocs(false),
+					createQuery(
+						datastoreInformation = datastoreInformation,
+						legacyView = "by_user".main(),
+						configurationView = "by_user",
+					).startKey(userId).endKey(userId).includeDocs(false),
 				).mapNotNull {
 					it.value
 				},

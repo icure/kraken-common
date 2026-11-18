@@ -16,7 +16,6 @@ class HealthcarePartyByNationalIdentifierFilter(
 	private val healthcarePartyDAO: HealthcarePartyDAO,
 ) : Filter<String, HealthcareParty, HealthcarePartyByNationalIdentifierFilter> {
 	override val entity get() = healthcarePartyDAO.entityClass
-	override val views = listOf("by_ssin_or_nihii")
 
 	override fun resolve(
 		filter: HealthcarePartyByNationalIdentifierFilter,

@@ -21,7 +21,9 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -81,7 +83,7 @@ class InvoiceDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKey = ComplexKey.of(hcParty, fromDate)
-		val endKey = ComplexKey.of(hcParty, toDate ?: ComplexKey.emptyObject())
+		val endKey = ComplexKey.of(hcParty, toDate ?: EmptyObjectKey)
 
 		val viewQueries =
 			createPagedQueries(
@@ -197,7 +199,7 @@ class InvoiceDAOImpl(
 				if (invoiceReferences != null) {
 					viewQuery.keys(invoiceReferences.map { ComplexKey.of(hcParty, it) })
 				} else {
-					viewQuery.startKey(ComplexKey.of(hcParty, null)).endKey(ComplexKey.of(hcParty, ComplexKey.emptyObject()))
+					viewQuery.startKey(ComplexKey.of(hcParty, null)).endKey(ComplexKey.of(hcParty, EmptyObjectKey))
 				}
 			}.includeDocs()
 		emitAll(
@@ -227,8 +229,8 @@ class InvoiceDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKey = ComplexKey.of(hcParty, if (descending && from == null) ComplexKey.emptyObject() else from)
-		val endKey = ComplexKey.of(hcParty, if (!descending && to == null) ComplexKey.emptyObject() else to)
+		val startKey = ComplexKey.of(hcParty, if (descending && from == null) EmptyObjectKey else from)
+		val endKey = ComplexKey.of(hcParty, if (!descending && to == null) EmptyObjectKey else to)
 
 		val viewQueries =
 			createQueries(
@@ -476,7 +478,7 @@ class InvoiceDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKey = ComplexKey.of(hcParty, sentMediumType, invoiceType, sent, fromDate)
-		val endKey = ComplexKey.of(hcParty, sentMediumType, invoiceType, sent, toDate ?: ComplexKey.emptyObject())
+		val endKey = ComplexKey.of(hcParty, sentMediumType, invoiceType, sent, toDate ?: EmptyObjectKey)
 
 		val viewQueries =
 			createQueries(
@@ -498,7 +500,7 @@ class InvoiceDAOImpl(
 						{ (it.components[1] as? MediumType)?.name ?: it.components[1] as? String },
 						{ (it.components[2] as? InvoiceType)?.name ?: it.components[2] as? String },
 						{ it.components[3] as? Boolean ?: it.components[3] as? String },
-						{ it.components[4] as? Long ?: it.components[4]?.let { c -> if (c == ComplexKey.emptyObject()) Long.MAX_VALUE else null } },
+						{ it.components[4] as? Long ?: it.components[4]?.let { c -> if (c == EmptyObjectKey) Long.MAX_VALUE else null } },
 					),
 				).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>()
 				.map { it.doc },
@@ -524,16 +526,16 @@ class InvoiceDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		var startKey = ComplexKey.of(hcParty)
-		var endKey = ComplexKey.of(hcParty, ComplexKey.emptyObject(), ComplexKey.emptyObject(), ComplexKey.emptyObject())
+		var endKey = ComplexKey.of(hcParty, EmptyObjectKey, EmptyObjectKey, EmptyObjectKey)
 		if (fromDate != null && toDate != null) { // The full key is given
 			startKey = ComplexKey.of(hcParty, sendingMode, status, fromDate)
 			endKey = ComplexKey.of(hcParty, sendingMode, status, toDate)
 		} else if (status != null) {
 			startKey = ComplexKey.of(hcParty, sendingMode, status)
-			endKey = ComplexKey.of(hcParty, sendingMode, status, ComplexKey.emptyObject())
+			endKey = ComplexKey.of(hcParty, sendingMode, status, EmptyObjectKey)
 		} else if (sendingMode != null) {
 			startKey = ComplexKey.of(hcParty, sendingMode)
-			endKey = ComplexKey.of(hcParty, sendingMode, ComplexKey.emptyObject(), ComplexKey.emptyObject())
+			endKey = ComplexKey.of(hcParty, sendingMode, EmptyObjectKey, EmptyObjectKey)
 		}
 
 		val viewQueries =
@@ -553,9 +555,9 @@ class InvoiceDAOImpl(
 					viewQueries,
 					compareBy(
 						{ it.components[0] as? String },
-						{ it.components[1] as? String ?: it.components[1]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null } },
-						{ it.components[2] as? String ?: it.components[2]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null } },
-						{ it.components[3] as? Long ?: it.components[3]?.let { c -> if (c == ComplexKey.emptyObject()) "\uFF0F" else null } },
+						{ it.components[1] as? String ?: it.components[1]?.let { c -> if (c == EmptyObjectKey) "\uFF0F" else null } },
+						{ it.components[2] as? String ?: it.components[2]?.let { c -> if (c == EmptyObjectKey) "\uFF0F" else null } },
+						{ it.components[3] as? Long ?: it.components[3]?.let { c -> if (c == EmptyObjectKey) "\uFF0F" else null } },
 					),
 				).filterIsInstance<ViewRowWithDoc<ComplexKey, String, Invoice>>()
 				.map { it.doc },
@@ -606,7 +608,7 @@ class InvoiceDAOImpl(
 							)
 								.includeDocs(false)
 								.startKey(ComplexKey.of(status, hcpId, from))
-								.endKey(ComplexKey.of(status, hcpId, to ?: ComplexKey.emptyObject())),
+								.endKey(ComplexKey.of(status, hcpId, to ?: EmptyObjectKey)),
 						).mapNotNull { it.value }
 				}.asFlow()
 				.flattenConcat()
@@ -615,6 +617,7 @@ class InvoiceDAOImpl(
 		emitAll(getEntities(datastoreInformation, result))
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Invoice' && !doc.deleted && doc._conflicts) emit(doc._id) }",
@@ -661,8 +664,8 @@ class InvoiceDAOImpl(
 		val to =
 			ComplexKey.of(
 				hcPartyId,
-				codeCode ?: ComplexKey.emptyObject(),
-				endDate ?: ComplexKey.emptyObject(),
+				codeCode ?: EmptyObjectKey,
+				endDate ?: EmptyObjectKey,
 			)
 
 		emitAll(
@@ -708,8 +711,8 @@ class InvoiceDAOImpl(
 		val to =
 			ComplexKey.of(
 				hcPartyId,
-				codeCode ?: ComplexKey.emptyObject(),
-				endDate ?: ComplexKey.emptyObject(),
+				codeCode ?: EmptyObjectKey,
+				endDate ?: EmptyObjectKey,
 			)
 
 		emitAll(
@@ -730,16 +733,8 @@ class InvoiceDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val from =
-			ComplexKey.of(
-				hcPartyId,
-				null,
-			)
-		val to =
-			ComplexKey.of(
-				hcPartyId,
-				ComplexKey.emptyObject(),
-			)
+		val from = ComplexKey.of(hcPartyId, null)
+		val to = ComplexKey.of(hcPartyId, EmptyObjectKey)
 
 		emitAll(
 			client.queryView<ComplexKey, Long>(

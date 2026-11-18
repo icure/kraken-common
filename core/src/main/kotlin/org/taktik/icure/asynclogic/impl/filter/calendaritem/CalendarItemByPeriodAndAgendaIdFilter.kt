@@ -17,7 +17,6 @@ class CalendarItemByPeriodAndAgendaIdFilter(
 	private val calendarItemDAO: CalendarItemDAO,
 ) : Filter<String, CalendarItem, CalendarItemByPeriodAndAgendaIdFilter> {
 	override val entity get() = calendarItemDAO.entityClass
-	override val views = listOf("by_agenda_and_startdate")
 
 	override fun resolve(
 		filter: CalendarItemByPeriodAndAgendaIdFilter,

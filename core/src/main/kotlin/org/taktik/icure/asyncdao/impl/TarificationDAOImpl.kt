@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Repository
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryViewIncludeDocs
 import org.taktik.couchdb.queryViewIncludeDocsNoValue
@@ -28,6 +30,7 @@ import org.taktik.icure.datastore.IDatastoreInformation
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.entities.Tarification
+import org.taktik.icure.utils.main
 
 @Repository("tarificationDAO")
 @Profile("app")
@@ -66,9 +69,9 @@ class TarificationDAOImpl(
 					)
 					.endKey(
 						ComplexKey.of(
-							type ?: ComplexKey.emptyObject(),
-							code ?: ComplexKey.emptyObject(),
-							version ?: ComplexKey.emptyObject(),
+							type ?: EmptyObjectKey,
+							code ?: EmptyObjectKey,
+							version ?: EmptyObjectKey,
 						),
 					),
 			).map { it.doc },
@@ -80,7 +83,11 @@ class TarificationDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		emitAll(
 			client.queryViewIncludeDocs<Array<String>, String, Tarification>(
-				createQuery(datastoreInformation, "by_region_type_code_version")
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "by_region_type_code_version".main(),
+					configurationView = "by_region_type_code_version"
+				)
 					.includeDocs(true)
 					.reduce(false)
 					.startKey(
@@ -93,10 +100,10 @@ class TarificationDAOImpl(
 					)
 					.endKey(
 						ComplexKey.of(
-							region ?: ComplexKey.emptyObject(),
-							type ?: ComplexKey.emptyObject(),
-							code ?: ComplexKey.emptyObject(),
-							version ?: ComplexKey.emptyObject(),
+							region ?: EmptyObjectKey,
+							type ?: EmptyObjectKey,
+							code ?: EmptyObjectKey,
+							version ?: EmptyObjectKey,
 						),
 					),
 			).map { it.doc },
@@ -119,18 +126,19 @@ class TarificationDAOImpl(
 			version ?: "\u0000",
 		)
 		val to = ComplexKey.of(
-			region?.let { it + "" } ?: ComplexKey.emptyObject(),
-			type?.let { it + "" } ?: ComplexKey.emptyObject(),
-			code?.let { it + "" } ?: ComplexKey.emptyObject(),
-			version?.let { it + "" } ?: ComplexKey.emptyObject(),
+			region?.let { it + "" } ?: EmptyObjectKey,
+			type?.let { it + "" } ?: EmptyObjectKey,
+			code?.let { it + "" } ?: EmptyObjectKey,
+			version?.let { it + "" } ?: EmptyObjectKey,
 		)
 		val viewQuery = pagedViewQuery(
-			datastoreInformation,
-			"by_region_type_code_version",
-			from,
-			to,
-			pagination,
-			false,
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_region_type_code_version".main(),
+			configurationView = "by_region_type_code_version",
+			startKey = from,
+			endKey = to,
+			pagination = pagination,
+			descending = false,
 		)
 		emitAll(client.queryView(viewQuery, ComplexKey::class.java, String::class.java, Tarification::class.java))
 	}
@@ -149,28 +157,29 @@ class TarificationDAOImpl(
 
 		val to = ComplexKey.of(
 			if (region == null) {
-				ComplexKey.emptyObject()
+				EmptyObjectKey
 			} else if (language == null) {
 				region + "\ufff0"
 			} else {
 				region
 			},
 			if (language == null) {
-				ComplexKey.emptyObject()
+				EmptyObjectKey
 			} else if (sanitizedLabel == null) {
 				language + "\ufff0"
 			} else {
 				language
 			},
-			if (sanitizedLabel == null) ComplexKey.emptyObject() else sanitizedLabel + "\ufff0",
+			if (sanitizedLabel == null) EmptyObjectKey else sanitizedLabel + "\ufff0",
 		)
 		val viewQuery = pagedViewQuery(
-			datastoreInformation,
-			"by_language_label",
-			from,
-			to,
-			pagination,
-			false,
+			datastoreInformation = datastoreInformation,
+			legacyView = "by_language_label".main(),
+			configurationView = "by_language_label",
+			startKey = from,
+			endKey = to,
+			pagination = pagination,
+			descending = false,
 		)
 		emitAll(client.queryView(viewQuery, ComplexKey::class.java, Int::class.java, Tarification::class.java))
 	}
@@ -190,27 +199,27 @@ class TarificationDAOImpl(
 
 		val to = ComplexKey.of(
 			if (region == null) {
-				ComplexKey.emptyObject()
+				EmptyObjectKey
 			} else if (language == null) {
 				region + "\ufff0"
 			} else {
 				region
 			},
 			if (language == null) {
-				ComplexKey.emptyObject()
+				EmptyObjectKey
 			} else if (type == null) {
 				language + "\ufff0"
 			} else {
 				language
 			},
 			if (type == null) {
-				ComplexKey.emptyObject()
+				EmptyObjectKey
 			} else if (sanitizedLabel == null) {
 				type + "\ufff0"
 			} else {
 				language
 			},
-			if (sanitizedLabel == null) ComplexKey.emptyObject() else sanitizedLabel + "\ufff0",
+			if (sanitizedLabel == null) EmptyObjectKey else sanitizedLabel + "\ufff0",
 		)
 		val viewQuery = pagedViewQuery(
 			datastoreInformation = datastoreInformation,
@@ -223,6 +232,7 @@ class TarificationDAOImpl(
 		emitAll(client.queryView(viewQuery, Array<String>::class.java, Int::class.java, Tarification::class.java))
 	}
 
+	@SystemView
 	@View(name = "conflicts", map = "function(doc) { if ((doc.java_type === 'org.taktik.icure.entities.Tarification' || doc.java_type === 'org.taktik.icure.entities.Pricing') && !doc.deleted && doc._conflicts) emit(doc._id )}", secondaryPartition = MAURICE_PARTITION)
 	override fun listConflicts(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)

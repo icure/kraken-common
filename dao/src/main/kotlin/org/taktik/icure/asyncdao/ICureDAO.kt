@@ -4,10 +4,8 @@
 
 package org.taktik.icure.asyncdao
 
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.Flow
 import org.taktik.couchdb.ReplicatorResponse
-import org.taktik.couchdb.entity.ActiveTask
 import org.taktik.couchdb.entity.DatabaseInfoWrapper
 import org.taktik.couchdb.entity.ReplicateCommand
 import org.taktik.couchdb.entity.ReplicatorDocument

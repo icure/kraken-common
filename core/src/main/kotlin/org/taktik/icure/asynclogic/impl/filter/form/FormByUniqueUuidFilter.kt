@@ -16,7 +16,6 @@ class FormByUniqueUuidFilter(
 	private val formDAO: FormDAO,
 ) : Filter<String, Form, FormByUniqueUuidFilter> {
 	override val entity get() = formDAO.entityClass
-	override val views = listOf("by_unique_id_created")
 
 	override fun resolve(
 		filter: FormByUniqueUuidFilter,

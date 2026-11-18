@@ -20,7 +20,6 @@ class MaintenanceTaskByHcPartyAndIdentifiersFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, MaintenanceTask, MaintenanceTaskByHcPartyAndIdentifiersFilter> {
 	override val entity get() = maintenanceTaskDAO.entityClass
-	override val views = listOf("by_all_delegates_identifier")
 
 	override fun resolve(
 		filter: MaintenanceTaskByHcPartyAndIdentifiersFilter,

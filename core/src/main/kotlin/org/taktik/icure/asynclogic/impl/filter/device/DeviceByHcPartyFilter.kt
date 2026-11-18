@@ -20,7 +20,6 @@ class DeviceByHcPartyFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Device, DeviceByHcPartyFilter> {
 	override val entity get() = deviceDAO.entityClass
-	override val views = listOf("by_responsible")
 
 	override fun resolve(
 		filter: DeviceByHcPartyFilter,

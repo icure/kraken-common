@@ -19,13 +19,5 @@ interface Filter<T : Serializable, O : Identifiable<T>, F : Filter<T, O>> {
 	 */
 	val entity: Class<*>? get() = null
 
-	/**
-	 * The configuration view(s) (design-doc schema views) this filter relies on when resolving, i.e. the
-	 * `configurationView`(s) passed to the DAO query method(s) invoked in [resolve]. All views are defined on [entity].
-	 * Defaults to an empty list for filters that do not query a configuration view (e.g. id-based, "all", or
-	 * composition filters).
-	 */
-	val views: List<String> get() = emptyList()
-
 	fun resolve(filter: F, context: Filters, datastoreInformation: IDatastoreInformation): Flow<T>
 }

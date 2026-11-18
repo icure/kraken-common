@@ -15,7 +15,6 @@ class ServiceByQualifiedLinkFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Service, ServiceByQualifiedLinkFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("service_by_linked_id")
 
 	override fun resolve(
 		filter: ServiceByQualifiedLinkFilter,

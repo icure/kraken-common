@@ -22,7 +22,6 @@ class CalendarItemByPeriodAndDataOwnerIdFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByPeriodAndDataOwnerIdFilter> {
 	override val entity get() = calendarItemDAO.entityClass
-	override val views = listOf("by_all_delegates_and_startdate", "by_all_delegates_and_enddate")
 
 	override fun resolve(
 		filter: CalendarItemByPeriodAndDataOwnerIdFilter,

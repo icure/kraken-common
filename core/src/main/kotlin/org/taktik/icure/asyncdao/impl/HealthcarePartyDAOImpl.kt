@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -283,6 +284,7 @@ internal class HealthcarePartyDAOImpl(
 		)
 	}
 
+	@SystemView
 	@Deprecated("A HCP may now have multiple AES Keys. Use getAesExchangeKeysForDelegate instead")
 	@View(name = "by_hcparty_delegate_keys", map = "classpath:js/healthcareparty/By_hcparty_delegate_keys_map.js")
 	override suspend fun getHcPartyKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, String> {
@@ -292,8 +294,7 @@ internal class HealthcarePartyDAOImpl(
 		val result = client.queryView<String, List<String>>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
-				legacyView = "by_hcparty_delegate_keys".main(),
-				configurationView = "by_hcparty_delegate_keys",
+				viewName = "by_hcparty_delegate_keys",
 			).key(healthcarePartyId).includeDocs(false),
 		).mapNotNull { it.value }
 
@@ -304,14 +305,14 @@ internal class HealthcarePartyDAOImpl(
 		return resultMap
 	}
 
+	@SystemView
 	@View(name = "by_delegate_aes_exchange_keys", map = "classpath:js/healthcareparty/By_delegate_aes_exchange_keys_map.js")
 	override suspend fun getAesExchangeKeysForDelegate(datastoreInformation: IDatastoreInformation, healthcarePartyId: String): Map<String, Map<String, Map<String, String>>> {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		return client.queryView<String, AesExchangeKeyViewValue>(
 			createQuery(
 				datastoreInformation = datastoreInformation,
-				legacyView = "by_delegate_aes_exchange_keys".main(),
-				configurationView = "by_delegate_aes_exchange_keys",
+				viewName = "by_delegate_aes_exchange_keys",
 			)
 				.key(healthcarePartyId)
 				.includeDocs(false),
@@ -452,6 +453,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc._conflicts) emit(doc._id) }",

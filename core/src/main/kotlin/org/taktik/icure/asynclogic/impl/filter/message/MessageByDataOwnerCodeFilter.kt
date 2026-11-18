@@ -20,7 +20,6 @@ class MessageByDataOwnerCodeFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerCodeFilter> {
 	override val entity get() = documentDAO.entityClass
-	override val views = listOf("by_all_delegates_code")
 
 	override fun resolve(
 		filter: MessageByDataOwnerCodeFilter,

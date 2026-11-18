@@ -255,6 +255,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 * Creates or updates the view design documents for this entity type.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param onlyForSystemViews whether to generate design documents for the views annotated with SystemView.
 	 * @param updateIfExists updates the design docs if already existing
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
@@ -263,6 +264,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,
@@ -273,7 +275,8 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 * Creates or updates the view design documents for this entity type.
 	 *
 	 * @param client the database [Client].
-	 * @param updateIfExists updates the design docs if already existing
+	 * @param onlyForSystemViews whether to generate design documents for the views annotated with SystemView.
+	 * @param updateIfExists updates the design docs if already existing.
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
 	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
@@ -281,6 +284,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		client: Client,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,

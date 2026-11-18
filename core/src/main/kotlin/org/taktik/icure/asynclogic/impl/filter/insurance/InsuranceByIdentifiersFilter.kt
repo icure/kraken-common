@@ -33,7 +33,6 @@ class InsuranceByIdentifiersFilter(
 	private val insuranceDAO: InsuranceDAO,
 ) : Filter<String, Insurance, InsuranceByIdentifiersFilter> {
 	override val entity get() = insuranceDAO.entityClass
-	override val views = listOf("by_identifiers")
 
 	override fun resolve(
 		filter: InsuranceByIdentifiersFilter,

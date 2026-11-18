@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.taktik.icure.annotations.permissions.AccessControl
 import org.taktik.icure.asyncservice.CodeService
 import org.taktik.icure.asyncservice.ContactService
 import org.taktik.icure.asyncservice.DocumentService
@@ -88,7 +87,6 @@ class ICureController(
 		true
 	}
 
-	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "Resolve patients conflicts")
 	@PostMapping("/conflicts/patient")
 	fun resolvePatientsConflicts(
@@ -99,7 +97,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "Resolve contacts conflicts")
 	@PostMapping("/conflicts/contact")
 	fun resolveContactsConflicts(
@@ -110,7 +107,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "resolve forms conflicts")
 	@PostMapping("/conflicts/form")
 	fun resolveFormsConflicts(
@@ -121,7 +117,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "resolve healthcare elements conflicts")
 	@PostMapping("/conflicts/healthelement")
 	fun resolveHealthElementsConflicts(
@@ -132,7 +127,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "resolve invoices conflicts")
 	@PostMapping("/conflicts/invoice")
 	fun resolveInvoicesConflicts(
@@ -143,7 +137,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp OR CanAccessAsAdmin")
 	@Operation(summary = "resolve messages conflicts")
 	@PostMapping("/conflicts/message")
 	fun resolveMessagesConflicts(
@@ -154,7 +147,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "resolve documents conflicts")
 	@PostMapping("/conflicts/document")
 	fun resolveDocumentsConflicts(
@@ -166,7 +158,6 @@ class ICureController(
 		.map { IdWithRevDto(it.id, it.rev) }
 		.injectReactorContext()
 
-	@AccessControl("CanAccessAsHcp")
 	@Operation(summary = "resolve codes conflicts")
 	@PostMapping("/conflicts/code")
 	fun resolveCodesConflicts(

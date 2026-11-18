@@ -21,7 +21,6 @@ class HealthElementByHcPartyStatusVersioningFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByHcPartyStatusVersioningFilter> {
 	override val entity get() = healthElementDAO.entityClass
-	override val views = listOf("by_all_delegates_status")
 
 	override fun resolve(
 		filter: HealthElementByHcPartyStatusVersioningFilter,

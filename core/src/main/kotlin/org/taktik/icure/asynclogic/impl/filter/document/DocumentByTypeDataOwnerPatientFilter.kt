@@ -20,7 +20,6 @@ class DocumentByTypeDataOwnerPatientFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Document, DocumentByTypeDataOwnerPatientFilter> {
 	override val entity get() = documentDAO.entityClass
-	override val views = listOf("by_all_delegates_message")
 
 	override fun resolve(
 		filter: DocumentByTypeDataOwnerPatientFilter,

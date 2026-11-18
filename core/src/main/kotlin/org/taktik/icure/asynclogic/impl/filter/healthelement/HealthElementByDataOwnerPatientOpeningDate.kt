@@ -23,7 +23,6 @@ class HealthElementByDataOwnerPatientOpeningDate(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByDataOwnerPatientOpeningDate> {
 	override val entity get() = healthElementDAO.entityClass
-	override val views = listOf("by_all_delegates_patient")
 
 	override fun resolve(
 		filter: HealthElementByDataOwnerPatientOpeningDate,

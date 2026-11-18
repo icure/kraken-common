@@ -15,7 +15,6 @@ class AllAgendasFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, Filters.AllFilter<String, Agenda>> {
 	override val entity get() = agendaDAO.entityClass
-	override val views = listOf("all")
 
 	override fun resolve(
 		filter: Filters.AllFilter<String, Agenda>,

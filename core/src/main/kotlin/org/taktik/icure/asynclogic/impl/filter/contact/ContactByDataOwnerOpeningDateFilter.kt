@@ -21,7 +21,6 @@ class ContactByDataOwnerOpeningDateFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByDataOwnerOpeningDateFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("by_all_delegates_openingdate")
 
 	override fun resolve(
 		filter: ContactByDataOwnerOpeningDateFilter,

@@ -20,7 +20,6 @@ class CalendarItemByDataOwnerPatientStartTimeFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, CalendarItem, CalendarItemByDataOwnerPatientStartTimeFilter> {
 	override val entity get() = calendarItemDAO.entityClass
-	override val views = listOf("by_all_delegates_patient_start_time")
 
 	override fun resolve(
 		filter: CalendarItemByDataOwnerPatientStartTimeFilter,

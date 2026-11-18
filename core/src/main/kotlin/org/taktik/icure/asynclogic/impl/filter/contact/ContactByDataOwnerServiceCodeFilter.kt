@@ -21,7 +21,6 @@ data class ContactByDataOwnerServiceCodeFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByDataOwnerServiceCodeFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("service_by_all_delegates_code")
 
 	override fun resolve(
 		filter: ContactByDataOwnerServiceCodeFilter,

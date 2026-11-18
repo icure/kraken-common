@@ -27,7 +27,8 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 	cacheChain: EntityCacheChainLink<String, T>? = null,
 	designDocumentProvider: DesignDocumentProvider,
 	daoConfig: DaoConfig,
-	queryProvider: QueryProvider
+	queryProvider: QueryProvider,
+	allIsSystemView: Boolean = false,
 ) : ConflictDAO<T>, GenericDAOImpl<T>(
 	entityClass = entityClass,
 	couchDbDispatcher = couchDbDispatcher,
@@ -35,7 +36,8 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 	cacheChain = cacheChain,
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-	queryProvider = queryProvider
+	queryProvider = queryProvider,
+	allIsSystemView = allIsSystemView,
 ) {
 
 	protected inline fun <reified E: T> doListIdsOfEntitiesWithConflicts(
@@ -56,8 +58,8 @@ abstract class ConflictDAOImpl<T: StoredDocument>(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = viewName to partition,
-			configurationView = "conflicts"
+			viewName = viewName,
+			secondaryPartition = partition,
 		).includeDocs(true)
 		emitAll(client.queryViewIncludeDocsNoValue<String, E>(viewQuery).map { it.doc })
 	}
