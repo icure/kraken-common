@@ -10,6 +10,8 @@ import org.taktik.icure.services.external.rest.v1.dto.embed.form.template.Group
 import org.taktik.icure.services.external.rest.v1.dto.embed.form.template.StructureElement
 
 class JacksonStructureElementDeserializer : JsonObjectDeserializer<StructureElement>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserializeObject(
 		jsonParser: JsonParser?,
 		context: DeserializationContext?,

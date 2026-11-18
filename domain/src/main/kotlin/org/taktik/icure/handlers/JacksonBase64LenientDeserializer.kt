@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import java.util.Base64
 
 class JacksonBase64LenientDeserializer : JsonDeserializer<ByteArray>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ByteArray? = if (p.currentToken()?.isScalarValue == true) {
 		p.valueAsString?.let { Base64.getDecoder().decode(it) }
 	} else {

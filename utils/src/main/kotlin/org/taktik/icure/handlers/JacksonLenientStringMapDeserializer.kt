@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
  * - Number and boolean values are kept using their textual representation, as Jackson does by default for strings.
  */
 class JacksonLenientStringMapDeserializer : JsonDeserializer<Map<String, String>>() {
+	override fun isCachable(): Boolean = true
 
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Map<String, String> {
 		val node = p.readValueAsTree<JsonNode>()

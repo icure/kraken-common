@@ -11,6 +11,8 @@ import org.taktik.icure.services.external.rest.v1.dto.security.PermissionItemDto
 import java.io.IOException
 
 class JacksonPermissionItemDeserializer : JsonDeserializer<PermissionItemDto>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(
 		p: JsonParser?,
 		ctxt: DeserializationContext?,

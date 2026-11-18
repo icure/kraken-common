@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import java.util.Base64
 
 class JacksonLenientBase64Deserializer : JsonDeserializer<ByteArray>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(
 		p: JsonParser,
 		ctxt: DeserializationContext,

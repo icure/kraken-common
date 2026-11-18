@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 
 abstract class EnumToMapOrListDeserializer<T>(private val enumClass: Class<T>) : JsonDeserializer<Map<T, Map<String, String>>>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(jsonParser: JsonParser, ctxt: DeserializationContext): Map<T, Map<String, String>> = jsonParser.codec.readTree<ObjectNode>(jsonParser).fields().asSequence().associate { (k, v) ->
 		val parsedK = ctxt.readValue(TextNode(k).traverse().also { it.nextToken() }, enumClass)
 		parsedK to when {
