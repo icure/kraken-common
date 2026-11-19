@@ -13,6 +13,8 @@ data class HealthcarePartyByDataOwnerGroupIdFilter(
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
+	override val isHeavyFilter: Boolean
+		get() = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()
 
 	/**

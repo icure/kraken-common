@@ -18,7 +18,6 @@ class HealthcarePartyByDataOwnerGroupIdFilter(
 	private val healthcarePartyDAO: HealthcarePartyDAO,
 ) : Filter<String, HealthcareParty, HealthcarePartyByDataOwnerGroupIdFilter> {
 	override val entity get() = healthcarePartyDAO.entityClass
-	override val views = listOf("by_data_owner_group")
 
 	/**
 	 * All direct children of [HealthcarePartyByDataOwnerGroupIdFilter.dataOwnerGroupId], membership-only — no

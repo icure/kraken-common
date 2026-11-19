@@ -23,6 +23,8 @@ data class ServiceByDataOwnerPatientTagCodesFilter(
 
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
+	override val isHeavyFilter: Boolean
+		get() = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(dataOwnerId)
 
 	// Cannot verify in memory whether the item is the latest version of the service: checks only the other criteria.

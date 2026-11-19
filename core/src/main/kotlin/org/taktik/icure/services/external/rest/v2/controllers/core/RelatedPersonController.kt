@@ -357,7 +357,7 @@ class RelatedPersonController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
-		val relatedPersons = relatedPersonService.filterRelatedPersons(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
+		val relatedPersons = relatedPersonService.filterEntitiesBy(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
 		relatedPersons.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}

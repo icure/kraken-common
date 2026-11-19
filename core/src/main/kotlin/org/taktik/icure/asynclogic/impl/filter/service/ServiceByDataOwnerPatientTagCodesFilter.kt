@@ -22,7 +22,6 @@ class ServiceByDataOwnerPatientTagCodesFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByDataOwnerPatientTagCodesFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("service_by_all_delegates_patient_tag_prefix")
 
 	override fun resolve(
 		filter: ServiceByDataOwnerPatientTagCodesFilter,

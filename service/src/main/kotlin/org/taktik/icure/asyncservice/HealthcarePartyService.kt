@@ -146,6 +146,5 @@ interface HealthcarePartyService : EntityWithConflictResolutionService<Healthcar
 	 */
 	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginationElement>
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
-	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>
 	fun modifyHealthcareParties(entities: Collection<HealthcareParty>): Flow<HealthcareParty>
 }
