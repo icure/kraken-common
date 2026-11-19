@@ -154,18 +154,38 @@ abstract class AbstractAuthenticationManager<
 	}
 
 	/**
-	 * Checks if a password is valid, the password can contain the verification code of the 2FA following this format `password|123456`.
+	 * How the 2fa verification code is provided to [isPasswordValid].
+	 */
+	protected sealed interface VerificationCodeSource {
+		/**
+		 * Legacy: the verification code may be appended to the password following the format `password|123456`.
+		 * Ambiguous if a user password itself ends with `|[0-9]{6,}`.
+		 */
+		data object InlineInPassword : VerificationCodeSource
+
+		/**
+		 * The password is used verbatim, and the verification code (if any) is provided separately.
+		 * If [code] is null the password of a user with 2fa is still validated, but the result will be
+		 * [PasswordValidationStatus.Missing2fa].
+		 */
+		data class Separate(val code: String?) : VerificationCodeSource
+	}
+
+	/**
+	 * Checks if a password is valid.
 	 *
+	 * @param verificationCodeSource how the 2fa verification code is provided; by default it can be appended to the
+	 * password (see [VerificationCodeSource.InlineInPassword]).
 	 * @returns [PasswordValidationStatus] depending of the status of the validation:
 	 * - [PasswordValidationStatus.Success]: Everything is checked and good
 	 * - [PasswordValidationStatus.Failure]: Password isn't correct
 	 * - [PasswordValidationStatus.Missing2fa]: Password validated, but 2FA verification code is missing
 	 * - [PasswordValidationStatus.Failed2fa]: Password validated, but 2FA verification code is wrong
 	 */
-	@OptIn(ExperimentalTime::class)
 	protected suspend fun isPasswordValid(
 		u: BaseUser,
 		password: String,
+		verificationCodeSource: VerificationCodeSource = VerificationCodeSource.InlineInPassword,
 	): PasswordValidationStatus {
 		val containsTokenResult = doesUserContainsToken(u, appToken = password)
 		if (containsTokenResult.containsToken) {
@@ -177,9 +197,16 @@ abstract class AbstractAuthenticationManager<
 				},
 			)
 		}
+		val uses2fa = u.use2fa == true && u.secret?.isNotBlank() == true
 		return when {
 			u.passwordHash == null -> PasswordValidationStatus.Failure
-			u.use2fa == true && u.secret?.isNotBlank() == true -> {
+			uses2fa && verificationCodeSource is VerificationCodeSource.Separate -> when {
+				!passwordEncoder.matches(password, u.passwordHash) -> PasswordValidationStatus.Failure
+				verificationCodeSource.code == null -> PasswordValidationStatus.Missing2fa
+				isVerificationCodeValid(u, verificationCodeSource.code) -> PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+				else -> PasswordValidationStatus.Failed2fa
+			}
+			uses2fa -> {
                 /*
                  * Rarely the user password may end with |[0-9]{6,} which is NOT part of the 2fa code. In addition to
                  * checking the stripped password we should also check the pw in full.
@@ -191,11 +218,10 @@ abstract class AbstractAuthenticationManager<
                  * Meaning the attacker is able to try 2 passwords at a time if one of them ends with |[0-9]{6,}. This
                  * is not a significant issue.
                  */
-				val strippedPw = strip2fa(password)
-				if (strippedPw != null && passwordEncoder.matches(strippedPw, u.passwordHash)) {
-					val parsedSecret = u.secret?.let { ParsedTotpSecret.tryParse(it) } ?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
-					val verificationCode = password.split("|").last()
-					if (Totp(parsedSecret.secret, parsedSecret.algorithm).verify(verificationCode, expectedLength = parsedSecret.expectedCount)) {						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
+				val strippedPwAndCode = splitInlineVerificationCode(password)
+				if (strippedPwAndCode != null && passwordEncoder.matches(strippedPwAndCode.first, u.passwordHash)) {
+					if (isVerificationCodeValid(u, strippedPwAndCode.second)) {
+						PasswordValidationStatus.Success(AuthenticationClass.TWO_FACTOR_AUTHENTICATION)
 					} else {
 						PasswordValidationStatus.Failed2fa
 					}
@@ -215,6 +241,13 @@ abstract class AbstractAuthenticationManager<
 		}
 	}
 
+	@OptIn(ExperimentalTime::class)
+	private suspend fun isVerificationCodeValid(u: BaseUser, verificationCode: String): Boolean {
+		val parsedSecret = u.secret?.let { ParsedTotpSecret.tryParse(it) }
+			?: throw MissingRequirementsException("Invalid configuration of 2FA token length and secret in the user.")
+		return Totp(parsedSecret.secret, parsedSecret.algorithm).verify(verificationCode, expectedLength = parsedSecret.expectedCount)
+	}
+
 	private fun doesUserContainsToken(
 		u: BaseUser,
 		appToken: String,
@@ -230,13 +263,14 @@ abstract class AbstractAuthenticationManager<
 	}
 
 	// returns null if the password does not end with |potentialToken
-	private fun strip2fa(password: String) = password
+	private fun splitInlineVerificationCode(password: String) = password
 		.split("|")
 		.toTypedArray()
 		.toList()
 		.takeIf { it.size > 1 && it.last().length >= 6 && it.last().toLongOrNull() != null }
-		?.dropLast(1)
-		?.joinToString("|")
+		?.let {
+			it.dropLast(1).joinToString("|") to it.last()
+		}
 
 	protected class ParsedTotpSecret(
 		val expectedCount: Int,
