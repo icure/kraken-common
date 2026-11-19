@@ -19,7 +19,7 @@ data class GroupDeletionReportDto(
 	@ActiveField
 	val server: String,
 	/** What happened to the resource. */
-	@param:Schema(defaultValue = "DELETED") @ActiveField val status: Status = Status.DELETED,
+	@param:Schema(defaultValue = "Status.DELETED") @ActiveField val status: Status = Status.DELETED,
 	/** Details on a [Status.FAILED] resource. */
 	@ActiveField val message: String? = null,
 ) {
