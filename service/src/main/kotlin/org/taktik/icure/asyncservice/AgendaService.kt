@@ -9,14 +9,14 @@ import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Agenda
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface AgendaService : EntityWithConflictResolutionService<Agenda> {
+interface AgendaService : EntityWithConflictResolutionService<Agenda>, EntityWithFilterService<Agenda> {
 	suspend fun createAgenda(agenda: Agenda): Agenda
 	fun createAgendas(agendas: List<Agenda>): Flow<Agenda>
 
@@ -98,12 +98,4 @@ interface AgendaService : EntityWithConflictResolutionService<Agenda> {
 	 * @return a [Flow] of [Agenda]s.
 	 */
 	fun getAllAgendas(): Flow<Agenda>
-
-	/**
-	 * Retrieves the ids of the [Agenda]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Agenda].
-	 * @return a [Flow] of the ids matching the filter.
-	 */
-	fun matchAgendasBy(filter: AbstractFilter<Agenda>): Flow<String>
 }

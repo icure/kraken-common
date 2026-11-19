@@ -21,7 +21,6 @@ class ContactByServiceIdsFilter(
 	private val contactDAO: ContactDAO,
 ) : Filter<String, Contact, ContactByServiceIdsFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("by_service_emit_modified")
 
 	override fun resolve(
 		filter: ContactByServiceIdsFilter,

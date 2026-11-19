@@ -7,14 +7,11 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthElement
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -23,7 +20,8 @@ import org.taktik.icure.exceptions.NotFoundRequestException
 interface HealthElementService :
 	EntityWithSecureDelegationsService<HealthElement>,
 	EntityWithConflictResolutionService<HealthElement>,
-	EntityWithCustomViewsService
+	EntityWithCustomViewsService,
+	EntityWithFilterService<HealthElement>
 {
 	suspend fun createHealthElement(healthElement: HealthElement): HealthElement
 
@@ -120,22 +118,6 @@ interface HealthElementService :
 	suspend fun modifyHealthElement(healthElement: HealthElement): HealthElement
 
 	suspend fun addDelegations(healthElementId: String, delegations: List<Delegation>): HealthElement?
-
-	fun filter(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<HealthElement>,
-	): Flow<ViewQueryResultEvent>
-
-	/**
-	 * Retrieves the ids of the [HealthElement]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [HealthElement].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchHealthElementsBy(filter: AbstractFilter<HealthElement>): Flow<String>
 
 	fun modifyEntities(entities: Flow<HealthElement>): Flow<HealthElement>
 	fun createEntities(entities: Flow<HealthElement>): Flow<HealthElement>

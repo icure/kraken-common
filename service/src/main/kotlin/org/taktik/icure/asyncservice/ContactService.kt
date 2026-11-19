@@ -12,6 +12,7 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.domain.filter.AbstractFilter
@@ -28,7 +29,8 @@ import org.taktik.icure.pagination.PaginationElement
 interface ContactService :
 	EntityWithSecureDelegationsService<Contact>,
 	EntityWithConflictResolutionService<Contact>,
-	EntityWithCustomViewsService
+	EntityWithCustomViewsService,
+	EntityWithFilterService<Contact>
 {
 
 	suspend fun getContact(id: String): Contact?
@@ -140,10 +142,6 @@ interface ContactService :
 	): List<org.taktik.icure.entities.data.LabelledOccurence>
 
 	fun listContactsByHcPartyAndFormIds(hcPartyId: String, ids: List<String>): Flow<Contact>
-	fun filterContacts(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Contact>,
-	): Flow<ViewQueryResultEvent>
 
 	fun filterServices(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<Service>): Flow<Service>
 
@@ -195,17 +193,6 @@ interface ContactService :
 	 * @return a [Flow] containing all the [Contact]s that were successfully modified.
 	 */
 	fun modifyContacts(contacts: Collection<Contact>): Flow<Contact>
-
-	/**
-	 * Retrieves the ids of the [Contact]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Contact].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchContactsBy(filter: AbstractFilter<Contact>): Flow<String>
 
 	/**
 	 * Retrieves the ids of the [Service]s matching the provided [filter].

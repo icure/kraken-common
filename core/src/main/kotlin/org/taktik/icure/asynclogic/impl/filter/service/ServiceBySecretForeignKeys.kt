@@ -22,7 +22,6 @@ class ServiceBySecretForeignKeys(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceBySecretForeignKeys> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("by_all_delegates_patientfk")
 
 	override fun resolve(
 		filter: ServiceBySecretForeignKeys,

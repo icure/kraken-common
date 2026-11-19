@@ -9,9 +9,8 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.couchdb.id.Identifiable
 import org.taktik.icure.asynclogic.base.ProxyDatastoreProvider
-import org.taktik.icure.domain.filter.AbstractFilter
 
-interface EntityPersister<E : Identifiable<String>> : ProxyDatastoreProvider {
+interface EntityPersister<E : Identifiable<String>> : ProxyDatastoreProvider, FilterLogic<E> {
 
 	suspend fun createEntity(entity: E): E
 
@@ -40,12 +39,4 @@ interface EntityPersister<E : Identifiable<String>> : ProxyDatastoreProvider {
 
 	suspend fun modifyEntity(entity: E): E
 	fun modifyEntities(entities: Flow<E>): Flow<E>
-
-	/**
-	 * Retrieves the ids of the entities [E] matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter].
-	 * @return a [Flow] of the ids matching the filter.
-	 */
-	fun matchEntitiesBy(filter: AbstractFilter<*>): Flow<String>
 }

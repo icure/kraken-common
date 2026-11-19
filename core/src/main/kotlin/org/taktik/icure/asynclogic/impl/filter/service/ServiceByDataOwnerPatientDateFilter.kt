@@ -20,7 +20,6 @@ class ServiceByDataOwnerPatientDateFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByDataOwnerPatientDateFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("by_all_delegates_patientfk")
 
 	override fun resolve(
 		filter: ServiceByDataOwnerPatientDateFilter,

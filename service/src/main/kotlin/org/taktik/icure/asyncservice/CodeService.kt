@@ -9,15 +9,15 @@ import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.base.Code
 import org.taktik.icure.entities.base.CodeStub
 import org.taktik.icure.pagination.PaginationElement
 import java.io.InputStream
 
-interface CodeService : EntityWithConflictResolutionService<Code> {
+interface CodeService : EntityWithConflictResolutionService<Code>, EntityWithFilterService<Code> {
 	fun getTagTypeCandidates(): List<String>
 	fun getRegions(): List<String>
 	suspend fun get(id: String): Code?
@@ -149,13 +149,4 @@ interface CodeService : EntityWithConflictResolutionService<Code> {
 	 * @return a [Code] that matches the criteria or null.
 	 */
 	suspend fun getCodeByLabel(region: String?, label: String, type: String, languages: List<String> = listOf("fr", "nl")): Code?
-
-	/**
-	 * Retrieves the ids of the [Code]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Code].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the current user does not have the Permission to search codes with a filter.
-	 */
-	fun matchCodesBy(filter: AbstractFilter<Code>): Flow<String>
 }

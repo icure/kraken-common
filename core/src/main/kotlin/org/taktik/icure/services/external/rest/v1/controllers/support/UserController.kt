@@ -250,7 +250,7 @@ class UserController(
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
-		val users = userService.filterUsers(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+		val users = userService.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 
 		users.paginatedList(userMapper::mapOmittingSecrets, realLimit)
 	}
@@ -260,7 +260,7 @@ class UserController(
 	fun matchUsersBy(
 		@RequestBody filter: AbstractFilterDto<UserDto>,
 	) = userService
-		.matchUsersBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }

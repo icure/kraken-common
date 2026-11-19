@@ -32,6 +32,10 @@ data class ServiceByHcPartyTagCodeDateFilter(
 		}
 	}
 
+	override val isHeavyFilter: Boolean
+		get() =
+			startValueDate == null ||
+			endValueDate == null
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

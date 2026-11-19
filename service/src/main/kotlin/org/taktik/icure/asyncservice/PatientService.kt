@@ -13,10 +13,10 @@ import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.PatientLogic.Companion.PatientSearchField
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
 import org.taktik.icure.asyncservice.base.EntityWithCustomViewsService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
 import org.taktik.icure.db.Sorting
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.embed.Delegation
@@ -28,7 +28,8 @@ import java.time.Instant
 interface PatientService :
 	EntityWithSecureDelegationsService<Patient>,
 	EntityWithConflictResolutionService<Patient>,
-	EntityWithCustomViewsService
+	EntityWithCustomViewsService,
+	EntityWithFilterService<Patient>
 {
 
 	suspend fun countByHcParty(healthcarePartyId: String): Int
@@ -257,15 +258,4 @@ interface PatientService :
 		updatedInto: Patient,
 		omitEncryptionKeysOfFrom: Boolean,
 	): Patient
-
-	/**
-	 * Retrieves the ids of the [Patient]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Patient].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchPatientsBy(filter: AbstractFilter<Patient>): Flow<String>
 }

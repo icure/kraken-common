@@ -16,7 +16,6 @@ class HealthElementByAssociationIdFilter(
 	private val healthElementDAO: HealthElementDAO,
 ) : Filter<String, HealthElement, HealthElementByAssociationIdFilter> {
 	override val entity get() = healthElementDAO.entityClass
-	override val views = listOf("by_association_id")
 
 	override fun resolve(
 		filter: HealthElementByAssociationIdFilter,

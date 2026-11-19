@@ -32,7 +32,6 @@ class AllCodesFilter(
 	private val codeDAO: CodeDAO,
 ) : Filter<String, Code, org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>> {
 	override val entity get() = codeDAO.entityClass
-	override val views = listOf("all")
 
 	override fun resolve(
 		filter: org.taktik.icure.domain.filter.Filters.AllFilter<String, Code>,

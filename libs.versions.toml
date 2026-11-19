@@ -19,7 +19,7 @@ nettyVersion = "4.1.134.Final"
 jupiter = "5.12.2"
 junit = "1.12.2"
 slf4j = "2.0.17"
-krouch = "1.2.102-g5e2e4f28a5"
+krouch = "1.2.103-gf087431736"
 asyncJacksonHttpClient = "0.2.27-g528cb8c312"
 
 [libraries]

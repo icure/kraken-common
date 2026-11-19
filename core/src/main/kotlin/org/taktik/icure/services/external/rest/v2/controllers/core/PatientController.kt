@@ -509,7 +509,7 @@ class PatientController(
 	fun matchPatientsBy(
 		@RequestBody filter: AbstractFilterDto<PatientDto>,
 	): Flux<String> = patientService
-		.matchPatientsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

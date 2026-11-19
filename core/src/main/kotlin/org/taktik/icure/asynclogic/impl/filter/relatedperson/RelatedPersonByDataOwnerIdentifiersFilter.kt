@@ -24,7 +24,6 @@ class RelatedPersonByDataOwnerIdentifiersFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, RelatedPerson, RelatedPersonByDataOwnerIdentifiersFilter> {
 	override val entity get() = relatedPersonDAO.entityClass
-	override val views = listOf("by_all_delegates_identifier")
 
 	override fun resolve(
 		filter: RelatedPersonByDataOwnerIdentifiersFilter,

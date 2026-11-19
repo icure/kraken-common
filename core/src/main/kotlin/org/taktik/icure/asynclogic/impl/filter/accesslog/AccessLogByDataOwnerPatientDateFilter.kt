@@ -20,7 +20,6 @@ data class AccessLogByDataOwnerPatientDateFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, AccessLog, AccessLogByDataOwnerPatientDateFilter> {
 	override val entity get() = accessLogDAO.entityClass
-	override val views = listOf("by_all_delegates_patient")
 
 	override fun resolve(
 		filter: AccessLogByDataOwnerPatientDateFilter,

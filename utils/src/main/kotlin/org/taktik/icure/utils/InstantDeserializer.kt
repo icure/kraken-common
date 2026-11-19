@@ -11,6 +11,8 @@ import java.math.BigDecimal
 import java.time.Instant
 
 class InstantDeserializer : JsonDeserializer<Instant>() {
+	override fun isCachable(): Boolean = true
+
 	@Throws(IOException::class)
 	override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): Instant? = when {
 		jp.currentToken.isNumeric -> jp.decimalValue

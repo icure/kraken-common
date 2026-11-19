@@ -27,8 +27,11 @@ data class InsuranceByIdentifiersFilter(
 	override val identifiers: List<Identifier>,
 	override val desc: String? = null,
 ) : AbstractFilter<Insurance>,
-	InsuranceByIdentifiersFilter {
+	InsuranceByIdentifiersFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

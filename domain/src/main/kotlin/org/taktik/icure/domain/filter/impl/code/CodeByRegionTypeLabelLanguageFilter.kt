@@ -17,8 +17,11 @@ data class CodeByRegionTypeLabelLanguageFilter(
 	override val language: String,
 	override val label: String? = null,
 ) : AbstractFilter<Code>,
-	org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter {
+	org.taktik.icure.domain.filter.code.CodeByRegionTypeLabelLanguageFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

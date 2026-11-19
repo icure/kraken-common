@@ -11,6 +11,8 @@ import org.taktik.icure.domain.ContactIdServiceId
 import java.lang.IllegalArgumentException
 
 class JacksonContactIdServiceIdDeserializer : JsonDeserializer<ContactIdServiceId>() {
+	override fun isCachable(): Boolean = true
+
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ContactIdServiceId = if (p.currentToken()?.isScalarValue == true) {
 		ContactIdServiceId(p.readValueAs(String::class.java))
 	} else {

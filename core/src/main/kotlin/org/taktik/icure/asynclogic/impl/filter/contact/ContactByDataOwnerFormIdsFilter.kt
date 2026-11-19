@@ -20,7 +20,6 @@ class ContactByDataOwnerFormIdsFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Contact, ContactByDataOwnerFormIdsFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("by_all_delegates_formid")
 
 	override fun resolve(
 		filter: ContactByDataOwnerFormIdsFilter,

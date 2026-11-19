@@ -16,7 +16,6 @@ data class AgendaWithPropertyFilter(
 	private val agendaDAO: AgendaDAO,
 ) : Filter<String, Agenda, AgendaWithPropertyFilter> {
 	override val entity get() = agendaDAO.entityClass
-	override val views = listOf("by_typed_property")
 
 	override fun resolve(
 		filter: AgendaWithPropertyFilter,

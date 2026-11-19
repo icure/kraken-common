@@ -7,31 +7,17 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.taktik.icure.asynclogic.impl.filter.Filter
 import org.taktik.icure.services.external.rest.v2.dto.FilterDefinitionDto
+import org.taktik.icure.utils.entities.FiltersDefinition
 
 @RestController("FilterControllerV2")
 @Profile("app")
 @RequestMapping("/rest/v2/filter")
 @Tag(name = "filter")
 class FilterController(
-	filterBeans: List<Filter<*, *, *>>,
+	private val filtersDefinition: FiltersDefinition
 ) {
 
-	private val filtersByEntity: Map<String, List<FilterDefinitionDto>> = filterBeans.groupBy {
-		it.entity?.simpleName
-	}.entries.mapNotNull { (entity, filters) ->
-		if (entity != null) {
-			entity to filters.map {
-				FilterDefinitionDto(
-					filter = it::class.java.simpleName,
-					entity = entity,
-					views = it.views
-				)
-			}
-		} else {
-			null
-		}
-	}.toMap()
-
+	// AC through security config
 	@GetMapping("/definitions")
-	fun allFilterDefinitions(): Map<String, List<FilterDefinitionDto>> = filtersByEntity
+	fun allFilterDefinitions(): Map<String, List<FilterDefinitionDto>> = filtersDefinition.filtersByEntity
 }

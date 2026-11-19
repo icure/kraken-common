@@ -17,7 +17,9 @@ import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.annotation.Views
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -78,8 +80,8 @@ open class MessageDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKey = ComplexKey.of(partyId, fromAddress, if (reverse) ComplexKey.emptyObject() else null)
-		val endKey = ComplexKey.of(partyId, fromAddress, if (reverse) null else ComplexKey.emptyObject())
+		val startKey = ComplexKey.of(partyId, fromAddress, if (reverse) EmptyObjectKey else null)
+		val endKey = ComplexKey.of(partyId, fromAddress, if (reverse) null else EmptyObjectKey)
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation = datastoreInformation,
@@ -114,7 +116,7 @@ open class MessageDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKey = ComplexKey.of(dataOwnerId, fromAddress, null)
-		val endKey = ComplexKey.of(dataOwnerId, fromAddress, ComplexKey.emptyObject())
+		val endKey = ComplexKey.of(dataOwnerId, fromAddress, EmptyObjectKey)
 
 		val viewQueries = createQueries(
 			datastoreInformation = datastoreInformation,
@@ -156,8 +158,8 @@ open class MessageDAOImpl(
 	) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val startKey = ComplexKey.of(partyId, toAddress, if (reverse) ComplexKey.emptyObject() else null)
-		val endKey = ComplexKey.of(partyId, toAddress, if (reverse) null else ComplexKey.emptyObject())
+		val startKey = ComplexKey.of(partyId, toAddress, if (reverse) EmptyObjectKey else null)
+		val endKey = ComplexKey.of(partyId, toAddress, if (reverse) null else EmptyObjectKey)
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation = datastoreInformation,
@@ -187,7 +189,7 @@ open class MessageDAOImpl(
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
 		val startKey = ComplexKey.of(dataOwnerId, toAddress, null)
-		val endKey = ComplexKey.of(dataOwnerId, toAddress, ComplexKey.emptyObject())
+		val endKey = ComplexKey.of(dataOwnerId, toAddress, EmptyObjectKey)
 
 		val viewQueries = createQueries(
 			datastoreInformation = datastoreInformation,
@@ -271,8 +273,8 @@ open class MessageDAOImpl(
 			ComplexKey.of(partyId, it, null)
 		} ?: ComplexKey.of(partyId, transportGuid, null)
 		val endKey = getGuidPrefix(transportGuid)?.let {
-			ComplexKey.of(partyId, it + "\ufff0", ComplexKey.emptyObject())
-		} ?: ComplexKey.of(partyId, transportGuid, ComplexKey.emptyObject())
+			ComplexKey.of(partyId, it + "\ufff0", EmptyObjectKey)
+		} ?: ComplexKey.of(partyId, transportGuid, EmptyObjectKey)
 
 		val viewQueries = createPagedQueries(
 			datastoreInformation = datastoreInformation,
@@ -307,8 +309,8 @@ open class MessageDAOImpl(
 			ComplexKey.of(dataOwnerId, it, null)
 		} ?: ComplexKey.of(dataOwnerId, transportGuid, null)
 		val endKey = getGuidPrefix(transportGuid)?.let {
-			ComplexKey.of(dataOwnerId, it + "\ufff0", ComplexKey.emptyObject())
-		} ?: ComplexKey.of(dataOwnerId, transportGuid, ComplexKey.emptyObject())
+			ComplexKey.of(dataOwnerId, it + "\ufff0", EmptyObjectKey)
+		} ?: ComplexKey.of(dataOwnerId, transportGuid, EmptyObjectKey)
 
 		val viewQueries = createQueries(
 			datastoreInformation = datastoreInformation,
@@ -374,7 +376,7 @@ open class MessageDAOImpl(
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val startKey = ComplexKey.of(dataOwnerId, transportGuid + SMALLEST_CHAR, fromDate)
-		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: ComplexKey.emptyObject())
+		val endKey = ComplexKey.of(dataOwnerId, transportGuid, toDate ?: EmptyObjectKey)
 
 		val viewQueries = createQueries(
 			datastoreInformation = datastoreInformation,
@@ -413,7 +415,7 @@ open class MessageDAOImpl(
 	): Flow<ViewQueryResultEvent> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 		val startKey: ComplexKey = ComplexKey.of(partyId, null)
-		val endKey: ComplexKey = ComplexKey.of(partyId, ComplexKey.emptyObject())
+		val endKey: ComplexKey = ComplexKey.of(partyId, EmptyObjectKey)
 		val viewQueries = createPagedQueries(
 			datastoreInformation = datastoreInformation,
 			legacyViewQueries = listOf(
@@ -570,6 +572,7 @@ open class MessageDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.Message' && !doc.deleted && doc._conflicts) emit(doc._id) }"
@@ -597,8 +600,8 @@ open class MessageDAOImpl(
 		descending: Boolean,
 	): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
-		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject()) else ComplexKey.of(searchKey, startTimestamp)
-		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: ComplexKey.emptyObject())
+		val from = if (descending) ComplexKey.of(searchKey, endTimestamp ?: EmptyObjectKey) else ComplexKey.of(searchKey, startTimestamp)
+		val to = if (descending) ComplexKey.of(searchKey, startTimestamp) else ComplexKey.of(searchKey, endTimestamp ?: EmptyObjectKey)
 		val query = createQuery(
 			datastoreInformation = datastoreInformation,
 			legacyView = "by_data_owner_and_last_update" to DATA_OWNER_PARTITION,

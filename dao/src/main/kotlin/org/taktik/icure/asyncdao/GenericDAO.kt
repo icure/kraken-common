@@ -201,6 +201,16 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	fun getEntities(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<T>
 
 	/**
+	 * Retrieves a collection of entities from the database by their id, wrapping each of them in a
+	 * [ViewQueryResultEvent] so that the result can be used to build a paginated response. The cache is not used.
+	 *
+	 * @param datastoreInformation the datastore information to get the database client.
+	 * @param ids a [Flow] containing the ids of the entities to retrieve.
+	 * @return a [Flow] of [ViewQueryResultEvent]s containing the found entities.
+	 */
+	fun findEntitiesByIds(datastoreInformation: IDatastoreInformation, ids: Flow<String>): Flow<ViewQueryResultEvent>
+
+	/**
 	 * Soft-deletes a collection of entities by setting their deletionDate field and saving them to the database. If a
 	 * cache is present, then the entities are removed from all the levels of the cache.
 	 *
@@ -262,6 +272,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 * Creates or updates the view design documents for this entity type.
 	 *
 	 * @param datastoreInformation an instance of [IDatastoreInformation] to get the database client.
+	 * @param onlyForSystemViews whether to generate design documents for the views annotated with SystemView.
 	 * @param updateIfExists updates the design docs if already existing
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
@@ -270,6 +281,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		datastoreInformation: IDatastoreInformation,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,
@@ -280,7 +292,8 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 * Creates or updates the view design documents for this entity type.
 	 *
 	 * @param client the database [Client].
-	 * @param updateIfExists updates the design docs if already existing
+	 * @param onlyForSystemViews whether to generate design documents for the views annotated with SystemView.
+	 * @param updateIfExists updates the design docs if already existing.
 	 * @param dryRun if true, it will retrieve the design docs to update, but it will not actually perform the update.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
 	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
@@ -288,6 +301,7 @@ interface GenericDAO<T : Identifiable<String>> : LookupDAO<T>, DAOWithClass<T> {
 	 */
 	suspend fun forceInitStandardDesignDocument(
 		client: Client,
+		onlyForSystemViews: Boolean,
 		updateIfExists: Boolean = true,
 		dryRun: Boolean = false,
 		partition: Partitions = Partitions.All,

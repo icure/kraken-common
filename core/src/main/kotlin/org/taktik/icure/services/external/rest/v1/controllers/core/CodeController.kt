@@ -309,7 +309,7 @@ class CodeController(
 	fun matchCodesBy(
 		@RequestBody filter: AbstractFilterDto<CodeDto>,
 	) = codeService
-		.matchCodesBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

@@ -1,16 +1,28 @@
 package org.taktik.couchdb.dao
 
 import org.taktik.couchdb.Client
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.DesignDocument
+import org.taktik.couchdb.support.DesignDocumentFactory
 import org.taktik.icure.asyncdao.Partitions
 
-interface DesignDocumentProvider {
+abstract class DesignDocumentProvider {
+
+	protected fun getDesignDocFactory(
+		onlyForSystemViews: Boolean,
+	) =
+		DesignDocumentFactory.getStdDesignDocumentFactory(
+			filterMetadataSources = {
+				!onlyForSystemViews || it.getAnnotation(SystemView::class.java) != null
+			}
+		)
+
 	/**
 	 * @param entityClass the class of entities that are indexed by the views of the design document.
 	 * @param secondaryPartition the name of the secondary partition of the design document (if applicable).
 	 * @return the name of the design documents for entities of the provided class.
 	 */
-	fun baseDesignDocumentId(entityClass: Class<*>, secondaryPartition: String? = null): String
+	abstract fun baseDesignDocumentId(entityClass: Class<*>, secondaryPartition: String? = null): String
 
 	/**
 	 * In an environment with versioned design documents this method returns the current version of the design document
@@ -25,7 +37,7 @@ interface DesignDocumentProvider {
 	 * @param secondaryPartition the name of the secondary partition of the design document (if applicable).
 	 * @return the name of the design document
 	 */
-	suspend fun currentOrAvailableDesignDocumentId(client: Client, entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
+	abstract suspend fun currentOrAvailableDesignDocumentId(client: Client, entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
 
 	/**
 	 * The current design document id. In an environment with versioned design document this consist of the
@@ -39,7 +51,7 @@ interface DesignDocumentProvider {
 	 * @param secondaryPartition the name of the secondary partition of the design document (if applicable).
 	 * @return the name of the design document
 	 */
-	suspend fun currentDesignDocumentId(entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
+	abstract suspend fun currentDesignDocumentId(entityClass: Class<*>, metaDataSource: Any, secondaryPartition: String? = null): String
 
 	/**
 	 * Generates the design documents from a given metadata source.
@@ -47,12 +59,20 @@ interface DesignDocumentProvider {
 	 * @param entityClass the class of entities that are indexed by the views of the design document.
 	 * @param metaDataSource the class defining the views for entities of class [entityClass] (the DAO for entities of class
 	 * [entityClass]).
+	 * @param onlyForSystemViews whether to generate design docs with only views annotated with [SystemView].
 	 * @param client a [Client] for when is necessary to compare the newly created design documents to the existing one.
 	 * @param partition if not [Partitions.All], only the documents on that partition will be generated.
 	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
 	 * @return a [Set] of generated [DesignDocument]s.
 	 */
-	suspend fun generateDesignDocuments(entityClass: Class<*>, metaDataSource: Any, client: Client? = null, partition: Partitions = Partitions.All, ignoreIfUnchanged: Boolean = false): Set<DesignDocument>
+	abstract suspend fun generateDesignDocuments(
+		entityClass: Class<*>,
+		metaDataSource: Any,
+		onlyForSystemViews: Boolean,
+		client: Client? = null,
+		partition: Partitions = Partitions.All,
+		ignoreIfUnchanged: Boolean = false
+	): Set<DesignDocument>
 
 	/**
 	 * Generates the design documents from a given metadata source.
@@ -64,7 +84,7 @@ interface DesignDocumentProvider {
 	 * @param ignoreIfUnchanged if true, it will not generate all the design docs that are unchanged w.r.t. the existing ones.
 	 * @return a [Set] of generated [DesignDocument]s.
 	 */
-	suspend fun generateExternalDesignDocuments(
+	abstract suspend fun generateExternalDesignDocuments(
 		entityClass: Class<*>,
 		partitionsWithRepo: Map<String, String>,
 		client: Client? = null,

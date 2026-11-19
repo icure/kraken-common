@@ -303,7 +303,7 @@ class HealthcarePartyController(
 	) = mono {
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
-		val healthcareParties = healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+		val healthcareParties = healthcarePartyService.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 
 		healthcareParties.paginatedList(healthcarePartyMapper::map, realLimit)
 	}
@@ -313,7 +313,7 @@ class HealthcarePartyController(
 	fun matchHealthcarePartiesBy(
 		@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
 	) = healthcarePartyService
-		.matchHealthcarePartiesBy(
+		.matchEntitiesBy(
 			filter = filterMapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 }

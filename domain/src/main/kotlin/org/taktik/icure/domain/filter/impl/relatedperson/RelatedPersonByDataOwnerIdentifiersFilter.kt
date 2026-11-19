@@ -14,8 +14,10 @@ data class RelatedPersonByDataOwnerIdentifiersFilter(
 	override val dataOwnerId: String? = null,
 	override val identifiers: List<Identifier> = emptyList(),
 ) : AbstractFilter<RelatedPerson>,
-	org.taktik.icure.domain.filter.relatedperson.RelatedPersonByDataOwnerIdentifiersFilter {
-
+	org.taktik.icure.domain.filter.relatedperson.RelatedPersonByDataOwnerIdentifiersFilter
+{
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The data owner id is coalesced in the resolve

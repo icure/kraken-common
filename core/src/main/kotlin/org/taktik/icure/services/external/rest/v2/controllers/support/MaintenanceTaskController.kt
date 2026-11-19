@@ -193,7 +193,7 @@ class MaintenanceTaskController(
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 
 		maintenanceTaskService
-			.filterMaintenanceTasks(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
+			.filterEntitiesBy(paginationOffset, filterChainMapper.tryMap(filterChain).orThrow())
 			.paginatedList(maintenanceTaskV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
 
@@ -202,7 +202,7 @@ class MaintenanceTaskController(
 	fun matchMaintenanceTasksBy(
 		@RequestBody filter: AbstractFilterDto<MaintenanceTaskDto>,
 	) = maintenanceTaskService
-		.matchMaintenanceTasksBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

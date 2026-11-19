@@ -4,30 +4,20 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.ObjectCodec
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
-import org.reflections.Reflections
-import org.reflections.scanners.SubTypesScanner
-import org.reflections.scanners.TypeAnnotationsScanner
 import org.springframework.boot.jackson.JsonObjectDeserializer
-import org.taktik.icure.handlers.JsonDiscriminated
 import org.taktik.icure.handlers.JsonDiscriminator
-import org.taktik.icure.handlers.JsonPolymorphismRoot
+import org.taktik.icure.handlers.scanPolymorphicSubclasses
 import org.taktik.icure.services.external.rest.v1.dto.embed.form.template.Field
 
 class JacksonFieldDeserializer : JsonObjectDeserializer<Field>() {
-	private val discriminator = Field::class.java.getAnnotation(JsonDiscriminator::class.java)?.value ?: "type"
-	private val subclasses: MutableMap<String, Class<Field>> = HashMap()
-	private val reverseSubclasses: MutableMap<Class<*>, String> = HashMap()
-	private val scanner = Reflections(Field::class.java, TypeAnnotationsScanner(), SubTypesScanner())
+	companion object {
+		private val discriminator = Field::class.java.getAnnotation(JsonDiscriminator::class.java)?.value ?: "type"
 
-	init {
-		val classes = scanner.getTypesAnnotatedWith(JsonPolymorphismRoot::class.java).filter { Field::class.java.isAssignableFrom(it) }
-		for (subClass in classes) {
-			val discriminated = subClass.getAnnotation(JsonDiscriminated::class.java)
-			val discriminatedString = discriminated?.value ?: subClass.simpleName
-			subclasses[discriminatedString] = subClass as Class<Field>
-			reverseSubclasses[subClass] = discriminatedString
-		}
+		// Classpath scan: done once per class, not per deserializer instance.
+		private val subclasses: Map<String, Class<Field>> = scanPolymorphicSubclasses(Field::class.java)
 	}
+
+	override fun isCachable(): Boolean = true
 
 	override fun deserializeObject(
 		jsonParser: JsonParser?,

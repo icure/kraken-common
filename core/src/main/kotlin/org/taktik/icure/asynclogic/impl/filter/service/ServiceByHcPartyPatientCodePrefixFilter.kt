@@ -22,7 +22,6 @@ class ServiceByHcPartyPatientCodePrefixFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Service, ServiceByHcPartyPatientCodePrefixFilter> {
 	override val entity get() = contactDAO.entityClass
-	override val views = listOf("service_by_all_delegates_patient_code_prefix")
 
 	override fun resolve(
 		filter: ServiceByHcPartyPatientCodePrefixFilter,

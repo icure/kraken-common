@@ -444,7 +444,7 @@ class HealthcarePartyController(
 	fun matchHealthcarePartiesBy(
 		@RequestBody filter: AbstractFilterDto<HealthcarePartyDto>,
 	): Flux<String> = healthcarePartyService
-		.matchHealthcarePartiesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 
@@ -461,7 +461,7 @@ class HealthcarePartyController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
 		val healthcareParties =
-			healthcarePartyService.filterHealthcareParties(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
+			healthcarePartyService.filterEntitiesBy(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
 		healthcareParties.paginatedList(toDtoLambda(), realLimit, objectMapper = objectMapper)
 	}

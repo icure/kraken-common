@@ -262,7 +262,7 @@ open class UserLogicImpl(
 		)
 	}
 
-	override fun filterUsers(
+	override fun filterEntitiesBy(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<User>,
 	): Flow<ViewQueryResultEvent> = flow {

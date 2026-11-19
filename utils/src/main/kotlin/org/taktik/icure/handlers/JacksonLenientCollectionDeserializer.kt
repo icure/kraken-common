@@ -21,6 +21,7 @@ class JacksonLenientCollectionDeserializer(
 	val elementType: JavaType? = null,
 ) : JsonDeserializer<Collection<*>>(),
 	ContextualDeserializer {
+	override fun isCachable(): Boolean = true
 
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Collection<*> {
 		val mapper = p.codec

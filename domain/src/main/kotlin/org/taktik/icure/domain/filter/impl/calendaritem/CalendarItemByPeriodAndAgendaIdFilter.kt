@@ -14,6 +14,7 @@ data class CalendarItemByPeriodAndAgendaIdFilter(
 ) : AbstractFilter<CalendarItem>,
 	CalendarItemByPeriodAndAgendaIdFilter {
 
+	override val isHeavyFilter: Boolean = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

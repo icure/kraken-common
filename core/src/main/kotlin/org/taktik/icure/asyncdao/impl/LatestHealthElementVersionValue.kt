@@ -22,6 +22,8 @@ internal data class LatestHealthElementVersionValue(
 	val documentId: String
 ) {
 	object Deserializer : JsonDeserializer<LatestHealthElementVersionValue>() {
+		override fun isCachable(): Boolean = true
+
 		override fun deserialize(
 			p: JsonParser,
 			ctxt: DeserializationContext

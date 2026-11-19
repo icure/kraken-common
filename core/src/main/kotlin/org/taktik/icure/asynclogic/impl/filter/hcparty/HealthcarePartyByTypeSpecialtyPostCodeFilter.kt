@@ -16,7 +16,6 @@ class HealthcarePartyByTypeSpecialtyPostCodeFilter(
 	private val healthcarePartyDAO: HealthcarePartyDAO,
 ) : Filter<String, HealthcareParty, HealthcarePartyByTypeSpecialtyPostCodeFilter> {
 	override val entity get() = healthcarePartyDAO.entityClass
-	override val views = listOf("by_speciality_postcode")
 
 	override fun resolve(
 		filter: HealthcarePartyByTypeSpecialtyPostCodeFilter,

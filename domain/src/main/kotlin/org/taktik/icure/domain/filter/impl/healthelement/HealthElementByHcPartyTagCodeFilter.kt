@@ -28,6 +28,8 @@ data class HealthElementByHcPartyTagCodeFilter(
 		}
 	}
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

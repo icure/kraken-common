@@ -20,7 +20,6 @@ class PatientByHcPartyAndIdentifiersFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, Patient, PatientByHcPartyAndIdentifiersFilter> {
 	override val entity get() = patientDAO.entityClass
-	override val views = listOf("by_all_delegates_identifier")
 
 	override fun resolve(
 		filter: PatientByHcPartyAndIdentifiersFilter,

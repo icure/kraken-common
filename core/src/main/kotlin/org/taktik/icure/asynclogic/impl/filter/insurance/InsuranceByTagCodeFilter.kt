@@ -39,7 +39,6 @@ class InsuranceByTagCodeFilter(
 	private val insuranceDAO: InsuranceDAO,
 ) : Filter<String, Insurance, InsuranceByTagCodeFilter> {
 	override val entity get() = insuranceDAO.entityClass
-	override val views = listOf("by_tags", "by_codes")
 
 	override fun resolve(
 		filter: InsuranceByTagCodeFilter,

@@ -21,7 +21,6 @@ class HealthElementByHcPartyTagFilter(
 	private val sessionLogic: SessionInformationProvider,
 ) : Filter<String, HealthElement, HealthElementByHcPartyTagFilter> {
 	override val entity get() = healthElementDAO.entityClass
-	override val views = listOf("by_all_delegates_tag_date_map", "by_all_delegates_tag_map")
 
 	override fun resolve(
 		filter: HealthElementByHcPartyTagFilter,

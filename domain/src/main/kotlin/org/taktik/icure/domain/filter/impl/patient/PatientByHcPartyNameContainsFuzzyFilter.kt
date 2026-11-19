@@ -7,14 +7,18 @@ import org.taktik.icure.db.sanitizeString
 import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Patient
 import org.taktik.icure.entities.base.HasEncryptionMetadata
+import org.taktik.icure.utils.isHeavySearchString
 
 data class PatientByHcPartyNameContainsFuzzyFilter(
 	override val desc: String? = null,
 	override val searchString: String? = null,
 	override val healthcarePartyId: String? = null,
 ) : AbstractFilter<Patient>,
-	org.taktik.icure.domain.filter.patient.PatientByHcPartyNameContainsFuzzyFilter {
+	org.taktik.icure.domain.filter.patient.PatientByHcPartyNameContainsFuzzyFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = isHeavySearchString(searchString)
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

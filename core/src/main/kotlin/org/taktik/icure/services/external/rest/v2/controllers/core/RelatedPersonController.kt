@@ -295,7 +295,7 @@ class RelatedPersonController(
 	fun matchRelatedPersonsBy(
 		@RequestBody filter: AbstractFilterDto<RelatedPersonDto>,
 	): Flux<String> = relatedPersonService
-		.matchRelatedPersonsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

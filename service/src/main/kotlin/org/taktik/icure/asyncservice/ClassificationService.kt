@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
 import org.taktik.couchdb.entity.IdAndRev
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.entities.Classification
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 
-interface ClassificationService : EntityWithSecureDelegationsService<Classification> {
+interface ClassificationService : EntityWithSecureDelegationsService<Classification>, EntityWithFilterService<Classification> {
 	suspend fun createClassification(classification: Classification): Classification
 
 	suspend fun getClassification(classificationId: String): Classification?
@@ -127,15 +127,4 @@ interface ClassificationService : EntityWithSecureDelegationsService<Classificat
 	 * @return a [Flow] containing all the [Classification]s successfully updated.
 	 */
 	fun modifyEntities(entities: Collection<Classification>): Flow<Classification>
-
-	/**
-	 * Retrieves the ids of the [Classification]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Classification].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchClassificationsBy(filter: AbstractFilter<Classification>): Flow<String>
 }

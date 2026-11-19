@@ -21,7 +21,6 @@ class MessageByDataOwnerFromAddressFilter(
 	private val sessionInformationProvider: SessionInformationProvider,
 ) : Filter<String, Message, MessageByDataOwnerFromAddressFilter> {
 	override val entity get() = messageDAO.entityClass
-	override val views = listOf("by_all_delegates_from_address")
 
 	override fun resolve(
 		filter: MessageByDataOwnerFromAddressFilter,

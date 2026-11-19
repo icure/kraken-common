@@ -21,6 +21,8 @@ import java.math.BigInteger
  * @see JsonObjectSerializer
 </T> */
 abstract class JsonObjectDeserializer<T> : JsonDeserializer<T>() {
+	override fun isCachable(): Boolean = true
+
 	@Throws(IOException::class)
 	override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): T = try {
 		val codec = jp.codec

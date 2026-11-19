@@ -17,6 +17,7 @@ import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.ViewRowWithDoc
 import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
+import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.exception.DocumentNotFoundException
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
@@ -36,6 +37,7 @@ import org.taktik.icure.entities.User
 import org.taktik.icure.utils.main
 
 // Differences between lite and cloud version: instantiated as a bean in the respective DAOConfig
+@SystemView
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) emit( null, doc._rev )}")
 open class UserDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
@@ -51,8 +53,11 @@ open class UserDAOImpl(
 	cacheChain = entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-	queryProvider = queryProvider
+	queryProvider = queryProvider,
+	allIsSystemView = true
 ), UserDAO {
+
+	@SystemView
 	@View(
 		name = "by_username",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.login, null)}}",
@@ -68,8 +73,7 @@ open class UserDAOImpl(
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_username".main(),
-						configurationView = "by_username"
+						viewName = "by_username",
 					).includeDocs(true).key(username),
 				).map {
 					it.doc
@@ -87,13 +91,13 @@ open class UserDAOImpl(
 			client.queryViewNoValue<String>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_username".main(),
-					configurationView = "by_username"
+					viewName = "by_username",
 				).includeDocs(false).keys(usernames)
 			).mapNotNull { it.key },
 		)
 	}
 
+	@SystemView
 	@View(
 		name = "by_email",
 		map = "function(doc) {  if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted) {emit(doc.email, null)}}",
@@ -109,8 +113,7 @@ open class UserDAOImpl(
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_email".main(),
-						configurationView = "by_email"
+						viewName = "by_email",
 					).includeDocs(true).key(searchString),
 				).map { it.doc },
 		)
@@ -126,8 +129,7 @@ open class UserDAOImpl(
 			client.queryViewNoValue<String>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_email".main(),
-					configurationView = "by_email"
+					viewName = "by_email",
 				).includeDocs(false).keys(emails)
 			).mapNotNull { it.key },
 		)
@@ -141,6 +143,7 @@ open class UserDAOImpl(
 		}
 	}
 
+	@SystemView
 	@View(name = "by_phone", map = "classpath:js/user/By_phone.js")
 	override fun listUsersByPhone(
 		datastoreInformation: IDatastoreInformation,
@@ -152,8 +155,7 @@ open class UserDAOImpl(
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_phone".main(),
-						configurationView = "by_phone"
+						viewName = "by_phone",
 					).includeDocs(true).key(normalizePhone(phone)),
 				).map { it.doc },
 		)
@@ -169,8 +171,7 @@ open class UserDAOImpl(
 				.queryViewNoValue<String>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_phone".main(),
-						configurationView = "by_phone"
+						viewName = "by_phone"
 					).includeDocs(false).key(
 						phones.map {
 							normalizePhone(it)
@@ -214,7 +215,7 @@ open class UserDAOImpl(
 			pagedViewQuery(
 				datastoreInformation = datastoreInformation,
 				legacyView = "allForPagination".main(),
-				configurationView = "allForPagination",
+				configurationView = "all_for_pagination",
 				startKey = null,
 				endKey = "\ufff0",
 				pagination = pagination.copy(limit = extendedLimit),
@@ -437,7 +438,15 @@ open class UserDAOImpl(
 	override fun getUsersOnDb(datastoreInformation: IDatastoreInformation) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		emitAll(client.queryViewIncludeDocsNoValue<String, User>(createQuery(datastoreInformation, "all").includeDocs(true)).map { it.doc })
+		emitAll(
+			client.queryViewIncludeDocsNoValue<String, User>(
+				createQuery(
+					datastoreInformation = datastoreInformation,
+					legacyView = "all".main(),
+					configurationView = "all",
+				).includeDocs(true)
+			).map { it.doc }
+		)
 	}
 
 	override fun findUsersByIds(
@@ -448,6 +457,7 @@ open class UserDAOImpl(
 		emitAll(client.getForPagination(userIds, User::class.java))
 	}
 
+	@SystemView
 	@View(
 		name = "conflicts",
 		map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.User' && !doc.deleted && doc._conflicts) emit(doc._id) }",

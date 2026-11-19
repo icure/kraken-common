@@ -678,7 +678,7 @@ class DocumentController(
 	fun matchDocumentsBy(
 		@RequestBody filter: AbstractFilterDto<DocumentDto>,
 	): Flux<String> = documentService
-		.matchDocumentsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

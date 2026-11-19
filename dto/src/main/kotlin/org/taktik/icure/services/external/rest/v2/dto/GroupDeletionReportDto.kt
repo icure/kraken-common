@@ -8,11 +8,16 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
  */
 data class GroupDeletionReportDto(
 	/** The type of the deleted resource. */
-	@param:Schema(required = true) @ActiveField val type: String,
+	@param:Schema(required = true)
+	@ActiveField
+	val type: String,
 	/** The unique identifier of the deleted resource. */
-	@ActiveField val id: String,
+	@ActiveField
+	val id: String,
 	/** The server on which the resource was deleted. */
-	@param:Schema(required = true) @ActiveField val server: String,
+	@param:Schema(required = true)
+	@ActiveField
+	val server: String,
 	/** What happened to the resource. */
 	@param:Schema(defaultValue = "DELETED") @ActiveField val status: Status = Status.DELETED,
 	/** Details on a [Status.FAILED] resource. */

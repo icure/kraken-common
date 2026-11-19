@@ -38,11 +38,11 @@ import java.time.Instant
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 import org.taktik.icure.services.external.rest.v2.dto.base.ExtendableDto
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Schema(description = """This entity represents Access Log.""")
 /**
  * Represents an access log entry that records access to medical data or resources within the system.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = """This entity represents Access Log.""")
 data class AccessLogDto(
 	/** The Id of the access log. We encourage using either a v4 UUID or a HL7 Id. */
 	@param:Schema(description = "The Id of the Access log. We encourage using either a v4 UUID or a HL7 Id") override val id: String,
