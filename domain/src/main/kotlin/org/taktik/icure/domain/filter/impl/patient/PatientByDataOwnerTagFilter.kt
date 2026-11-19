@@ -15,8 +15,11 @@ data class PatientByDataOwnerTagFilter(
 	override val tagType: String,
 	override val tagCode: String? = null,
 ) : AbstractFilter<Patient>,
-	PatientByDataOwnerTagFilter {
+	PatientByDataOwnerTagFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

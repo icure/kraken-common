@@ -14,8 +14,11 @@ data class InvoiceByHcPartyCodeDateFilter(
 	override val startInvoiceDate: Long? = null,
 	override val endInvoiceDate: Long? = null,
 ) : AbstractFilter<Invoice>,
-	org.taktik.icure.domain.filter.invoice.InvoiceByHcPartyCodeDateFilter {
+	org.taktik.icure.domain.filter.invoice.InvoiceByHcPartyCodeDateFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

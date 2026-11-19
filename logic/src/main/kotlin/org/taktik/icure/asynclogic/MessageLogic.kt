@@ -4,11 +4,9 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.pagination.PaginationElement
@@ -158,8 +156,4 @@ interface MessageLogic :
 	fun getMessagesChildren(parentIds: List<String>): Flow<Message>
 	fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
 	fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-	fun filterMessages(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Message>,
-	): Flow<ViewQueryResultEvent>
 }

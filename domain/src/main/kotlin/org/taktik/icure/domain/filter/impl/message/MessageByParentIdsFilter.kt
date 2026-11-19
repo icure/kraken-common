@@ -9,8 +9,11 @@ data class MessageByParentIdsFilter(
 	override val parentIds: List<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<Message>,
-	MessageByParentIdsFilter {
+	MessageByParentIdsFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = true
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

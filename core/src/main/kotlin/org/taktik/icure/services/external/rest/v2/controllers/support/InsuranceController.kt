@@ -182,7 +182,7 @@ class InsuranceController(
 	fun matchInsurancesBy(
 		@RequestBody filter: AbstractFilterDto<InsuranceDto>,
 	): Flux<String> = insuranceService
-		.matchInsurancesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

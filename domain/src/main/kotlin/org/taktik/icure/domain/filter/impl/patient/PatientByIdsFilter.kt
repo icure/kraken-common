@@ -12,8 +12,11 @@ data class PatientByIdsFilter(
 	override val ids: Set<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<Patient>,
-	Filters.IdsFilter<String, Patient> {
+	Filters.IdsFilter<String, Patient>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

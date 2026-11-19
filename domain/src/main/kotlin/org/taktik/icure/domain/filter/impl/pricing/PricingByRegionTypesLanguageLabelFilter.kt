@@ -13,8 +13,11 @@ data class PricingByRegionTypesLanguageLabelFilter(
 	override val label: String,
 	override val desc: String? = null,
 ) : AbstractFilter<Tarification>,
-	PricingByRegionTypesLanguageLabelFilter {
+	PricingByRegionTypesLanguageLabelFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

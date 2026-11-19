@@ -458,7 +458,7 @@ class MessageController(
 		val realLimit = limit ?: paginationConfig.defaultLimit
 
 		val paginationOffset = PaginationOffset(null, startDocumentId, null, realLimit + 1)
-		val messages = messageService.filterMessages(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
+		val messages = messageService.filterEntitiesBy(paginationOffset, filterChainV2Mapper.tryMap(filterChain).orThrow())
 
 		messages.paginatedList(messageV2Mapper::map, realLimit, objectMapper = objectMapper)
 	}
@@ -468,7 +468,7 @@ class MessageController(
 	fun matchMessagesBy(
 		@RequestBody filter: AbstractFilterDto<MessageDto>,
 	): Flux<String> = messageService
-		.matchMessagesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

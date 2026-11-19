@@ -605,7 +605,7 @@ class InvoiceController(
 	fun matchInvoicesBy(
 		@RequestBody filter: AbstractFilterDto<InvoiceDto>,
 	): Flux<String> = invoiceService
-		.matchInvoicesBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

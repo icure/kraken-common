@@ -6,14 +6,12 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.Message
 import org.taktik.icure.entities.embed.Delegation
 import org.taktik.icure.exceptions.ConflictRequestException
@@ -22,7 +20,8 @@ import org.taktik.icure.pagination.PaginationElement
 
 interface MessageService :
 	EntityWithSecureDelegationsService<Message>,
-	EntityWithConflictResolutionService<Message> {
+	EntityWithConflictResolutionService<Message>,
+	EntityWithFilterService<Message> {
 
 	/**
 	 * Retrieves all the [Message]s for a given healthcare party, where [Message.fromAddress] contains [fromAddress],
@@ -196,10 +195,6 @@ interface MessageService :
 	fun getMessagesChildren(parentIds: List<String>): Flow<Message>
 	fun getMessagesByTransportGuids(hcpId: String, transportGuids: Set<String>): Flow<Message>
 	fun listMessagesByInvoiceIds(ids: List<String>): Flow<Message>
-	fun filterMessages(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Message>,
-	): Flow<ViewQueryResultEvent>
 
 	/**
 	 * Marks a batch of entities as deleted.
@@ -250,15 +245,4 @@ interface MessageService :
 	 */
 	suspend fun undeleteMessage(id: String, rev: String): Message
 	fun undeleteMessages(messageIds: List<IdAndRev>): Flow<Message>
-
-	/**
-	 * Retrieves the ids of the [Message]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [Message].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchMessagesBy(filter: AbstractFilter<Message>): Flow<String>
 }

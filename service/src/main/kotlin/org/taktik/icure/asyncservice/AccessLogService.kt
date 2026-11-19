@@ -11,16 +11,16 @@ import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asynclogic.AccessLogLogic
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.asyncservice.base.EntityWithSecureDelegationsService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
 import org.taktik.icure.domain.result.AggregatedAccessLogs
 import org.taktik.icure.entities.AccessLog
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface AccessLogService : EntityWithSecureDelegationsService<AccessLog>, EntityWithConflictResolutionService<AccessLog> {
+interface AccessLogService : EntityWithSecureDelegationsService<AccessLog>, EntityWithConflictResolutionService<AccessLog>, EntityWithFilterService<AccessLog> {
 	suspend fun createAccessLog(accessLog: AccessLog): AccessLog
 
 	fun createAccessLogs(accessLog: List<AccessLog>): Flow<AccessLog>
@@ -149,15 +149,4 @@ interface AccessLogService : EntityWithSecureDelegationsService<AccessLog>, Enti
 	 * party id.
 	 */
 	fun listAccessLogIdsByDataOwnerPatientDate(dataOwnerId: String, secretForeignKeys: Set<String>, startDate: Long?, endDate: Long?, descending: Boolean): Flow<String>
-
-	/**
-	 * Retrieves the ids of the [AccessLog]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [AccessLog].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the filter does not specify any data owner id and the current user does not have
-	 * the ExtendedRead.Any permission or if the filter specified a data owner id and the current user does not have the
-	 * rights to access their data.
-	 */
-	fun matchAccessLogsBy(filter: AbstractFilter<AccessLog>): Flow<String>
 }

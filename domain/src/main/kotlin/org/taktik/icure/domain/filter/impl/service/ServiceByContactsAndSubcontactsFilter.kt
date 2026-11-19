@@ -16,8 +16,11 @@ data class ServiceByContactsAndSubcontactsFilter(
 	override val startValueDate: Long? = null,
 	override val endValueDate: Long? = null,
 ) : AbstractFilter<Service>,
-	org.taktik.icure.domain.filter.service.ServiceByContactsAndSubcontactsFilter {
+	org.taktik.icure.domain.filter.service.ServiceByContactsAndSubcontactsFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = healthcarePartyId == null
 	override fun requestedDataOwnerIds(): Set<String> = healthcarePartyId?.let { setOf(it) } ?: emptySet()

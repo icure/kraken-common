@@ -225,7 +225,7 @@ class ClassificationController(
 	fun matchClassificationBy(
 		@RequestBody filter: AbstractFilterDto<ClassificationDto>,
 	): Flux<String> = classificationService
-		.matchClassificationsBy(
+		.matchEntitiesBy(
 			filter = filterV2Mapper.tryMap(filter).orThrow(),
 		).injectReactorContext()
 

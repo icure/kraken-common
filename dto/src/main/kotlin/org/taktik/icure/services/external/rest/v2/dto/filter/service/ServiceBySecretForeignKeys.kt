@@ -28,13 +28,13 @@ import org.taktik.icure.services.external.rest.v2.dto.filter.AbstractFilterDto
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
 
+/**
+ * Filter that matches services by healthcare party and patient secret foreign keys.
+ */
 @JsonPolymorphismRoot(AbstractFilterDto::class)
 @JsonDeserialize(using = JsonDeserializer.None::class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-/**
- * Filter that matches services by healthcare party and patient secret foreign keys.
- */
 data class ServiceBySecretForeignKeys(
 	/** Optional description of this filter. */
 	override val desc: String? = null,

@@ -12,8 +12,11 @@ data class RelatedPersonByIdsFilter(
 	override val ids: Set<String>,
 	override val desc: String? = null,
 ) : AbstractFilter<RelatedPerson>,
-	Filters.IdsFilter<String, RelatedPerson> {
+	Filters.IdsFilter<String, RelatedPerson>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = emptySet()

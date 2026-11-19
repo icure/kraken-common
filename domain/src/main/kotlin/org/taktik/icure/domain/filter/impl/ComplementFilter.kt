@@ -14,8 +14,11 @@ data class ComplementFilter<O : Identifiable<String>>(
 	override val superSet: AbstractFilter<O>,
 	override val subSet: AbstractFilter<O>,
 ) : AbstractFilter<O>,
-	Filters.ComplementFilter<String, O> {
+	Filters.ComplementFilter<String, O>
+{
 
+	override val isHeavyFilter: Boolean
+		get() = true
 	override val canBeUsedInWebsocket = subSet.canBeUsedInWebsocket && superSet.canBeUsedInWebsocket
 	override val requiresSecurityPrecondition: Boolean =
 		subSet.requiresSecurityPrecondition || superSet.requiresSecurityPrecondition

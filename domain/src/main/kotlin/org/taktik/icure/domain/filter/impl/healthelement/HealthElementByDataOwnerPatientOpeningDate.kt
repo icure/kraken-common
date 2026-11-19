@@ -11,10 +11,11 @@ data class HealthElementByDataOwnerPatientOpeningDate(
 	override val startDate: Long? = null,
 	override val endDate: Long? = null,
 	override val descending: Boolean = false,
-
 ) : AbstractFilter<HealthElement>,
 	org.taktik.icure.domain.filter.healthelement.HealthElementByDataOwnerPatientOpeningDate {
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 
 	// The HCP id is coalesced in the resolve

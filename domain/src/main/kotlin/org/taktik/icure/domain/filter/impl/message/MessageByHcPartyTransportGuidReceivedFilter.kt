@@ -10,8 +10,11 @@ data class MessageByHcPartyTransportGuidReceivedFilter(
 	override val descending: Boolean? = null,
 	override val desc: String? = null,
 ) : AbstractFilter<Message>,
-	MessageByHcPartyTransportGuidReceivedFilter {
+	MessageByHcPartyTransportGuidReceivedFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket: Boolean = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(healthcarePartyId)

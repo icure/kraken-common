@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import org.taktik.couchdb.TotalCount
+import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asyncdao.HealthElementDAO
 import org.taktik.icure.asynclogic.ConflictResolutionLogic
 import org.taktik.icure.asynclogic.ExchangeDataMapLogic
@@ -170,10 +171,10 @@ open class HealthElementLogicImpl(
 		}
 	}
 
-	override fun filter(
+	override fun filterEntitiesBy(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<HealthElement>,
-	) = flow {
+	): Flow<ViewQueryResultEvent> = flow {
 		val datastoreInformation = getInstanceAndGroup()
 		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
 		aggregateResults(

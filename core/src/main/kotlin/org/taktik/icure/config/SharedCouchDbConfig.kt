@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import org.springframework.http.client.reactive.ReactorResourceFactory
+import org.springframework.http.client.ReactorResourceFactory
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.impl.EntityInfoDAOImpl
 import org.taktik.icure.properties.CouchDbProperties
@@ -19,25 +19,40 @@ import java.time.Duration
 @Configuration
 @Profile("app")
 class SharedCouchDbConfig(
-	protected val couchDbProperties: CouchDbProperties,
+	private val couchDbProperties: CouchDbProperties,
 ) {
+
+	companion object {
+		fun newConnectionProvider(
+			name: String,
+			config: CouchDbProperties.ConnectionPoolConfig?,
+			poolMeterRegistrar: ObjectProvider<ConnectionProvider.MeterRegistrar>?
+		): ConnectionProvider = ConnectionProvider
+			.builder(name)
+			.let { builder -> config?.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
+			.maxIdleTime(Duration.ofMillis(config?.maxIdleTimeMs ?: 10_000))
+			.pendingAcquireMaxCount(config?.maxPendingAcquire ?: -1)
+			.let { builder -> poolMeterRegistrar?.ifAvailable?.let { registrar -> builder.metrics(true) { registrar } } ?: builder }
+			.build()
+	}
+
 	/**
 	 * @param poolMeterRegistrar if a [ConnectionProvider.MeterRegistrar] bean exists, it receives the live metrics of
 	 * every pool created by this provider (one pool per remote CouchDB address).
 	 */
 	@Bean
-	fun connectionProvider(
+	fun largePoolConnectionProvider(
 		poolMeterRegistrar: ObjectProvider<ConnectionProvider.MeterRegistrar>,
-	): ConnectionProvider = ConnectionProvider
-		.builder("LARGE_POOL")
-		.let { builder -> couchDbProperties.maxConnections?.let { maxConn -> builder.maxConnections(maxConn) } ?: builder }
-		.maxIdleTime(Duration.ofMillis(couchDbProperties.maxIdleTimeMs ?: 10_000))
-		.pendingAcquireMaxCount(couchDbProperties.maxPendingAcquire ?: -1)
-		.let { builder -> poolMeterRegistrar.ifAvailable?.let { registrar -> builder.metrics(true) { registrar } } ?: builder }
-		.build()
+	): ConnectionProvider = newConnectionProvider(
+		name = "LARGE_POOL",
+		config = couchDbProperties.primaryConnectionPoolConfig(),
+		poolMeterRegistrar = poolMeterRegistrar
+	)
 
 	@Bean
-	fun reactorClientResourceFactory(connectionProvider: ConnectionProvider) = ReactorResourceFactory().apply {
+	fun reactorClientResourceFactory(
+		@Qualifier("largePoolConnectionProvider") connectionProvider: ConnectionProvider
+	) = ReactorResourceFactory().apply {
 		isUseGlobalResources = false
 		this.connectionProvider = connectionProvider
 	}

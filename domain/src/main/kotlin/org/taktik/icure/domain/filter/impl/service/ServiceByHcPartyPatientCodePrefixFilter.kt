@@ -20,8 +20,11 @@ data class ServiceByHcPartyPatientCodePrefixFilter(
 	override val endValueDate: Long? = null
 
 ) : AbstractFilter<Service>,
-	ServiceByHcPartyPatientCodePrefixFilter {
+	ServiceByHcPartyPatientCodePrefixFilter
+{
 
+	override val isHeavyFilter: Boolean
+		get() = false
 	override val canBeUsedInWebsocket = true
 	override val requiresSecurityPrecondition: Boolean = false
 	override fun requestedDataOwnerIds(): Set<String> = setOf(healthcarePartyId)

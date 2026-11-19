@@ -7,19 +7,17 @@ package org.taktik.icure.asyncservice
 import kotlinx.coroutines.flow.Flow
 import org.springframework.security.access.AccessDeniedException
 import org.taktik.couchdb.DocIdentifier
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.couchdb.entity.IdAndRev
 import org.taktik.icure.asyncservice.base.EntityWithConflictResolutionService
+import org.taktik.icure.asyncservice.base.EntityWithFilterService
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.AbstractFilter
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.exceptions.ConflictRequestException
 import org.taktik.icure.exceptions.NotFoundRequestException
 import org.taktik.icure.pagination.PaginationElement
 
-interface HealthcarePartyService : EntityWithConflictResolutionService<HealthcareParty> {
+interface HealthcarePartyService : EntityWithConflictResolutionService<HealthcareParty>, EntityWithFilterService<HealthcareParty> {
 
 	suspend fun getHealthcareParty(id: String): HealthcareParty?
 	fun listHealthcarePartiesBy(searchString: String, offset: Int, limit: Int): Flow<HealthcareParty>
@@ -149,15 +147,5 @@ interface HealthcarePartyService : EntityWithConflictResolutionService<Healthcar
 	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginationElement>
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
 	suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String>
-	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>
 	fun modifyHealthcareParties(entities: Collection<HealthcareParty>): Flow<HealthcareParty>
-
-	/**
-	 * Retrieves the ids of the [HealthcareParty]s matching the provided [filter].
-	 *
-	 * @param filter an [AbstractFilter] of [HealthcareParty].
-	 * @return a [Flow] of the ids matching the filter.
-	 * @throws AccessDeniedException if the current user does not have the Permission to search codes with a filter.
-	 */
-	fun matchHealthcarePartiesBy(filter: AbstractFilter<HealthcareParty>): Flow<String>
 }

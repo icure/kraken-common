@@ -5,10 +5,8 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.couchdb.entity.ComplexKey
 import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.HealthcareParty
 import org.taktik.icure.pagination.PaginationElement
 
@@ -86,5 +84,4 @@ interface HealthcarePartyLogic : EntityPersister<HealthcareParty>, ConflictResol
 	fun findHealthcarePartiesBySsinOrNihii(searchValue: String, paginationOffset: PaginationOffset<String>, desc: Boolean): Flow<PaginationElement>
 	fun getHealthcarePartiesByParentId(parentId: String): Flow<HealthcareParty>
 	suspend fun getHcpHierarchyIds(sender: HealthcareParty): HashSet<String>
-	fun filterHealthcareParties(paginationOffset: PaginationOffset<Nothing>, filter: FilterChain<HealthcareParty>): Flow<ViewQueryResultEvent>
 }

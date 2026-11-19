@@ -305,25 +305,6 @@ open class ContactLogicImpl(
 
 	override fun getGenericDAO(): ContactDAO = contactDAO
 
-	override fun filterContacts(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<Contact>,
-	) = flow {
-		val datastoreInformation = getInstanceAndGroup()
-		val ids = filters.resolve(filter.filter, datastoreInformation).toSet(TreeSet())
-
-		val sortedIds =
-			if (paginationOffset.startDocumentId != null) { // Sub-set starting from startDocId to the end (including last element)
-				ids.dropWhile { it != paginationOffset.startDocumentId }
-			} else {
-				ids
-			}
-		val selectedIds =
-			sortedIds.take(paginationOffset.limit + 1) // Fetching one more contacts for the start key of the next page
-
-		emitAll(contactDAO.findContactsByIds(datastoreInformation, selectedIds))
-	}
-
 	override fun filterServices(
 		paginationOffset: PaginationOffset<Nothing>,
 		filter: FilterChain<Service>,

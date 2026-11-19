@@ -5,10 +5,7 @@
 package org.taktik.icure.asynclogic
 
 import kotlinx.coroutines.flow.Flow
-import org.taktik.couchdb.ViewQueryResultEvent
 import org.taktik.icure.asynclogic.base.EntityWithSecureDelegationsLogic
-import org.taktik.icure.db.PaginationOffset
-import org.taktik.icure.domain.filter.chain.FilterChain
 import org.taktik.icure.entities.RelatedPerson
 
 interface RelatedPersonLogic :
@@ -26,9 +23,4 @@ interface RelatedPersonLogic :
 	 * @return a [Flow] of RelatedPerson ids.
 	 */
 	fun listRelatedPersonIdsByDataOwner(dataOwnerId: String): Flow<String>
-
-	fun filter(
-		paginationOffset: PaginationOffset<Nothing>,
-		filter: FilterChain<RelatedPerson>,
-	): Flow<ViewQueryResultEvent>
 }
