@@ -277,6 +277,7 @@ open class UserDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(name = "by_hcp_id", map = "classpath:js/user/By_hcp_id.js")
 	override fun listUsersByHcpId(
 		datastoreInformation: IDatastoreInformation,
@@ -289,8 +290,7 @@ open class UserDAOImpl(
 				.queryViewIncludeDocsNoValue<String, User>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_hcp_id".main(),
-						configurationView = "by_hcp_id",
+						viewName = "by_hcp_id",
 					).key(hcPartyId).includeDocs(true),
 				).map { it.doc },
 		)
@@ -307,8 +307,7 @@ open class UserDAOImpl(
 				.queryView<String, String>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_hcp_id".main(),
-						configurationView = "by_hcp_id",
+						viewName = "by_hcp_id",
 					).key(hcPartyId).includeDocs(false),
 				).map { it.id },
 		)
@@ -351,6 +350,7 @@ open class UserDAOImpl(
 		)
 	}
 
+	@SystemView
 	@View(name = "by_name_email_phone", map = "classpath:js/user/By_name_email_phone.js")
 	override fun listUserIdsByNameEmailPhone(
 		datastoreInformation: IDatastoreInformation,
@@ -362,8 +362,7 @@ open class UserDAOImpl(
 				.queryView<String, Int>(
 					createQuery(
 						datastoreInformation = datastoreInformation,
-						legacyView = "by_name_email_phone".main(),
-						configurationView = "by_name_email_phone",
+						viewName = "by_name_email_phone",
 					).startKey(searchString).endKey("$searchString\ufff0").includeDocs(false),
 				).map { it.id },
 		)
@@ -378,8 +377,7 @@ open class UserDAOImpl(
 
 		val viewQuery = pagedViewQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "by_name_email_phone".main(),
-			configurationView = "by_name_email_phone",
+			viewName = "by_name_email_phone",
 			startKey = searchString,
 			endKey = "$searchString\ufff0",
 			pagination = pagination,

@@ -21,6 +21,7 @@ import org.taktik.couchdb.annotation.View
 import org.taktik.couchdb.dao.DesignDocumentProvider
 import org.taktik.couchdb.dao.annotations.SystemView
 import org.taktik.couchdb.entity.ComplexKey
+import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
@@ -43,6 +44,7 @@ import org.taktik.icure.utils.queryView
 
 @Repository("healthcarePartyDAO")
 @Profile("app")
+@SystemView
 @View(name = "all", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted) emit( doc.lastName, doc._id )}")
 internal class HealthcarePartyDAOImpl(
 	@Qualifier("baseCouchDbDispatcher") couchDbDispatcher: CouchDbDispatcher,
@@ -240,6 +242,7 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<String, String>(viewQuery).map { it.id })
 	}
 
+	@SystemView
 	@View(name = "by_hcParty_name", map = "classpath:js/healthcareparty/By_hcparty_name_map.js")
 	override fun findHealthcarePartiesByHcPartyNameContainsFuzzy(datastoreInformation: IDatastoreInformation, searchString: String?, offset: PaginationOffset<String>, desc: Boolean?) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -255,8 +258,7 @@ internal class HealthcarePartyDAOImpl(
 
 		val viewQuery = pagedViewQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "by_hcParty_name".main(),
-			configurationView = "by_hcparty_name",
+			viewName = "by_hcParty_name",
 			startKey = from,
 			endKey = to,
 			pagination = offset,
@@ -276,8 +278,7 @@ internal class HealthcarePartyDAOImpl(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_hcParty_name".main(),
-					configurationView = "by_hcparty_name",
+					viewName = "by_hcParty_name",
 				).startKey(from).endKey(to).includeDocs(true).limit(limit + offset),
 			).map { it.doc }
 				.withIndex().filter { it.index >= offset }.map { it.value },
@@ -319,6 +320,7 @@ internal class HealthcarePartyDAOImpl(
 		).mapNotNull { it.value }.toList().toAesExchangeKeysMap()
 	}
 
+	@SystemView
 	@View(name = "by_parent", map = "function(doc) { if (doc.java_type == 'org.taktik.icure.entities.HealthcareParty' && !doc.deleted && doc.parentId) emit(doc.parentId, doc._id)}")
 	override fun listHealthcarePartiesByParentId(datastoreInformation: IDatastoreInformation, parentId: String) = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
@@ -327,8 +329,7 @@ internal class HealthcarePartyDAOImpl(
 			client.queryViewIncludeDocs<String, String, HealthcareParty>(
 				createQuery(
 					datastoreInformation = datastoreInformation,
-					legacyView = "by_parent".main(),
-					configurationView = "by_parent",
+					viewName = "by_parent",
 				).key(parentId).includeDocs(true),
 			).map { it.doc },
 		)
@@ -342,8 +343,7 @@ internal class HealthcarePartyDAOImpl(
 
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "by_parent".main(),
-			configurationView = "by_parent",
+			viewName = "by_parent",
 		)
 			.key(parentId)
 			.includeDocs(false)
@@ -391,10 +391,7 @@ internal class HealthcarePartyDAOImpl(
 			codeType,
 			codeCode,
 		)
-		val to = ComplexKey.of(
-			codeType,
-			codeCode ?: ComplexKey.emptyObject(),
-		)
+		val to = ComplexKey.of(codeType, codeCode ?: EmptyObjectKey)
 
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
@@ -408,23 +405,17 @@ internal class HealthcarePartyDAOImpl(
 		emitAll(client.queryView<Array<String>, String>(viewQuery).mapNotNull { it.value })
 	}
 
+	@SystemView
 	@View(name = "by_tags", map = "classpath:js/healthcareparty/By_tags.js")
 	override fun listHealthcarePartyIdsByTag(datastoreInformation: IDatastoreInformation, tagType: String, tagCode: String?): Flow<String> = flow {
 		val client = couchDbDispatcher.getClient(datastoreInformation)
 
-		val from = ComplexKey.of(
-			tagType,
-			tagCode,
-		)
-		val to = ComplexKey.of(
-			tagType,
-			tagCode ?: ComplexKey.emptyObject(),
-		)
+		val from = ComplexKey.of(tagType, tagCode)
+		val to = ComplexKey.of(tagType, tagCode ?: EmptyObjectKey)
 
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "by_tags".main(),
-			configurationView = "by_tags",
+			viewName = "by_tags"
 		)
 			.startKey(from)
 			.endKey(to)
@@ -442,8 +433,7 @@ internal class HealthcarePartyDAOImpl(
 
 		val viewQuery = createQuery(
 			datastoreInformation = datastoreInformation,
-			legacyView = "by_hcParty_name".main(),
-			configurationView = "by_hcparty_name",
+			viewName = "by_hcParty_name",
 		)
 			.startKey(from)
 			.endKey(to)
