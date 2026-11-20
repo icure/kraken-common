@@ -147,22 +147,6 @@ class LoginController(
 		)
 	}
 
-	@Operation(summary = "check", description = "Check login using groupId/userId and password")
-	@PostMapping("/check")
-	fun check(
-		@RequestBody loginCredentials: LoginCredentials,
-	) = mono {
-		try {
-			authenticationManager.checkAuthenticationLocal(
-				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
-				loginCredentials.password ?: throw IllegalArgumentException("Password is required"),
-			)
-			ResponseEntity.noContent()
-		} catch (e: Exception) {
-			throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message)
-		}
-	}
-
 	@Deprecated("OTT Websocket auth is deprecated, use the JWT instead")
 	@Operation(summary = "token", description = "Get token for subsequent operation")
 	@GetMapping("/token/{method}/{path}")

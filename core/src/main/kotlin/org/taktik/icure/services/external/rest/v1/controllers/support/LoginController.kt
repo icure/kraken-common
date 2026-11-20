@@ -151,23 +151,6 @@ class LoginController(
 		)
 	}
 
-	@Operation(summary = "check", description = "Check login using groupId/userId and password")
-	@PostMapping("/check")
-	fun check(
-		@RequestBody loginCredentials: LoginCredentials,
-	) = mono {
-		try {
-			authenticationManager.checkAuthenticationLocal(
-				loginCredentials.username ?: throw IllegalArgumentException("Username is required"),
-				loginCredentials.password ?: throw IllegalArgumentException("Password is required"),
-			)
-			@Suppress("DEPRECATION")
-			AuthenticationResponse(successful = true)
-		} catch (e: Exception) {
-			throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message)
-		}
-	}
-
 	@Operation(summary = "logout", description = "Logout")
 	@GetMapping("/logout")
 	@ConditionalOnProperty(prefix = "spring", name = ["session.enabled"], havingValue = "true", matchIfMissing = false)
