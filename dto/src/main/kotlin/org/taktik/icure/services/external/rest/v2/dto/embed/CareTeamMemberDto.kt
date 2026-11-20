@@ -21,11 +21,16 @@ package org.taktik.icure.services.external.rest.v2.dto.embed
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasCodesDto
+import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.IdentifiableDto
 import org.taktik.icure.services.external.rest.v2.dto.specializations.Base64StringDto
 import java.io.Serializable
 import com.fasterxml.jackson.annotation.JsonFilter
 import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,6 +40,18 @@ import org.taktik.icure.dto.annotations.filtering.ActiveField
 data class CareTeamMemberDto(
 	/** The unique identifier of this care team member. */
 	override val id: String,
+	/** Tags qualifying this care team member. */
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("2.17.0", ActiveField::class),
+	)
+	override val tags: Set<CodeStubDto> = emptySet(),
+	/** Codes qualifying this care team member. */
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("2.17.0", ActiveField::class),
+	)
+	override val codes: Set<CodeStubDto> = emptySet(),
 	/** The type of care team member (physician, specialist, or other). */
 	@ActiveField val careTeamMemberType: CareTeamMemberTypeDto? = null,
 	/** The identifier of the associated healthcare party. */
@@ -45,4 +62,6 @@ data class CareTeamMemberDto(
 	override val encryptedSelf: Base64StringDto? = null,
 ) : EncryptableDto,
 	Serializable,
+	HasTagsDto,
+	HasCodesDto,
 	IdentifiableDto<String>

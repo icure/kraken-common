@@ -11,6 +11,8 @@ import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.GroupDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
 import org.taktik.icure.services.external.rest.v2.dto.InsuranceDto
+import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
+import org.taktik.icure.services.external.rest.v2.dto.embed.CareTeamMemberDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GroupStatusDto
 
@@ -153,5 +155,46 @@ class CardinalVersionedSerializationTest : StringSpec({
 		mapperFor("2.13.5", includingLegacyFields = false).toTree(HealthElementDto(id = "he", status = 7)).has("status") shouldBe false
 		mapperFor("2.13.5", includingLegacyFields = false).toTree(InsuranceDto(id = "ins", privateInsurance = true)).has("privateInsurance") shouldBe false
 		mapperFor("2.13.5", includingLegacyFields = false).toTree(DocumentDto(id = "doc", mainAttachmentStoredDataSize = 123L)).has("mainAttachmentStoredDataSize") shouldBe true
+	}
+
+	"CareTeamMemberDto tags and codes are filtered out strictly before 2.17.0, in both regimes, also when nested in a HealthElementDto" {
+		val member = CareTeamMemberDto(
+			id = "member",
+			healthcarePartyId = "hcp",
+			tags = setOf(CodeStubDto(id = "CD|tag|1", type = "CD", code = "tag", version = "1")),
+			codes = setOf(CodeStubDto(id = "CD|code|1", type = "CD", code = "code", version = "1")),
+		)
+		val healthElement = HealthElementDto(id = "he", careTeam = listOf(member))
+		fun JsonNode.careTeamMember(): JsonNode = this["careTeam"][0]
+
+		mapperFor(version = null).toTree(healthElement).careTeamMember().let {
+			it.has("tags") shouldBe true
+			it.has("codes") shouldBe true
+		}
+		listOf("2.0.0", "2.13.5", "2.16.0", "2.16.10").forEach { version ->
+			listOf(false, true).forEach { includingLegacyFields ->
+				mapperFor(version, includingLegacyFields).toTree(healthElement).careTeamMember().let {
+					it.has("tags") shouldBe false
+					it.has("codes") shouldBe false
+					// The other fields of the member are still serialized
+					it["healthcarePartyId"].asText() shouldBe "hcp"
+				}
+			}
+		}
+		listOf("2.17.0", "3.0.0").forEach { version ->
+			listOf(false, true).forEach { includingLegacyFields ->
+				mapperFor(version, includingLegacyFields).toTree(healthElement).careTeamMember().let {
+					it["tags"][0]["id"].asText() shouldBe "CD|tag|1"
+					it["codes"][0]["id"].asText() shouldBe "CD|code|1"
+				}
+			}
+		}
+		// The HealthElementDto's own tags and codes are not affected by the CareTeamMemberDto policy
+		mapperFor("2.16.0").toTree(
+			HealthElementDto(id = "he", tags = setOf(CodeStubDto(id = "CD|tag|1")), codes = setOf(CodeStubDto(id = "CD|code|1"))),
+		).let {
+			it.has("tags") shouldBe true
+			it.has("codes") shouldBe true
+		}
 	}
 })
