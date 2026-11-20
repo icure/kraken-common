@@ -80,14 +80,6 @@ abstract class AbstractAuthenticationManager<
 		totpToken: String? = null,
 	): Pair<JWT, Long?>
 
-	/**
-	 * IMPORTANT: this method checks the validity of authentication only against the local user, not safe for login.
-	 */
-	abstract suspend fun checkAuthenticationLocal(
-		fullGroupAndId: String,
-		password: String,
-	)
-
 	override fun authenticate(authentication: Authentication?): Mono<Authentication> = mono {
 		try {
 			(
