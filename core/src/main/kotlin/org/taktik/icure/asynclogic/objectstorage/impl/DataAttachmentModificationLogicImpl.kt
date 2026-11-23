@@ -12,6 +12,7 @@ import org.taktik.icure.asyncdao.CustomEntityDAO
 import org.taktik.icure.asyncdao.DocumentDAO
 import org.taktik.icure.asynclogic.objectstorage.CustomEntityDataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.CustomEntityObjectStorage
+import org.taktik.icure.asynclogic.objectstorage.AttachmentStorageTarget
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentModificationLogic
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
@@ -129,12 +130,24 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		entityId: String,
 		expectedRev: String?,
 		changes: Map<String, DataAttachmentChange>,
+	): T? = updateAttachments(
+		AttachmentStorageTarget.of(getInstanceAndGroup(), icureObjectStorage),
+		entityId,
+		expectedRev,
+		changes,
+	)
+
+	override suspend fun updateAttachments(
+		target: AttachmentStorageTarget<T>,
+		entityId: String,
+		expectedRev: String?,
+		changes: Map<String, DataAttachmentChange>,
 	): T? {
 		// 1. Validate all attachments changes make sense:
 		// - The user is not asking to delete an attachment that doesn't exist
 		// - The user is not asking to create an attachment with the same content as an existing attachment (can only be checked for couchdb attachments but maybe in future also for object storage)
 		// - No update requests with duplicate attachments data (can only be checked for couchdb attachments but maybe in future also for object storage)
-		val datastoreInformation = getInstanceAndGroup()
+		val datastoreInformation = target.datastoreInformation
 		val currEntity = dao.get(datastoreInformation, entityId) ?: throw NotFoundRequestException("Couldn't find entity with id $entityId")
 		if (expectedRev != null &&
 			currEntity.rev != expectedRev
@@ -160,6 +173,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 		val tasks = dataAttachmentUpdateInfos.flatMap { it.value.tasks }
 		// 2. Pre-store object storage attachments
 		preStoreObjectStorageAttachments(
+			target,
 			currEntity,
 			tasks,
 		)
@@ -212,7 +226,7 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 				couchDbUploads,
 			).also {
 				// 4. Schedule upload for new object storage attachment and schedule deletion for obsolete object storage attachments
-				scheduleObjectStorageTasks(it, tasks)
+				scheduleObjectStorageTasks(target, it, tasks)
 			}
 	}
 
@@ -322,14 +336,15 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	} ?: emptyList()
 
 	private suspend fun scheduleObjectStorageTasks(
+		target: AttachmentStorageTarget<T>,
 		entity: T,
 		tasks: List<AttachmentTask>,
 	) {
 		tasks.filterIsInstance<AttachmentTask.PreStoreAndUploadObjectStorage>().forEach { task ->
-			icureObjectStorage.scheduleStoreAttachment(entity, task.attachmentId)
+			target.scheduleStoreAttachment(entity, task.attachmentId)
 		}
 		tasks.filterIsInstance<AttachmentTask.DeleteObjectStorage>().forEach { task ->
-			icureObjectStorage.scheduleDeleteAttachment(entity, task.attachmentId)
+			target.scheduleDeleteAttachment(entity, task.attachmentId)
 		}
 	}
 
@@ -345,11 +360,12 @@ abstract class DataAttachmentModificationLogicImpl<T : HasDataAttachments<T>>(
 	private val DataAttachmentChange.isDelete get() = this === DataAttachmentChange.Delete
 
 	private suspend fun preStoreObjectStorageAttachments(
+		target: AttachmentStorageTarget<T>,
 		entity: T,
 		tasks: List<AttachmentTask>,
 	) {
 		tasks.filterIsInstance<AttachmentTask.PreStoreAndUploadObjectStorage>().forEach {
-			icureObjectStorage.preStore(
+			target.preStore(
 				entity,
 				it.attachmentId,
 				it.dataFlow,

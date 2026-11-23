@@ -57,6 +57,17 @@ interface DataAttachmentModificationLogic<T : HasDataAttachments<T>> {
 	): T?
 
 	/**
+	 * Same as [updateAttachments], for an entity stored in [target] instead of the datastore of the current user.
+	 * @param target where the entity and its attachments are stored.
+	 */
+	suspend fun updateAttachments(
+		target: AttachmentStorageTarget<T>,
+		entityId: String,
+		expectedRev: String?,
+		changes: Map<String, DataAttachmentChange>,
+	): T?
+
+	/**
 	 * Delete the attachments of an entity that was purged.
 	 * Pass the last known value of the entity before it was purged from couchdb to delete any attachments that were
 	 * stored in object storage.
