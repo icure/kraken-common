@@ -35,4 +35,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "kraken-common"
 
-include("domain", "logic", "core", "mapper", "dto", "dao", "jwt", "service", "utils")
+include("domain", "logic", "core", "mapper", "dto", "dao", "jwt", "service", "utils", "serialization")

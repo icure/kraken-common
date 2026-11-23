@@ -1,12 +1,11 @@
-package org.taktik.icure.config.filters
+package org.taktik.icure.serialization.cardinal.filters
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import org.springframework.core.codec.Encoder
-import org.taktik.icure.config.SharedWebFluxConfiguration
 import org.taktik.icure.entities.utils.SemanticVersion
+import org.taktik.icure.serialization.cardinal.CardinalObjectMappers
 import org.taktik.icure.services.external.rest.v2.dto.DocumentDto
 import org.taktik.icure.services.external.rest.v2.dto.GroupDto
 import org.taktik.icure.services.external.rest.v2.dto.HealthElementDto
@@ -15,18 +14,16 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.DataAttachmentDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.GroupStatusDto
 
 /**
- * Exposes the protected mappers built by [SharedWebFluxConfiguration] so that tests can serialize DTOs with the
- * exact same [CardinalMappersProviderImpl] wiring used in production (mixins registered per SDK version, as
- * generated from the `@SerializationPolicy`/`@LegacyField`/`@ActiveField` annotations on the DTOs).
+ * The mappers built by [CardinalObjectMappers] with the generated [CardinalMappersProviderImpl], i.e. the exact same
+ * wiring used in production (mixins registered per SDK version, as generated from the
+ * `@SerializationPolicy`/`@LegacyField`/`@ActiveField` annotations on the DTOs).
  */
-private class TestCardinalConfig : SharedWebFluxConfiguration(CardinalMappersProviderImpl()) {
-	val mappers get() = cardinalMappers
-	val legacyMapper get() = legacyObjectMapper
-
-	override fun getJackson2JsonEncoder(): Encoder<Any> = throw UnsupportedOperationException("not used in tests")
+private object TestCardinalConfig {
+	val mappers = CardinalObjectMappers.cardinalMappers(CardinalMappersProviderImpl())
+	val legacyMapper = CardinalObjectMappers.legacyObjectMapper()
 }
 
-private val config = TestCardinalConfig()
+private val config = TestCardinalConfig
 
 /**
  * Picks the mapper that would be used to serialize a response for the given (nullable) requested cardinal

@@ -37,6 +37,7 @@ dependencies {
     implementation(project("$projectPrefix:jwt"))
     implementation(project("$projectPrefix:utils"))
     implementation(project("$projectPrefix:service"))
+    implementation(project("$projectPrefix:serialization"))
 
     if (rootProject.name == "kraken-cloud") {
         ksp("com.icure:ksp-json-processor")
@@ -77,10 +78,6 @@ dependencies {
 
     testImplementation(coreLibs.bundles.kotestLibs)
     testImplementation(coreLibs.bundles.hibernateValidatorLibs)
-}
-
-if (rootProject.name == "kraken-cloud" || rootProject.name == "kraken-lite") {
-	apply(plugin = "generate-jackson-filters-conventions")
 }
 
 // The Spring Boot plugin above is applied for its dependency management and the kotlin-spring conveniences, not to
