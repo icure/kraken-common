@@ -27,6 +27,11 @@ data class DesignDocSchema(
 	 * The key of the view is the entity name, the value the name of the views.
 	 */
 	val viewsNotByDataOwner: Map<String, Set<String>> = emptyMap(),
+	/**
+	 * The key of the outermost map is the section in the form (feature, filters, legacy). Each value is a map that
+	 * goes from Entity name or qualifier to the list of option selected.
+	 */
+	val cockpitFormChoices: Map<String, Map<String, List<String>>>,
 	val customViewsVersion: Int? = null,
 	@param:JsonProperty("deleted") override val deletionDate: Long? = null,
 	@param:JsonProperty("_attachments") override val attachments: Map<String, Attachment>? = mapOf(),
@@ -45,6 +50,7 @@ data class DesignDocSchema(
 			@JsonProperty("_rev") rev: String?,
 			viewsByEntity: Map<String, Map<String, Int>>,
 			viewsNotByDataOwner: Map<String, Set<String>>? = null,
+			cockpitFormChoices: Map<String, Map<String, List<String>>>? = null,
 			deletionDate: Long? = null,
 			customViewsVersion: Int? = null,
 			@JsonProperty("_attachments") attachments: Map<String, Attachment>? = mapOf(),
@@ -63,7 +69,8 @@ data class DesignDocSchema(
 				version = version,
 				viewsByEntity = viewsByEntity,
 				customViewsVersion = customViewsVersion,
-				viewsNotByDataOwner = viewsNotByDataOwner ?: emptyMap(),
+				viewsNotByDataOwner = viewsNotByDataOwner.orEmpty(),
+				cockpitFormChoices = cockpitFormChoices.orEmpty(),
 				deletionDate = deletionDate,
 				attachments = attachments,
 				revisionsInfo = revisionsInfo,

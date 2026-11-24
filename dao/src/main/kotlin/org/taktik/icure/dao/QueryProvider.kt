@@ -37,7 +37,11 @@ class QueryProvider(
 				.designDocId(designDocName(entityClass.simpleName, partition.toString()))
 				.skipIfViewDoesNotExist(false)
 				.viewName(viewName)
-			failOnMissingView -> throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
+			failOnMissingView -> throw MissingViewException(
+				viewName = viewName,
+				entity = entityClass.simpleName,
+				designDocConfigId = schema.id
+			)
 			else -> null
 		}
 	}
@@ -121,7 +125,11 @@ class QueryProvider(
 						.descending(descending)
 				)
 			)
-			failOnMissingView -> throw MissingViewException(viewName = viewName, entity = entityClass.simpleName, schema.id)
+			failOnMissingView -> throw MissingViewException(
+				viewName = viewName,
+				entity = entityClass.simpleName,
+				designDocConfigId = schema.id
+			)
 			else -> null
 		}
 	}
@@ -132,7 +140,11 @@ class QueryProvider(
 			val viewsForEntity = schema.viewsByEntity[dao.entityClass.simpleName]
 			when {
 				viewsForEntity?.containsKey("all") == true -> true
-				failOnMissingView -> throw MissingViewException(viewName = "all", entity = dao.entityClass.simpleName, schema.id)
+				failOnMissingView -> throw MissingViewException(
+					viewName = "all",
+					entity = dao.entityClass.simpleName,
+					designDocConfigId = schema.id
+				)
 				else -> false
 			}
 		}

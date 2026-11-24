@@ -24,6 +24,7 @@ class DesignDocSchemaSerializationTest :
 					"Contact" to setOf("by_date"),
 				),
 				customViewsVersion = 7,
+				cockpitFormChoices = emptyMap(),
 				deletionDate = 1234L,
 			)
 			mapper.readValue<DesignDocSchema>(mapper.writeValueAsString(schema)) shouldBe schema
@@ -37,6 +38,7 @@ class DesignDocSchemaSerializationTest :
 					version = 0,
 					viewsByEntity = mapOf("Patient" to mapOf("by_custom_key" to 0)),
 					viewsNotByDataOwner = mapOf("Patient" to setOf("by_custom_key")),
+					cockpitFormChoices = emptyMap(),
 				),
 			)
 			mapper.readTree(json).has("viewsNotByDataOwner") shouldBe true
