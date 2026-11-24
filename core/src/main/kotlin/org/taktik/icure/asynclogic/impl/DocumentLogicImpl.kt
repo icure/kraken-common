@@ -24,6 +24,7 @@ import org.taktik.icure.asynclogic.SessionInformationProvider
 import org.taktik.icure.asynclogic.base.CustomFilteringLogic
 import org.taktik.icure.asynclogic.base.impl.EntityWithEncryptionMetadataLogic
 import org.taktik.icure.asynclogic.impl.filter.Filters
+import org.taktik.icure.asynclogic.objectstorage.AttachmentStorageTarget
 import org.taktik.icure.asynclogic.objectstorage.DataAttachmentChange
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentLoader
 import org.taktik.icure.asynclogic.objectstorage.DocumentDataAttachmentModificationLogic
@@ -236,17 +237,48 @@ open class DocumentLogicImpl(
 		documentRev: String?,
 		mainAttachmentChange: DataAttachmentChange?,
 		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>,
+	): Document? = doUpdateAttachments(
+		getInstanceAndGroup(),
+		documentId,
+		mainAttachmentChange,
+		secondaryAttachmentsChanges,
+	) { changes ->
+		attachmentModificationLogic.updateAttachments(documentId, documentRev, changes)
+	}
+
+	/**
+	 * Same as [updateAttachments], for a document stored in [target].
+	 */
+	protected suspend fun updateAttachments(
+		target: AttachmentStorageTarget<Document>,
+		documentId: String,
+		documentRev: String?,
+		mainAttachmentChange: DataAttachmentChange?,
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>,
+	): Document? = doUpdateAttachments(
+		target.datastoreInformation,
+		documentId,
+		mainAttachmentChange,
+		secondaryAttachmentsChanges,
+	) { changes ->
+		attachmentModificationLogic.updateAttachments(target, documentId, documentRev, changes)
+	}
+
+	private suspend fun doUpdateAttachments(
+		datastoreInformation: IDatastoreInformation,
+		documentId: String,
+		mainAttachmentChange: DataAttachmentChange?,
+		secondaryAttachmentsChanges: Map<String, DataAttachmentChange>,
+		update: suspend (changes: Map<String, DataAttachmentChange>) -> Document?,
 	): Document? {
 		require(!secondaryAttachmentsChanges.containsKey(Document.mainAttachmentKeyFromId(documentId))) {
 			"Secondary attachments cannot use the main attachment key"
 		}
-		return attachmentModificationLogic.updateAttachments(
-			documentId,
-			documentRev,
+		return update(
 			mainAttachmentChange
 				?.let {
 					if (it is DataAttachmentChange.CreateOrUpdate && it.utis == null) {
-						val currentDocument = documentDAO.get(getInstanceAndGroup(), documentId)
+						val currentDocument = documentDAO.get(datastoreInformation, documentId)
 						if (currentDocument?.mainAttachment == null) {
 							// Capture cases where the document has no attachment id set (main attachment is null) but specifies some utis
 							it.copy(utis = listOfNotNull(currentDocument?.mainUti) + currentDocument?.otherUtis.orEmpty())
