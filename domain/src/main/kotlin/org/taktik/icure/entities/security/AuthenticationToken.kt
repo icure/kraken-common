@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import org.taktik.icure.utils.InstantDeserializer
 import org.taktik.icure.utils.InstantSerializer
-import org.taktik.icure.utils.between
+import org.taktik.icure.utils.isWithinSecondsAfter
 import java.io.Serializable
 import java.time.Instant
 
@@ -39,7 +39,7 @@ data class AuthenticationToken(
 	}
 
 	@JsonIgnore
-	fun isExpired(): Boolean = if (validity == LONG_LIVING_TOKEN_VALIDITY) false else !Instant.now().between(creationTime, creationTime.plusSeconds(validity))
+	fun isExpired(): Boolean = if (validity == LONG_LIVING_TOKEN_VALIDITY) false else !Instant.now().isWithinSecondsAfter(creationTime, validity)
 
 	@get:JsonIgnore
 	val isShortLived: Boolean get() = validity in 1..MAX_SHORT_LIVING_TOKEN_VALIDITY
