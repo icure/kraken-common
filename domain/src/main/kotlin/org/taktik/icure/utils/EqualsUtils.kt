@@ -1,5 +1,6 @@
 package org.taktik.icure.utils
 
+import java.time.Duration
 import java.time.Instant
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -68,3 +69,11 @@ fun <K : Any> K.differences(o: K?): List<Diff> {
 }
 
 fun Instant.between(start: Instant, end: Instant): Boolean = this.isAfter(start) && this.isBefore(end)
+
+/**
+ * Whether this instant is strictly after [start] and less than [seconds] seconds after it: the same as
+ * `between(start, start.plusSeconds(seconds))`, but without computing the end instant, which overflows (and throws)
+ * when [seconds] is large.
+ */
+fun Instant.isWithinSecondsAfter(start: Instant, seconds: Long): Boolean =
+	this.isAfter(start) && Duration.between(start, this) < Duration.ofSeconds(seconds)

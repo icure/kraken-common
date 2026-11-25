@@ -504,14 +504,13 @@ open class UserLogicImpl(
 				} else {
 					UUID.randomUUID().toString()
 				}
-				)
+			)
 
 		val tokenValidityWithinBounds =
-			tokenValidity
-				.coerceAtLeast(1)
-				.coerceAtMost(
-					if (useShortToken || authenticationToken.length < 10) 600 else Long.MAX_VALUE,
-				)
+			if (useShortToken || authenticationToken.length < 10)
+				tokenValidity.coerceAtLeast(1).coerceAtMost(600)
+			else
+				tokenValidity
 
 		return Pair(
 			userDAO.save(
@@ -530,7 +529,7 @@ open class UserLogicImpl(
 											SecretType.LONG_TOKEN
 										},
 									),
-									validity = tokenValidity,
+									validity = tokenValidityWithinBounds,
 								)
 							),
 				),
