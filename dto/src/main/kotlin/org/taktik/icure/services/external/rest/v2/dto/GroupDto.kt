@@ -22,6 +22,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.taktik.icure.SdkName
+import org.taktik.icure.dto.annotations.filtering.ActiveField
+import org.taktik.icure.dto.annotations.filtering.NonEmpty
+import org.taktik.icure.dto.annotations.filtering.Omit
+import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
+import org.taktik.icure.dto.annotations.filtering.Since
 import org.taktik.icure.services.external.rest.v2.dto.base.CodeStubDto
 import org.taktik.icure.services.external.rest.v2.dto.base.HasTagsDto
 import org.taktik.icure.services.external.rest.v2.dto.base.StoredDocumentDto
@@ -30,10 +35,6 @@ import org.taktik.icure.services.external.rest.v2.dto.embed.GroupStatusDto
 import org.taktik.icure.services.external.rest.v2.dto.embed.UserTypeDto
 import org.taktik.icure.services.external.rest.v2.dto.security.ExternalJwtConfigDto
 import org.taktik.icure.services.external.rest.v2.dto.security.OperationTokenDto
-import org.taktik.icure.dto.annotations.filtering.ActiveField
-import org.taktik.icure.dto.annotations.filtering.Omit
-import org.taktik.icure.dto.annotations.filtering.SerializationPolicy
-import org.taktik.icure.dto.annotations.filtering.Since
 
 /**
  * Represents a group in the iCure platform. A group corresponds to a practice, hospital, or organization
@@ -73,22 +74,23 @@ data class GroupDto(
 	) @ActiveField val sharedEntities: Map<String, String> = emptyMap(),
 	/** Minimum version of Kraken required to access API. */
 	@param:Schema(description = "Minimum version of Kraken required to access API") @ActiveField val minimumKrakenVersion: String? = null,
-	@param:JsonInclude(
-		JsonInclude.Include.NON_EMPTY,
-	)
 	/** Verified public keys that can be used to allow log in with external JWTs. */
-	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs") @ActiveField val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
+	@param:JsonInclude(JsonInclude.Include.NON_EMPTY)
+	@param:Schema(description = "Verified public keys that can be used to allow log in with external JWTs")
+	@ActiveField
+	val externalJwtConfig: Map<String, ExternalJwtConfigDto> = emptyMap(),
 	/** The minimum authentication class required for elevated privileges. */
 	@ActiveField val minimumAuthenticationClassForElevatedPrivileges: AuthenticationClassDto = AuthenticationClassDto.PASSWORD,
 	/** The id of the parent super group, if any. */
 	@ActiveField val superGroup: String? = null,
+	/** A user-chosen identifier for the applications for which this group holds data. */
 	@param:Schema(
 		description = "A user-chosen identifier for the applications for which this group holds data. Helps to isolate environments when working with multi-group applications.",
 	)
-	/** A user-chosen identifier for the applications for which this group holds data. */
 	@param:JsonAlias("projectId")
 	@SdkName("projectId")
-	@ActiveField val applicationId: String? = null,
+	@ActiveField
+	val applicationId: String? = null,
 	@ActiveField val templates: TemplatesConfigurationDto? = null,
 	/**
 	 * The versions of the custom design doc schema applied to the group.
@@ -117,6 +119,15 @@ data class GroupDto(
 		Since("2.13.5", ActiveField::class)
 	)
 	val status: GroupStatusDto? = null,
+	/**
+	 * The group hierarchy from the root (first element) to the parent group (last element)
+	 * If null, it means that the group is at the top of the hierarchy or that the user is not allowed to read it
+	 */
+	@SerializationPolicy(
+		Since("2.0.0", Omit::class),
+		Since("2.18.0", NonEmpty::class)
+	)
+	val groupHierarchy: List<String>? = null,
 ) : StoredDocumentDto,
 	HasTagsDto {
 	override fun withIdRev(
