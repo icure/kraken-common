@@ -25,7 +25,6 @@ import org.taktik.couchdb.entity.EmptyObjectKey
 import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.queryViewIncludeDocs
-import org.taktik.couchdb.queryViewNoValue
 import org.taktik.icure.asyncdao.CouchDbDispatcher
 import org.taktik.icure.asyncdao.DataOwnerPublicKeysViewValue
 import org.taktik.icure.asyncdao.HealthcarePartyDAO
@@ -63,9 +62,9 @@ internal class HealthcarePartyDAOImpl(
 	cacheChain = entityCacheFactory.getConfiguredCache(),
 	designDocumentProvider = designDocumentProvider,
 	daoConfig = daoConfig,
-	queryProvider = queryProvider
-),
-	HealthcarePartyDAO {
+	queryProvider = queryProvider,
+	allIsSystemView = true
+), HealthcarePartyDAO {
 
 	override suspend fun warmupPartition(datastoreInformation: IDatastoreInformation, partition: Partitions) {
 		when (partition) {

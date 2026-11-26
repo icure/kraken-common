@@ -21,7 +21,6 @@ package org.taktik.icure.asyncdao.impl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -37,7 +36,6 @@ import org.taktik.couchdb.entity.DesignDocument
 import org.taktik.couchdb.entity.Option
 import org.taktik.couchdb.entity.ViewQuery
 import org.taktik.couchdb.exception.DocumentNotFoundException
-import org.taktik.couchdb.id.IDGenerator
 import org.taktik.couchdb.queryView
 import org.taktik.couchdb.update
 import org.taktik.icure.asyncdao.CouchDbDispatcher
@@ -221,7 +219,6 @@ open class InternalDAOImpl<T : StoredDocument>(
 		)
 	}
 
-	//
 	override suspend fun forceInitStandardDesignDocument(updateIfExists: Boolean) {
 		val client = couchDbDispatcher.getClient(datastoreInstanceProvider.getInstanceAndGroup())
 		val generateds = designDocumentProvider.generateDesignDocuments(entityClass = this.entityClass, metaDataSource = this, onlyForSystemViews = false)
